@@ -1,0 +1,13 @@
+# VSR-Place Variant A: mask-only repair
+vsr:
+  enabled: true
+  mode: post_sampling
+  selector:
+    type: threshold
+    threshold: 0.0
+  strength:
+    type: fixed
+    alpha: 0.3
+  budget:
+    max_loops: 4
+    early_stop_on_legal: true

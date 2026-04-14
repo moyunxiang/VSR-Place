@@ -1,0 +1,73 @@
+# VSR-Place default configuration
+# Override individual fields via Hydra CLI or method-specific configs
+
+# === Backbone ===
+backbone:
+  checkpoint: null  # Path to ChipDiffusion checkpoint
+  family: continuous_diffusion
+  device: cuda
+
+# === Sampling ===
+sampling:
+  num_steps: 100
+  num_samples: 10
+
+# === Verifier ===
+verifier:
+  canvas_width: 1.0   # Set per benchmark
+  canvas_height: 1.0
+  min_spacing: 0.0
+  check_spacing: false
+  boundary_weight: 1.0
+  overlap_weight: 1.0
+  spacing_weight: 1.0
+
+# === VSR Loop ===
+vsr:
+  enabled: true
+  mode: post_sampling  # post_sampling or intra_sampling
+
+  # Macro selector
+  selector:
+    type: threshold  # threshold, top_k, global, adaptive
+    threshold: 0.0
+    k: 5
+    percentile: 50.0
+
+  # Re-noising strength
+  strength:
+    type: fixed  # fixed, severity_adaptive, scheduled
+    alpha: 0.3
+    alpha_min: 0.1
+    alpha_max: 0.5
+    schedule: [0.5, 0.3, 0.2, 0.1]
+
+  # Repair budget
+  budget:
+    max_loops: 4
+    early_stop_on_legal: true
+    min_improvement: 0.0
+
+  # Verify schedule (for intra_sampling mode)
+  verify_schedule:
+    mode: every_k
+    every_k: 10
+    late_steps: 50
+    t_start: 0.5
+    t_end: 0.01
+
+  # Denoise steps for repair re-denoising
+  denoise_steps: 50
+
+# === Evaluation ===
+eval:
+  seeds: [42, 123, 300]
+  save_placements: true
+  save_visualizations: true
+
+# === Logging ===
+logging:
+  wandb: false
+  wandb_project: vsr_place
+  wandb_entity: null
+  output_dir: results/runs

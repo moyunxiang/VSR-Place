@@ -1,0 +1,5 @@
+# ChipDiffusion guided baseline
+vsr:
+  enabled: false
+backbone:
+  family: guided_diffusion
