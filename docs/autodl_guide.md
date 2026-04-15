@@ -276,20 +276,16 @@ cat ~/.ssh/id_ed25519.pub
 ssh -T git@github.com
 # 应显示: Hi moyunxiang! You've successfully authenticated...
 
-# 4. 更新 .gitignore，允许结果文件被提交
-#    results/runs/ 和 results/tables/ 默认被 gitignore 了
-#    如果想提交结果，先取消忽略：
-echo '!results/tables/' >> .gitignore
-echo '!results/tables/**' >> .gitignore
-
-# 5. 添加结果文件
+# 4. 添加结果文件
+#    results/tables/ 和 results/figures/ 可以正常提交
+#    results/runs/ 被 gitignore（原始数据太大，不提交）
 git add results/tables/ results/figures/ log.md
 git add results/ablations/ 2>/dev/null  # 如果有消融结果
 
-# 6. 提交
+# 5. 提交
 git commit -m "Add experiment results: <简要说明跑了什么>"
 
-# 7. 推送
+# 6. 推送
 git push origin main
 ```
 

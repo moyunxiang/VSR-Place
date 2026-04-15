@@ -19,10 +19,11 @@ env/
 *.swp
 *.swo
 
-# Experiment outputs
+# Experiment outputs (raw per-run data, too large for git)
 results/runs/
-results/tables/
-results/figures/
+
+# Keep aggregated tables and figures (small, needed for paper)
+# results/tables/ and results/figures/ are NOT ignored
 
 # Data and checkpoints (downloaded via scripts)
 data/
