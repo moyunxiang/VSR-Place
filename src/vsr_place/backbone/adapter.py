@@ -60,7 +60,7 @@ class ChipDiffusionAdapter:
         from common.checkpoint import Checkpointer
 
         if model_config is None:
-            model_config = _default_large_config()
+            model_config = _default_large_config(device=device)
 
         model = ContinuousDiffusionModel(**model_config).to(device)
 
@@ -356,28 +356,46 @@ class ChipDiffusionAdapter:
         return math.sin(math.pi / 2.0 * t) ** 2
 
 
-def _default_large_config() -> dict:
-    """Default model config matching ChipDiffusion Large+v2."""
+def _default_large_config(input_shape=(61, 2), device="cpu") -> dict:
+    """Default model config matching ChipDiffusion Large+v2.
+
+    Derived from checkpoints/large-v2/config.yaml shipped with the
+    official pretrained checkpoint.
+    """
+    from omegaconf import OmegaConf
+
+    backbone_params = OmegaConf.create({
+        "edge_features": 4,
+        "cond_node_features": 2,
+        "hidden_size": 256,
+        "hidden_node_features": [256, 256, 256],
+        "attention_node_features": [256, 256, 256],
+        "layers_per_block": 2,
+        "input_encoding_dim": 32,
+        "dropout": 0.0,
+        "num_heads": 4,
+        "mlp_num_layers": 2,
+        "mlp_size_factor": 4,
+        "ff_num_layers": 2,
+        "ff_size_factor": 1,
+        "att_implementation": "flash",
+        "dir_att_input": True,
+        "conv_params": {
+            "layer_type": "gat",
+            "heads": 4,
+            "concat": True,
+        },
+        "in_node_features": input_shape[1],
+        "out_node_features": input_shape[1],
+        "t_encoding_dim": 32,
+        "device": device,
+        "mask_key": "is_ports",
+    })
+
     return {
         "backbone": "att_gnn",
-        "backbone_params": {
-            "edge_features": 4,
-            "cond_node_features": 2,
-            "hidden_size": 256,
-            "hidden_node_features": [256, 256, 256],
-            "attention_node_features": [256, 256, 256],
-            "layers_per_block": 2,
-            "input_encoding_dim": 32,
-            "dropout": 0.0,
-            "num_heads": 4,
-            "mlp_num_layers": 2,
-            "mlp_size_factor": 4,
-            "ff_num_layers": 2,
-            "ff_size_factor": 1,
-            "att_implementation": "flash",
-            "dir_att_input": True,
-        },
-        "input_shape": (61, 2),  # Will be overridden per benchmark
+        "backbone_params": backbone_params,
+        "input_shape": tuple(input_shape),
         "t_encoding_type": "sinusoid",
         "t_encoding_dim": 32,
         "max_diffusion_steps": 1000,
@@ -385,11 +403,9 @@ def _default_large_config() -> dict:
         "mask_key": "is_ports",
         "use_mask_as_input": True,
         "num_classes": 10,
-        "device": "cpu",
-        # Guidance params (zeroed for unguided; set for guided)
+        "device": device,
         "guidance_mode": "none",
         "legality_guidance_weight": 0.0,
         "hpwl_guidance_weight": 0.0,
         "grad_descent_steps": 0,
-        "grad_descent_rate": 0.0,
     }
