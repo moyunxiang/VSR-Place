@@ -54,7 +54,8 @@ class FixedStrength(StrengthSchedule):
         mask: Tensor,
         loop_iter: int = 0,
     ) -> Tensor:
-        alpha = torch.zeros(feedback.num_macros, device=mask.device)
+        alpha = torch.zeros(feedback.num_macros, device=feedback.severity_vector.device)
+        mask = mask.to(alpha.device)
         alpha[mask] = self.alpha
         return alpha
 

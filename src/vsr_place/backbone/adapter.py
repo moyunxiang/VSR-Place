@@ -13,9 +13,14 @@ import torch
 from torch import Tensor
 
 # Add ChipDiffusion to path
+# ChipDiffusion uses bare imports (e.g. `import pos_encoding` instead of
+# `from diffusion import pos_encoding`), so we need both the repo root
+# AND the diffusion/ subdirectory on sys.path.
 _CHIPDIFFUSION_ROOT = Path(__file__).resolve().parents[3] / "third_party" / "chipdiffusion"
-if str(_CHIPDIFFUSION_ROOT) not in sys.path:
-    sys.path.insert(0, str(_CHIPDIFFUSION_ROOT))
+_CHIPDIFFUSION_DIFFUSION = _CHIPDIFFUSION_ROOT / "diffusion"
+for _p in [str(_CHIPDIFFUSION_ROOT), str(_CHIPDIFFUSION_DIFFUSION)]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 
 class ChipDiffusionAdapter:
@@ -140,11 +145,11 @@ class ChipDiffusionAdapter:
             if self.scheduler is not None:
                 self.scheduler.set_timesteps(num_steps)
                 x = torch.randn(num_samples, num_vertices, 2, device=self.device)
-                timesteps = self.scheduler.timesteps
+                timesteps = self.scheduler.timesteps.to(self.device)
 
                 for i in range(len(timesteps) - 1):
-                    t = timesteps[i].expand(num_samples)
-                    t_next = timesteps[i + 1].expand(num_samples)
+                    t = timesteps[i].expand(num_samples).to(self.device)
+                    t_next = timesteps[i + 1].expand(num_samples).to(self.device)
                     eps_pred = self.model(x, cond, t)
                     z = torch.randn_like(x) if i < len(timesteps) - 2 else torch.zeros_like(x)
                     result = self.scheduler.step(eps_pred, t, t_next, x, z)
@@ -204,7 +209,7 @@ class ChipDiffusionAdapter:
 
         with torch.no_grad():
             self.scheduler.set_timesteps(num_steps)
-            all_timesteps = self.scheduler.timesteps
+            all_timesteps = self.scheduler.timesteps.to(self.device)
 
             # Find the first timestep <= start_timestep
             # Timesteps go from ~1 (noisy) down to ~0 (clean)
@@ -218,8 +223,8 @@ class ChipDiffusionAdapter:
             x = x_start
 
             for i in range(len(timesteps) - 1):
-                t = timesteps[i].expand(b)
-                t_next = timesteps[i + 1].expand(b)
+                t = timesteps[i].expand(b).to(self.device)
+                t_next = timesteps[i + 1].expand(b).to(self.device)
                 eps_pred = self.model(x, cond, t)
                 z = torch.randn_like(x) if i < len(timesteps) - 2 else torch.zeros_like(x)
                 result = self.scheduler.step(eps_pred, t, t_next, x, z)
@@ -249,7 +254,7 @@ class ChipDiffusionAdapter:
         centers[..., 0] = (x_normalized[..., 0] + 1.0) / 2.0 * canvas_w + offset_x
         centers[..., 1] = (x_normalized[..., 1] + 1.0) / 2.0 * canvas_h + offset_y
 
-        norm_sizes = cond.x  # (V, 2)
+        norm_sizes = cond.x.to(centers.device)  # (V, 2), ensure same device
         abs_sizes = norm_sizes.clone()
         abs_sizes[:, 0] = norm_sizes[:, 0] / 2.0 * canvas_w
         abs_sizes[:, 1] = norm_sizes[:, 1] / 2.0 * canvas_h

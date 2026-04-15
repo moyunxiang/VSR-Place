@@ -37,7 +37,10 @@ def compute_overlap_area_pairwise(
     overlap = inter_dims[:, :, 0] * inter_dims[:, :, 1]  # (N, N)
 
     # Zero out diagonal (self-overlap is not a violation)
-    overlap.fill_diagonal_(0.0)
+    # Zero out diagonal (self-overlap is not a violation)
+    # Use index assignment instead of fill_diagonal_ for compatibility
+    n = overlap.shape[0]
+    overlap[range(n), range(n)] = 0.0
 
     return overlap
 
@@ -112,5 +115,6 @@ def compute_spacing_violation_pairwise(
     actual_gap = torch.max(gap_x, gap_y)  # (N, N)
     violation = torch.clamp(min_spacing - actual_gap, min=0.0)
 
-    violation.fill_diagonal_(0.0)
+    n = violation.shape[0]
+    violation[range(n), range(n)] = 0.0
     return violation

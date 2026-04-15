@@ -33,6 +33,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CHIPDIFFUSION_ROOT = PROJECT_ROOT / "third_party" / "chipdiffusion"
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(CHIPDIFFUSION_ROOT))
+sys.path.insert(0, str(CHIPDIFFUSION_ROOT / "diffusion"))
 
 from vsr_place.verifier.verifier import Verifier
 from vsr_place.renoising.selector import (
@@ -77,7 +78,10 @@ def build_strength(cfg: dict):
 
 
 def load_benchmark_data(task: str):
-    """Load benchmark data using ChipDiffusion's data pipeline.
+    """Load benchmark data from ChipDiffusion's dataset directory.
+
+    Supports both old format (separate graph*.pickle + output*.pickle) and
+    new format (single numbered pickle files from data-gen).
 
     Args:
         task: Dataset task name (e.g., 'v1.61', 'ibm.cluster512.v1', 'ispd2005').
@@ -85,17 +89,101 @@ def load_benchmark_data(task: str):
     Returns:
         List of (x, cond) tuples from the validation set.
     """
-    # Change CWD to ChipDiffusion root so relative paths work
-    original_cwd = os.getcwd()
-    os.chdir(str(CHIPDIFFUSION_ROOT))
+    import pickle
+    import re
+    from pathlib import Path
 
-    try:
-        from diffusion import utils as cd_utils
-        _, val_set = cd_utils.load_graph_data_with_config(task)
-        print(f"Loaded {len(val_set)} validation samples from task '{task}'")
-        return val_set
-    finally:
-        os.chdir(original_cwd)
+    import torch
+    from torch_geometric.data import Data
+
+    # Find dataset directory
+    dataset_dir = CHIPDIFFUSION_ROOT / "datasets" / "graph" / task
+    if not dataset_dir.exists():
+        # Try data-gen outputs
+        dataset_dir = CHIPDIFFUSION_ROOT / "data-gen" / "outputs" / task
+    if not dataset_dir.exists():
+        raise FileNotFoundError(f"Dataset '{task}' not found in datasets/graph/ or data-gen/outputs/")
+
+    # Load config
+    config_path = dataset_dir / "config.yaml"
+    if config_path.exists():
+        with open(config_path) as f:
+            cfg = yaml.safe_load(f)
+        n_train = cfg.get("train_samples", cfg.get("num_train_samples", 0))
+        n_val = cfg.get("val_samples", cfg.get("num_val_samples", 0))
+    else:
+        n_train = 0
+        n_val = None  # Use all available
+
+    # Find pickle files (excluding config/checkpoint files)
+    pickle_files = sorted(
+        [p for p in dataset_dir.glob("*.pickle") if p.name != "config.yaml"],
+        key=lambda p: int(re.search(r'\d+', p.stem).group()) if re.search(r'\d+', p.stem) else 0
+    )
+
+    if not pickle_files:
+        raise FileNotFoundError(f"No pickle files found in {dataset_dir}")
+
+    # Check if it's old format (graph*.pickle) or new format (numbered)
+    has_graph_files = any(p.name.startswith("graph") for p in pickle_files)
+
+    val_set = []
+    if has_graph_files:
+        # Old format: separate graph + output files
+        graph_files = sorted([p for p in pickle_files if p.name.startswith("graph")])
+        output_files = sorted([p for p in pickle_files if p.name.startswith("output")])
+        val_graphs = graph_files[n_train:n_train + (n_val or len(graph_files))]
+
+        for gf in val_graphs:
+            with open(gf, "rb") as f:
+                cond = pickle.load(f)
+            # Find matching output
+            idx = re.search(r'\d+', gf.stem).group()
+            of = dataset_dir / f"output{idx}.pickle"
+            if of.exists():
+                with open(of, "rb") as f:
+                    x = torch.tensor(pickle.load(f), dtype=torch.float32)
+            else:
+                x = torch.zeros(cond.x.shape[0], 2)
+            val_set.append((x, cond))
+    else:
+        # New format: numbered pickle files from data-gen (contain both graph and placement)
+        val_files = pickle_files[n_train:n_train + (n_val or len(pickle_files))]
+
+        for pf in val_files:
+            with open(pf, "rb") as f:
+                data = pickle.load(f)
+            if isinstance(data, dict):
+                cond = data.get("graph", data.get("cond"))
+                x = data.get("placement", data.get("x"))
+                if isinstance(x, torch.Tensor):
+                    pass
+                else:
+                    x = torch.tensor(x, dtype=torch.float32)
+            elif isinstance(data, (list, tuple)) and len(data) == 2:
+                x, cond = data[0], data[1]
+                if not isinstance(x, torch.Tensor):
+                    x = torch.tensor(x, dtype=torch.float32)
+            elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], tuple):
+                # List of (x, cond) tuples — batch of samples in one file
+                for x_item, cond_item in data:
+                    if not isinstance(x_item, torch.Tensor):
+                        x_item = torch.tensor(x_item, dtype=torch.float32)
+                    val_set.append((x_item, cond_item))
+                continue  # Already appended all samples from this file
+            elif hasattr(data, "x"):
+                cond = data
+                x = torch.zeros(cond.x.shape[0], 2)
+            else:
+                raise ValueError(f"Unknown pickle format in {pf}: {type(data)}")
+            val_set.append((x, cond))
+
+    # Trim to requested val count
+    if n_val is not None and len(val_set) > n_val:
+        val_set = val_set[:n_val]
+
+    print(f"Loaded {len(val_set)} validation samples from task '{task}' ({dataset_dir})")
+    return val_set
 
 
 def run_single_sample(adapter, verifier, loop, x_in, cond, sample_idx, device, legalize=False):

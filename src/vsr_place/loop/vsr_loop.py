@@ -113,8 +113,14 @@ class VSRLoop:
         """
         start_time = time.time()
 
-        # Step 1: Initial generation
-        x = self.backend.sample(cond, **sample_kwargs)
+        # Ensure cond is on the same device as the backend
+        if hasattr(self.backend, 'device'):
+            cond = cond.to(self.backend.device)
+
+        # Step 1: Initial generation (single sample)
+        x = self.backend.sample(cond, num_samples=1, **sample_kwargs)
+        if x.dim() == 3:
+            x = x.squeeze(0)  # (B=1, V, 2) -> (V, 2)
 
         feedback_history: list[ViolationFeedback] = []
         intermediates: list[Tensor] = []
@@ -140,7 +146,6 @@ class VSRLoop:
             mask = self.selector.select(feedback)
 
             if not mask.any():
-                # No macros selected (shouldn't happen if not legal, but be safe)
                 break
 
             # Step 5: Compute re-noising strength
@@ -160,6 +165,8 @@ class VSRLoop:
                 start_timestep=start_timestep,
                 num_steps=self.denoise_steps,
             )
+            if x.dim() == 3:
+                x = x.squeeze(0)
 
             loop_count += 1
 
