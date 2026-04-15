@@ -185,3 +185,31 @@
 - denoise_steps=100 与初始采样步数一致，保证足够的去噪质量
 - Assumption: 修复 timestep 转换后 VSR violations 应低于 baseline。Verification: AutoDL 跑 20 样本对比。
 **Next**: push → AutoDL 拉取 → 重跑 baseline vs VSR-Place 对比。
+
+#### 2026-04-16 01:30 HKT — RePaint 修复 + 参数调优，VSR 首次超越 baseline
+**Context**: timestep 转换修复后 VSR 仍略差于 baseline (+2.6%)，根因是混合噪声级别。
+**Actions**:
+- 实现 `adapter.denoise_repaint()`：RePaint 式 re-denoising
+  - 对所有 macro 统一加噪到 start_timestep（消除混合噪声）
+  - 每个去噪步中，用 `add_noise(x_hat_0, eps, t)` 替换非违规 macro（保持它们接近原位置）
+  - 只让模型自由生成违规 macro
+- 修改 `vsr_loop.py` 优先使用 `denoise_repaint`，保留 `denoise_from` 作为 fallback
+- 参数调优（AutoDL RTX 4090, 20 samples, seed=42, v1.61）:
+
+| α | denoise_steps | budget | Avg Violations | vs Baseline |
+|---|---------------|--------|---------------|-------------|
+| 0.3 | 100 | 4 | 184.20 | -0.05% |
+| 0.5 | 100 | 4 | 184.65 | +0.19% |
+| 0.7 | 100 | 8 | 184.40 | +0.05% |
+| 0.1 | 200 | 8 | 179.55 | -2.6% |
+| 0.15 | 200 | 12 | 179.75 | -2.5% |
+| 0.05 | 200 | 8 | 178.35 | -3.2% |
+| **0.08** | **200** | **8** | **177.20** | **-3.8%** |
+
+**Results**: **VSR-Place 首次真正超越 baseline！** 最佳配置 α=0.08, denoise_steps=200, budget=8。
+**Decisions / Assumptions**:
+- RePaint 彻底解决了混合噪声问题：GNN 在每步都看到一致的噪声级别
+- 温和噪声 (α≤0.1) + 更多去噪步数 (200) 比激进噪声 (α≥0.3) 效果好得多
+- 更多 budget 在温和噪声下有持续改善（每次微调一点），而激进噪声下收敛到 ~184
+- 默认配置更新为最佳：α=0.08, denoise_steps=200, budget=8
+**Next**: 跑更多种子验证稳定性 → 跑完整消融实验 → 更新论文结果

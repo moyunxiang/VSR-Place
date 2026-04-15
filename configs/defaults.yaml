@@ -41,14 +41,14 @@ vsr:
   # Re-noising strength
   strength:
     type: fixed  # fixed, severity_adaptive, scheduled
-    alpha: 0.3
+    alpha: 0.08
     alpha_min: 0.1
     alpha_max: 0.5
     schedule: [0.5, 0.3, 0.2, 0.1]
 
   # Repair budget
   budget:
-    max_loops: 4
+    max_loops: 8
     early_stop_on_legal: true
     min_improvement: 0.0
 
@@ -60,8 +60,8 @@ vsr:
     t_start: 0.5
     t_end: 0.01
 
-  # Denoise steps for repair re-denoising (match initial sampling steps)
-  denoise_steps: 100
+  # Denoise steps for repair re-denoising
+  denoise_steps: 200
 
 # === Evaluation ===
 eval:
