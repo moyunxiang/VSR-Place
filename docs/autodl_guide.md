@@ -256,6 +256,57 @@ tar czf /root/autodl-tmp/vsr_results.tar.gz results/
 
 ---
 
+## Step 12：同步结果回 GitHub
+
+实验跑完后，在 AutoDL 实例上把结果提交并推送：
+
+```bash
+cd /root/autodl-tmp/VSR-Place
+
+# 1. 配置 git（如果还没配）
+git config user.name "moyunxiang"
+git config user.email "2556377578@qq.com"
+
+# 2. 配置 SSH key（如果还没配）
+ssh-keygen -t ed25519 -C "2556377578@qq.com" -f ~/.ssh/id_ed25519 -N ""
+cat ~/.ssh/id_ed25519.pub
+# 把输出的公钥添加到 GitHub: https://github.com/settings/keys
+
+# 3. 测试连接
+ssh -T git@github.com
+# 应显示: Hi moyunxiang! You've successfully authenticated...
+
+# 4. 更新 .gitignore，允许结果文件被提交
+#    results/runs/ 和 results/tables/ 默认被 gitignore 了
+#    如果想提交结果，先取消忽略：
+echo '!results/tables/' >> .gitignore
+echo '!results/tables/**' >> .gitignore
+
+# 5. 添加结果文件
+git add results/tables/ results/figures/ log.md
+git add results/ablations/ 2>/dev/null  # 如果有消融结果
+
+# 6. 提交
+git commit -m "Add experiment results: <简要说明跑了什么>"
+
+# 7. 推送
+git push origin main
+```
+
+> **注意**：不要提交 `results/runs/` 里的原始 placement 数据（太大），只提交汇总表格和图表。
+
+### 回到本地机器同步
+
+```bash
+# 在你的本地机器上
+cd /home/dev/workspace/vsr_place
+git pull origin main
+```
+
+这样本地和 GitHub 就保持同步了。
+
+---
+
 ## 省钱技巧
 
 | 技巧 | 说明 |
