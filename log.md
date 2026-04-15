@@ -100,3 +100,29 @@
 - Legalization 默认用 opt 模式（opt-adam），参数沿用 ChipDiffusion 的默认值。Verification: GPU 上实际运行验证。
 - scheduler.step() 返回值可能是 tuple (x, x0_pred)，adapter 中做了兼容处理。
 **Next**: Push 到 GitHub，准备 AutoDL 部署。
+
+#### 2026-04-15 21:00 HKT — AutoDL 部署 + 首次 GPU 实验成功
+**Context**: 在 AutoDL RTX 4090 (24GB) 上部署并跑通完整实验链路。
+**Actions**:
+- SSH 连接 AutoDL（connect.bjb1.seetacloud.com:43348）
+- 克隆仓库（GitHub 被墙，用 ghfast.top 镜像加速）
+- 安装依赖，49/49 测试通过
+- Checkpoint: 本地下载 large-v2.ckpt (73MB, 6.28M params) → scp 上传（Google Drive 在国内被墙）
+- 数据生成：`generate.py` 单线程生成 v1.61 的 2 个验证样本（`00000005.pickle` 含 5 个 (x,cond) tuple, `00000100.pickle` 含更多）
+- 修复 8 个 GPU 运行时问题：
+  1. `diffusion/` 目录加入 sys.path（ChipDiffusion 用 bare import 如 `import pos_encoding`）
+  2. Mock torchvision/moviepy（版本冲突/未安装，VSR-Place 不需要）
+  3. 自写数据加载器支持 ChipDiffusion 的 batch pickle 格式（`list of (x, cond) tuples`）
+  4. dataset config 需要 `train_samples`/`val_samples` 字段（旧格式），非 `num_train_samples`
+  5. scheduler timesteps 需要 `.to(device)` 移到 GPU
+  6. `fill_diagonal_` 在某些 PyTorch 版本报错，改用 index 赋值
+  7. VSRLoop 启动时需 `cond = cond.to(backend.device)`（PyG Data.to() 返回新对象）
+  8. `denoise_from` 返回 (1,V,2) 需 squeeze batch 维
+- 跑通基线：Sample 1: 307 violations, Sample 2: 98 violations (3.4s)
+- 跑通 VSR-Place：4 repair loops/sample, Sample 1: 355 viol, Sample 2: 102 viol (5.3s)
+**Results**: 完整链路验证通过。Baseline 和 VSR-Place 均可在 GPU 上端到端运行。
+**Decisions / Assumptions**:
+- 用 ghfast.top 作为 GitHub 镜像（国内 AutoDL 无法直连 GitHub）
+- 数据加载绕过 ChipDiffusion 的 `load_graph_data_with_config`（依赖太多），自写 pickle 解析器
+- Assumption: VSR-Place violations 比 baseline 高是因为样本太少 + denoise_steps 不够。Verification: 用更多数据 + 调参验证。
+**Next**: 生成 20 个验证样本 → 跑完整对比实验 + 消融。

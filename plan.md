@@ -83,7 +83,7 @@ vsr_place/
 
 ## Milestones
 
-### Phase 0: Project Scaffolding
+### Phase 0: Project Scaffolding ✅ DONE
 
 **目标**：仓库初始化，环境配置，验证 ChipDiffusion 可运行。
 
@@ -103,7 +103,7 @@ vsr_place/
 
 ---
 
-### Phase 1: Standalone Verifier（可与 Phase 2/3 并行）
+### Phase 1: Standalone Verifier ✅ DONE
 
 **目标**：独立实现并测试非微分合法性验证器。
 
@@ -125,7 +125,7 @@ vsr_place/
 
 ---
 
-### Phase 2: Selective Re-noising Engine（可与 Phase 1/3 并行）
+### Phase 2: Selective Re-noising Engine ✅ DONE
 
 **目标**：实现选择性重噪声机制。
 
@@ -143,7 +143,7 @@ vsr_place/
 
 ---
 
-### Phase 3: ChipDiffusion Backbone Adapter（可与 Phase 1/2 并行）
+### Phase 3: ChipDiffusion Backbone Adapter ✅ DONE
 
 **目标**：创建适配器层封装 ChipDiffusion 模型。
 
@@ -166,7 +166,7 @@ vsr_place/
 
 ---
 
-### Phase 4: Closed-Loop Controller + Variant A
+### Phase 4: Closed-Loop Controller + Variant A ✅ DONE
 
 **目标**：实现完整 VSR-Place 闭环和 Variant A。
 
@@ -184,9 +184,10 @@ vsr_place/
 
 ---
 
-### Phase 5: Baselines & Evaluation Pipeline
+### Phase 5: Baselines & Evaluation Pipeline 🔄 IN PROGRESS
 
 **目标**：跑全部基线，构建完整对比管线。
+**进度**：代码完成，GPU 链路验证通过（2 样本），待生成完整数据集后跑全量实验。
 
 **基线**：
 1. ChipDiffusion (unguided)
