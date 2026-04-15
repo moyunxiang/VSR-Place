@@ -4,6 +4,7 @@ This adapter provides a clean interface for VSR-Place to interact with
 the ChipDiffusion diffusion model without modifying its source code.
 """
 
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -39,46 +40,81 @@ class ChipDiffusionAdapter:
     def from_checkpoint(
         cls,
         checkpoint_path: str,
-        config: dict | None = None,
-        device: str = "cpu",
+        model_config: dict | None = None,
+        device: str = "cuda",
     ) -> "ChipDiffusionAdapter":
         """Load a ChipDiffusion model from a checkpoint.
 
+        Uses ChipDiffusion's own Checkpointer for correct loading.
+
         Args:
-            checkpoint_path: Path to .pt checkpoint file.
-            config: Model config dict. If None, tries to load from checkpoint.
+            checkpoint_path: Path to .ckpt checkpoint file.
+            model_config: Model constructor kwargs. If None, uses default large config.
             device: Device to load model on.
 
         Returns:
             ChipDiffusionAdapter instance.
         """
-        # Import ChipDiffusion modules
-        from diffusion.models import ContinuousDiffusionModel, GuidedDiffusionModel
+        from diffusion.models import ContinuousDiffusionModel
         from diffusion.schedulers import CosineScheduler
+        from common.checkpoint import Checkpointer
 
-        checkpoint = torch.load(checkpoint_path, map_location=device)
+        if model_config is None:
+            model_config = _default_large_config()
 
-        if config is None:
-            config = checkpoint.get("config", checkpoint.get("cfg", {}))
+        model = ContinuousDiffusionModel(**model_config).to(device)
 
-        model_config = config.get("model", config)
-        family = config.get("family", "continuous_diffusion")
+        # Use ChipDiffusion's Checkpointer for correct state_dict loading
+        checkpointer = Checkpointer()
+        checkpointer.register({"model": model})
+        loaded = checkpointer.load(checkpoint_path)
 
-        model_cls = {
-            "continuous_diffusion": ContinuousDiffusionModel,
-            "guided_diffusion": GuidedDiffusionModel,
-        }.get(family, ContinuousDiffusionModel)
+        if loaded:
+            print(f"Successfully loaded checkpoint from {checkpoint_path}")
+        else:
+            print(f"WARNING: Could not load checkpoint from {checkpoint_path}, using random weights")
 
-        model = model_cls(**model_config)
-
-        # Load state dict
-        state_dict = checkpoint.get("model_state_dict", checkpoint.get("state_dict", checkpoint))
-        model.load_state_dict(state_dict, strict=False)
         model.eval()
-
         scheduler = CosineScheduler()
 
         return cls(model=model, scheduler=scheduler, device=device)
+
+    @classmethod
+    def from_eval_config(
+        cls,
+        checkpoint_path: str,
+        task: str = "v1.61",
+        device: str = "cuda",
+    ) -> "ChipDiffusionAdapter":
+        """Load model by mimicking ChipDiffusion's eval.py setup.
+
+        This reads a benchmark sample to determine input_shape, then
+        constructs the model with matching config.
+
+        Args:
+            checkpoint_path: Path to .ckpt file.
+            task: Dataset task name (to determine input_shape).
+            device: Device.
+
+        Returns:
+            ChipDiffusionAdapter instance.
+        """
+        from diffusion import utils as cd_utils
+
+        # Load one sample to get input shape
+        original_cwd = os.getcwd()
+        os.chdir(str(_CHIPDIFFUSION_ROOT))
+        try:
+            _, val_set = cd_utils.load_graph_data_with_config(task)
+            sample_shape = val_set[0][0].shape  # (V, 2)
+        finally:
+            os.chdir(original_cwd)
+
+        config = _default_large_config()
+        config["input_shape"] = tuple(sample_shape)
+        config["device"] = device
+
+        return cls.from_checkpoint(checkpoint_path, model_config=config, device=device)
 
     def sample(
         self,
@@ -102,7 +138,6 @@ class ChipDiffusionAdapter:
 
         with torch.no_grad():
             if self.scheduler is not None:
-                # Continuous model path
                 self.scheduler.set_timesteps(num_steps)
                 x = torch.randn(num_samples, num_vertices, 2, device=self.device)
                 timesteps = self.scheduler.timesteps
@@ -112,9 +147,10 @@ class ChipDiffusionAdapter:
                     t_next = timesteps[i + 1].expand(num_samples)
                     eps_pred = self.model(x, cond, t)
                     z = torch.randn_like(x) if i < len(timesteps) - 2 else torch.zeros_like(x)
-                    x = self.scheduler.step(eps_pred, t, t_next, x, z)
+                    result = self.scheduler.step(eps_pred, t, t_next, x, z)
+                    # step returns (x_t_minus_one, predicted_x0) tuple
+                    x = result[0] if isinstance(result, tuple) else result
             else:
-                # Discrete model path - use built-in reverse_samples
                 samples, _ = self.model.reverse_samples(
                     num_samples, None, cond, **kwargs
                 )
@@ -126,31 +162,14 @@ class ChipDiffusionAdapter:
         """Predict clean x_0 from noisy x_t at timestep t.
 
         For cosine schedule: x_0 = (x_t - sigma(t) * eps) / alpha(t)
-
-        Args:
-            x_t: (B, V, 2) noisy placement.
-            cond: PyG Data object.
-            t: (B,) timestep values.
-
-        Returns:
-            (B, V, 2) predicted clean placement.
         """
         cond = cond.to(self.device)
         with torch.no_grad():
             eps_pred = self.model(x_t, cond, t)
 
-        if self.scheduler is not None:
-            alpha_t = self.scheduler.alpha(t)  # (B,)
-            sigma_t = self.scheduler.sigma(t)  # (B,)
-            # Reshape for broadcasting: (B, 1, 1)
-            alpha_t = alpha_t.view(-1, 1, 1)
-            sigma_t = sigma_t.view(-1, 1, 1)
-            x0_pred = (x_t - sigma_t * eps_pred) / alpha_t.clamp(min=1e-8)
-        else:
-            # Discrete schedule
-            t_idx = t.long() - 1
-            alpha_bar = self.model._alpha_bar[t_idx].view(-1, 1, 1)
-            x0_pred = (x_t - torch.sqrt(1 - alpha_bar) * eps_pred) / torch.sqrt(alpha_bar)
+        alpha_t = self.scheduler.alpha(t).view(-1, 1, 1)
+        sigma_t = self.scheduler.sigma(t).view(-1, 1, 1)
+        x0_pred = (x_t - sigma_t * eps_pred) / alpha_t.clamp(min=1e-8)
 
         return x0_pred
 
@@ -164,125 +183,72 @@ class ChipDiffusionAdapter:
     ) -> Tensor:
         """Resume denoising from an intermediate noisy state.
 
-        This is the key method for VSR-Place: after selective re-noising,
-        we resume denoising from the noise level corresponding to start_timestep.
-
         Args:
-            x_start: (B, V, 2) partially noised placement.
+            x_start: (B, V, 2) or (V, 2) partially noised placement.
             cond: PyG Data object.
             start_timestep: Noise level in [0, 1] to start denoising from.
-                0 = clean, 1 = full noise. Maps to cosine schedule t.
+                0 = clean, 1 = full noise.
             num_steps: Number of denoising steps to use.
 
         Returns:
             (B, V, 2) denoised placement.
         """
+        if x_start.dim() == 2:
+            x_start = x_start.unsqueeze(0)
+
         cond = cond.to(self.device)
         b = x_start.shape[0]
 
         if start_timestep <= 1e-6:
-            return x_start  # Already clean
+            return x_start
 
         with torch.no_grad():
-            if self.scheduler is not None:
-                # Build a timestep schedule from start_timestep down to ~0
-                self.scheduler.set_timesteps(num_steps)
-                all_timesteps = self.scheduler.timesteps
+            self.scheduler.set_timesteps(num_steps)
+            all_timesteps = self.scheduler.timesteps
 
-                # Filter to only timesteps <= start_timestep
-                # The scheduler timesteps go from high (noisy) to low (clean)
-                valid_mask = all_timesteps >= (1.0 - start_timestep) * all_timesteps[0]
-                # Actually: scheduler timesteps go from ~1 down to ~0
-                # We want those <= start_timestep
-                start_idx = 0
-                for i, ts in enumerate(all_timesteps):
-                    if ts.item() <= start_timestep + 1e-6:
-                        start_idx = i
-                        break
+            # Find the first timestep <= start_timestep
+            # Timesteps go from ~1 (noisy) down to ~0 (clean)
+            start_idx = 0
+            for i, ts in enumerate(all_timesteps):
+                if ts.item() <= start_timestep + 1e-6:
+                    start_idx = i
+                    break
 
-                timesteps = all_timesteps[start_idx:]
-                x = x_start
+            timesteps = all_timesteps[start_idx:]
+            x = x_start
 
-                for i in range(len(timesteps) - 1):
-                    t = timesteps[i].expand(b)
-                    t_next = timesteps[i + 1].expand(b)
-                    eps_pred = self.model(x, cond, t)
-                    z = torch.randn_like(x) if i < len(timesteps) - 2 else torch.zeros_like(x)
-                    x = self.scheduler.step(eps_pred, t, t_next, x, z)
-            else:
-                # Discrete model: map start_timestep to discrete step
-                max_steps = self.model.max_diffusion_steps
-                start_step = int(start_timestep * max_steps)
-                x = x_start
-                for t_val in range(start_step, 0, -1):
-                    t = torch.full((b,), t_val, device=self.device, dtype=torch.long)
-                    eps_pred = self.model(x, cond, t)
-                    x = self._discrete_denoise_step(x, eps_pred, t_val)
+            for i in range(len(timesteps) - 1):
+                t = timesteps[i].expand(b)
+                t_next = timesteps[i + 1].expand(b)
+                eps_pred = self.model(x, cond, t)
+                z = torch.randn_like(x) if i < len(timesteps) - 2 else torch.zeros_like(x)
+                result = self.scheduler.step(eps_pred, t, t_next, x, z)
+                x = result[0] if isinstance(result, tuple) else result
 
         return x
-
-    def _discrete_denoise_step(self, x_t: Tensor, eps_pred: Tensor, t: int) -> Tensor:
-        """Single discrete denoising step (DDPM-style)."""
-        alpha_bar_t = self.model._alpha_bar[t - 1]
-        alpha_bar_prev = self.model._alpha_bar[t - 2] if t > 1 else torch.tensor(1.0)
-        beta_t = self.model._beta[t - 1]
-
-        mean = (1 / torch.sqrt(1 - beta_t)) * (
-            x_t - beta_t / torch.sqrt(1 - alpha_bar_t) * eps_pred
-        )
-
-        if t > 1:
-            sigma = self.model._sigma[t - 1]
-            z = torch.randn_like(x_t)
-            return mean + sigma * z
-        return mean
 
     def decode_placement(
         self, x_normalized: Tensor, cond: Any
     ) -> tuple[Tensor, Tensor]:
         """Convert normalized coords [-1, 1] to absolute coordinates.
 
-        Args:
-            x_normalized: (B, V, 2) or (V, 2) placement in [-1, 1].
-            cond: PyG Data object with chip_size and instance sizes.
+        ChipDiffusion normalizes:
+          placement: x_norm = 2 * (x_abs - offset) / chip_size - 1
+          sizes:     s_norm = 2 * s_abs / chip_size
 
         Returns:
-            Tuple of:
-                - centers: absolute center coordinates
-                - sizes: absolute (width, height) per macro
+            Tuple of (centers, sizes) in absolute coordinates.
         """
         single = x_normalized.dim() == 2
         if single:
             x_normalized = x_normalized.unsqueeze(0)
 
-        # chip_size from cond
-        if hasattr(cond, "chip_size"):
-            chip_size = cond.chip_size
-            if chip_size.dim() == 1 and chip_size.shape[0] == 4:
-                # [xmin, ymin, xmax, ymax]
-                canvas_w = (chip_size[2] - chip_size[0]).item()
-                canvas_h = (chip_size[3] - chip_size[1]).item()
-                offset_x = chip_size[0].item()
-                offset_y = chip_size[1].item()
-            elif chip_size.dim() == 1 and chip_size.shape[0] == 2:
-                canvas_w = chip_size[0].item()
-                canvas_h = chip_size[1].item()
-                offset_x = 0.0
-                offset_y = 0.0
-            else:
-                canvas_w = canvas_h = 1.0
-                offset_x = offset_y = 0.0
-        else:
-            canvas_w = canvas_h = 2.0
-            offset_x = offset_y = -1.0
+        canvas_w, canvas_h, offset_x, offset_y = self._get_canvas_params(cond)
 
-        # De-normalize placement: x_abs = (x_norm + 1) / 2 * canvas + offset
-        centers = (x_normalized + 1.0) / 2.0
-        centers[..., 0] = centers[..., 0] * canvas_w + offset_x
-        centers[..., 1] = centers[..., 1] * canvas_h + offset_y
+        centers = x_normalized.clone()
+        centers[..., 0] = (x_normalized[..., 0] + 1.0) / 2.0 * canvas_w + offset_x
+        centers[..., 1] = (x_normalized[..., 1] + 1.0) / 2.0 * canvas_h + offset_y
 
-        # De-normalize sizes: cond.x is normalized as 2 * (size / chip_size)
-        # So absolute size = cond.x / 2 * chip_size
         norm_sizes = cond.x  # (V, 2)
         abs_sizes = norm_sizes.clone()
         abs_sizes[:, 0] = norm_sizes[:, 0] / 2.0 * canvas_w
@@ -294,20 +260,34 @@ class ChipDiffusionAdapter:
         return centers, abs_sizes
 
     def encode_placement(self, centers: Tensor, cond: Any) -> Tensor:
-        """Convert absolute coordinates back to normalized [-1, 1].
-
-        Args:
-            centers: (B, V, 2) or (V, 2) absolute center coordinates.
-            cond: PyG Data object with chip_size.
-
-        Returns:
-            Normalized placement tensor.
-        """
+        """Convert absolute coordinates back to normalized [-1, 1]."""
         single = centers.dim() == 2
         if single:
             centers = centers.unsqueeze(0)
 
-        if hasattr(cond, "chip_size"):
+        canvas_w, canvas_h, offset_x, offset_y = self._get_canvas_params(cond)
+
+        x_norm = centers.clone()
+        x_norm[..., 0] = (centers[..., 0] - offset_x) / canvas_w * 2.0 - 1.0
+        x_norm[..., 1] = (centers[..., 1] - offset_y) / canvas_h * 2.0 - 1.0
+
+        if single:
+            x_norm = x_norm.squeeze(0)
+
+        return x_norm
+
+    def get_canvas_size(self, cond: Any) -> tuple[float, float]:
+        """Get absolute canvas dimensions from a cond object.
+
+        Returns:
+            (canvas_width, canvas_height) in absolute coordinates.
+        """
+        canvas_w, canvas_h, _, _ = self._get_canvas_params(cond)
+        return canvas_w, canvas_h
+
+    def _get_canvas_params(self, cond: Any) -> tuple[float, float, float, float]:
+        """Extract canvas width, height, and offset from cond."""
+        if hasattr(cond, "chip_size") and cond.chip_size is not None:
             chip_size = cond.chip_size
             if chip_size.dim() == 1 and chip_size.shape[0] == 4:
                 canvas_w = (chip_size[2] - chip_size[0]).item()
@@ -320,34 +300,50 @@ class ChipDiffusionAdapter:
                 offset_x = 0.0
                 offset_y = 0.0
             else:
-                canvas_w = canvas_h = 1.0
-                offset_x = offset_y = 0.0
+                canvas_w = canvas_h = 2.0
+                offset_x = offset_y = -1.0
         else:
+            # Default: normalized space [-1, 1] -> canvas is 2x2
             canvas_w = canvas_h = 2.0
             offset_x = offset_y = -1.0
+        return canvas_w, canvas_h, offset_x, offset_y
 
-        x_norm = centers.clone()
-        x_norm[..., 0] = (centers[..., 0] - offset_x) / canvas_w * 2.0 - 1.0
-        x_norm[..., 1] = (centers[..., 1] - offset_y) / canvas_h * 2.0 - 1.0
+    def legalize(self, x: Tensor, cond: Any, mode: str = "opt", **kwargs) -> Tensor:
+        """Apply ChipDiffusion's legalization to a placement.
+
+        Args:
+            x: (B, V, 2) or (V, 2) placement in normalized coords.
+            cond: PyG Data object.
+            mode: 'opt' (opt-adam) or 'scheduled'.
+
+        Returns:
+            Legalized placement tensor.
+        """
+        from diffusion import legalization
+
+        single = x.dim() == 2
+        if single:
+            x = x.unsqueeze(0)
+
+        x = x.to(self.device).detach().clone().requires_grad_(True)
+        cond = cond.to(self.device)
+
+        if mode == "opt":
+            x_legal, _, _ = legalization.legalize_opt(x, cond, **kwargs)
+        else:
+            x_legal, _, _ = legalization.legalize(x, cond, **kwargs)
 
         if single:
-            x_norm = x_norm.squeeze(0)
+            x_legal = x_legal.squeeze(0)
 
-        return x_norm
+        return x_legal.detach()
 
     @staticmethod
     def noise_level_to_timestep(alpha: float) -> float:
-        """Convert a re-noising strength alpha to a cosine schedule timestep.
+        """Convert re-noising strength alpha to cosine schedule timestep.
 
-        For cosine schedule: sigma(t) = sin(π/2 * t), so noise fraction = sin²(π/2 * t).
-        Given alpha (noise variance fraction), solve for t:
-            t = (2/π) * arcsin(sqrt(alpha))
-
-        Args:
-            alpha: Noise level in [0, 1]. 0 = clean, 1 = full noise.
-
-        Returns:
-            Corresponding timestep t in [0, 1].
+        sigma(t) = sin(π/2 * t), noise fraction = sin²(π/2 * t) = alpha
+        => t = (2/π) * arcsin(sqrt(alpha))
         """
         import math
         alpha = max(0.0, min(1.0, alpha))
@@ -355,13 +351,45 @@ class ChipDiffusionAdapter:
 
     @staticmethod
     def timestep_to_noise_level(t: float) -> float:
-        """Convert a cosine schedule timestep to noise level.
-
-        Args:
-            t: Timestep in [0, 1].
-
-        Returns:
-            Noise level alpha in [0, 1].
-        """
+        """Convert cosine schedule timestep to noise level."""
         import math
         return math.sin(math.pi / 2.0 * t) ** 2
+
+
+def _default_large_config() -> dict:
+    """Default model config matching ChipDiffusion Large+v2."""
+    return {
+        "backbone": "att_gnn",
+        "backbone_params": {
+            "edge_features": 4,
+            "cond_node_features": 2,
+            "hidden_size": 256,
+            "hidden_node_features": [256, 256, 256],
+            "attention_node_features": [256, 256, 256],
+            "layers_per_block": 2,
+            "input_encoding_dim": 32,
+            "dropout": 0.0,
+            "num_heads": 4,
+            "mlp_num_layers": 2,
+            "mlp_size_factor": 4,
+            "ff_num_layers": 2,
+            "ff_size_factor": 1,
+            "att_implementation": "flash",
+            "dir_att_input": True,
+        },
+        "input_shape": (61, 2),  # Will be overridden per benchmark
+        "t_encoding_type": "sinusoid",
+        "t_encoding_dim": 32,
+        "max_diffusion_steps": 1000,
+        "noise_schedule": "cosine",
+        "mask_key": "is_ports",
+        "use_mask_as_input": True,
+        "num_classes": 10,
+        "device": "cpu",
+        # Guidance params (zeroed for unguided; set for guided)
+        "guidance_mode": "none",
+        "legality_guidance_weight": 0.0,
+        "hpwl_guidance_weight": 0.0,
+        "grad_descent_steps": 0,
+        "grad_descent_rate": 0.0,
+    }

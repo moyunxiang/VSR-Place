@@ -1,0 +1,41 @@
+# VSR-Place dependencies
+# Install with: pip install -r requirements.txt
+
+# Core
+torch>=2.2.0
+numpy>=1.23.0
+
+# Graph neural networks (required by ChipDiffusion)
+torch-geometric>=2.4.0
+
+# Configuration
+hydra-core>=1.3.0
+omegaconf>=2.3.0
+pyyaml>=6.0
+
+# Data & computation
+pandas>=2.0.0
+tqdm>=4.60.0
+shapely>=2.0.0
+scikit-learn>=1.3.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.0.0
+
+# Experiment tracking (optional)
+wandb>=0.15.0
+
+# Development & testing
+pytest>=7.0
+pytest-cov>=4.0
+
+# Checkpoint download from Google Drive
+gdown>=5.0.0
+
+# ChipDiffusion additional deps
+termcolor
+rich
+performer-pytorch
+imageio

@@ -63,3 +63,40 @@
 2. Run ChipDiffusion baselines to reproduce published numbers
 3. Run VSR-Place end-to-end on real benchmarks
 4. Run ablation suite
+
+#### 2026-04-15 00:00 HKT — 补全 GPU 实验链路 + AutoDL 部署准备
+**Context**: 本地所有 CPU 代码已完成。补全 GPU 所需的完整实验链路：数据加载、baseline 脚本、checkpoint 下载。
+**Actions**:
+- 研究 ChipDiffusion eval.py 完整调用链：`load_graph_data_with_config(task)` → `val_set[i]` → `(x, cond)` → model 采样 → metrics
+- 重写 `scripts/run_vsr.py`：
+  - 新增 `load_benchmark_data(task)` 函数，调用 ChipDiffusion 的 `utils.load_graph_data_with_config()`
+  - 新增 `run_single_sample()` 函数，处理 VSR 和 baseline 两种模式
+  - 新增 CLI 参数：`--checkpoint`, `--task`, `--no-vsr`
+  - 完整结果保存：per-sample metrics + summary
+- 新增 `scripts/run_baseline.py`：直接调用 ChipDiffusion 的 eval.py（subprocess），支持 unguided/guided/guided_legalized/macro_only 四种模式
+- 更新 `scripts/download_checkpoints.sh`：使用 gdown 从 Google Drive 下载 Large+v2 checkpoint，自动 symlink 到 ChipDiffusion 的 logs/ 目录
+- 更新 `configs/defaults.yaml`：新增 `benchmark.task` 字段
+- 49/49 测试通过，dry-run 正常
+**Results**: 实验链路代码完整。在 AutoDL 上只需：clone → install → download checkpoint → run。
+**Decisions / Assumptions**:
+- Verifier 使用 canvas_width=2.0, canvas_height=2.0（ChipDiffusion 归一化坐标 [-1,1] 对应宽度 2）。Verification: 在 GPU 上验证 decode_placement 输出范围。
+- load_benchmark_data 需要 chdir 到 ChipDiffusion 目录（因为其内部用相对路径）。Verification: 在 AutoDL 上实际运行验证。
+- run_baseline.py 用 subprocess 调用 ChipDiffusion eval.py 而非 import，避免 Hydra config 冲突。
+**Next**: Push 到 GitHub → 在 AutoDL 上 clone + 跑实验。
+
+#### 2026-04-15 00:30 HKT — 补全所有缺口 + requirements.txt
+**Context**: 之前的代码有 6 个缺口无法完成全部实验。逐一修复。
+**Actions**:
+- **Fix 1 - adapter.from_checkpoint()**: 重写为使用 ChipDiffusion 的 `Checkpointer` 类加载 checkpoint（checkpoint 格式是 `{"model": state_dict, ...}`）。新增 `_default_large_config()` 匹配 Large+v2 模型参数。新增 `from_eval_config()` 可自动从 benchmark 数据推断 input_shape。
+- **Fix 2 - verifier canvas**: `run_vsr.py` 中改为从 `adapter.get_canvas_size(cond)` 动态获取，不再写死。adapter 新增 `get_canvas_size()` 和 `_get_canvas_params()` 方法。
+- **Fix 3 - VSR + legalizer**: adapter 新增 `legalize()` 方法调用 ChipDiffusion 的 `legalization.legalize_opt()`。`run_vsr.py` 新增 `--legalize` 参数。
+- **Fix 4 - run_ablations.py**: 实现完整消融实验脚本，含 proposal 中定义的全部 4 个维度 21 个变体（scope×8, strength×5, budget×4, constraints×4）。支持 `--dry-run`, `--list`, `--ablations` 筛选。
+- **Fix 5 - run_all.sh**: 一键跑全部实验：4 个基线 + VSR + VSR+legalizer + 消融套件。
+- **Fix 6 - requirements.txt**: 完整依赖列表，包含 ChipDiffusion 的额外依赖（performer-pytorch, termcolor, rich 等）。
+- 49/49 测试通过
+**Results**: 所有已知缺口已修复。AutoDL 上只需 `bash scripts/run_all.sh <ckpt> <task> <seed>` 即可跑完全部实验。
+**Decisions / Assumptions**:
+- Checkpoint 加载使用 ChipDiffusion 的 Checkpointer 而非直接 torch.load，保证与训练时的保存格式一致。
+- Legalization 默认用 opt 模式（opt-adam），参数沿用 ChipDiffusion 的默认值。Verification: GPU 上实际运行验证。
+- scheduler.step() 返回值可能是 tuple (x, x0_pred)，adapter 中做了兼容处理。
+**Next**: Push 到 GitHub，准备 AutoDL 部署。

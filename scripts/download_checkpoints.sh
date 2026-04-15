@@ -1,40 +1,52 @@
 #!/bin/bash
 # Download pretrained ChipDiffusion checkpoints
 # Source: https://github.com/vint-1/chipdiffusion
+# Checkpoint: https://drive.google.com/drive/folders/16b8RkVwMqcrlV_55JKwgprv-DevZOX8v
 
 set -e
 
 CHECKPOINT_DIR="checkpoints"
+LOGS_DIR="third_party/chipdiffusion/logs"
 mkdir -p "$CHECKPOINT_DIR"
+mkdir -p "$LOGS_DIR"
 
-echo "=== Downloading ChipDiffusion Checkpoints ==="
-echo ""
-echo "ChipDiffusion provides pretrained models via the GitHub repository."
-echo "Check https://github.com/vint-1/chipdiffusion for latest checkpoint links."
+echo "=== Downloading ChipDiffusion Checkpoints (Large+v2) ==="
 echo ""
 
-# The exact download method depends on how the authors host checkpoints.
-# Common patterns: Google Drive, Hugging Face, direct GitHub release.
-# Update the URLs below once confirmed.
-
-# Placeholder - update with actual URLs from the repo
-echo "TODO: Update with actual checkpoint download URLs from ChipDiffusion repo."
-echo ""
-echo "Manual steps:"
-echo "  1. Visit https://github.com/vint-1/chipdiffusion"
-echo "  2. Follow their checkpoint download instructions"
-echo "  3. Place checkpoint files in: $CHECKPOINT_DIR/"
-echo ""
-echo "Expected files:"
-echo "  $CHECKPOINT_DIR/chipdiffusion_large.pt"
-echo "  $CHECKPOINT_DIR/chipdiffusion_v2.pt"
-
-# Check if checkpoints exist
-if ls "$CHECKPOINT_DIR"/*.pt 1>/dev/null 2>&1; then
-    echo ""
-    echo "Found checkpoints:"
-    ls -lh "$CHECKPOINT_DIR"/*.pt
-else
-    echo ""
-    echo "No checkpoints found yet. Please download manually."
+# Check if gdown is available
+if ! command -v gdown &> /dev/null; then
+    echo "Installing gdown for Google Drive downloads..."
+    pip install gdown -q
 fi
+
+# Download from Google Drive
+GDRIVE_FOLDER="https://drive.google.com/drive/folders/16b8RkVwMqcrlV_55JKwgprv-DevZOX8v"
+echo "Downloading from: $GDRIVE_FOLDER"
+echo "Target: $CHECKPOINT_DIR/"
+echo ""
+
+gdown --folder "$GDRIVE_FOLDER" -O "$CHECKPOINT_DIR/" --remaining-ok
+
+echo ""
+echo "=== Download complete ==="
+
+# Also symlink into ChipDiffusion's expected logs/ directory
+# ChipDiffusion expects: logs/<task>.<method>.<seed>/step_XXXXX.ckpt
+# The from_checkpoint path is relative to logs/
+if [ -d "$CHECKPOINT_DIR/large-v2" ]; then
+    ln -sfn "$(realpath $CHECKPOINT_DIR/large-v2)" "$LOGS_DIR/large-v2"
+    echo "Symlinked: $LOGS_DIR/large-v2 -> $CHECKPOINT_DIR/large-v2"
+fi
+
+# List what we got
+echo ""
+echo "Downloaded files:"
+find "$CHECKPOINT_DIR" -type f | head -20
+
+echo ""
+echo "Usage:"
+echo "  # VSR-Place"
+echo "  python scripts/run_vsr.py --checkpoint $CHECKPOINT_DIR/large-v2/<ckpt_file> --task v1.61"
+echo ""
+echo "  # ChipDiffusion baseline"
+echo "  python scripts/run_baseline.py --checkpoint large-v2/<ckpt_file> --task v1.61"

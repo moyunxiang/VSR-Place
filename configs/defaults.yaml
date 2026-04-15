@@ -12,6 +12,10 @@ sampling:
   num_steps: 100
   num_samples: 10
 
+# === Benchmark ===
+benchmark:
+  task: v1.61  # v1.61, ibm.cluster512.v1, ispd2005
+
 # === Verifier ===
 verifier:
   canvas_width: 1.0   # Set per benchmark
