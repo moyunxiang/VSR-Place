@@ -117,7 +117,8 @@ def main():
         return
 
     # Import here (needs torch)
-    from scripts.run_vsr import run_experiment
+    sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
+    from run_vsr import run_experiment
 
     results_dir = PROJECT_ROOT / "results" / "ablations" / f"{args.task}_{args.seed}_{int(time.time())}"
     results_dir.mkdir(parents=True, exist_ok=True)

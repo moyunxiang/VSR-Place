@@ -126,3 +126,41 @@
 - 数据加载绕过 ChipDiffusion 的 `load_graph_data_with_config`（依赖太多），自写 pickle 解析器
 - Assumption: VSR-Place violations 比 baseline 高是因为样本太少 + denoise_steps 不够。Verification: 用更多数据 + 调参验证。
 **Next**: 生成 20 个验证样本 → 跑完整对比实验 + 消融。
+
+#### 2026-04-16 00:30 HKT — 首轮完整实验（20 样本）+ 消融结果
+**Context**: 在 AutoDL RTX 4090 上跑 20 样本的完整 baseline + VSR-Place + 6 个消融实验。
+**Actions**:
+- 修复 3 个运行时问题：
+  1. `run_ablations.py` import 路径修正（`from scripts.run_vsr` → `sys.path + from run_vsr`）
+  2. dataset config val_samples 写成了 pickle 文件数（1）而非实际样本数（20）
+  3. jinja2 版本升级
+- 生成 20 个 v1.61 验证样本（350s，单个 pickle 含 20 tuple）
+- 跑 Baseline (unguided, no VSR)：20 samples, seed=42
+- 跑 VSR-Place (α=0.3, budget=4)：20 samples, seed=42
+- 跑 6 个消融：strength {0.1, 0.3, 0.5} × budget {1, 2, 8}
+**Results**:
+
+| 方法 | Avg Violations | Pass Rate | Time |
+|------|---------------|-----------|------|
+| Baseline (no VSR) | **184.55** | 0% | 30s |
+| VSR α=0.1, budget=4 | 206.70 | 0% | 35s |
+| VSR α=0.3, budget=4 | 204.50 | 0% | 47s |
+| VSR α=0.5, budget=4 | 204.65 | 0% | 60s |
+| VSR α=0.3, budget=1 | 207.80 | 0% | 34s |
+| VSR α=0.3, budget=2 | 204.85 | 0% | 38s |
+| VSR α=0.3, budget=8 | 202.45 | 0% | 65s |
+
+**关键发现：VSR-Place 目前比 baseline 更差（+10-12% violations）。**
+
+**Decisions / Assumptions**:
+- 根因分析（3 个可能原因）：
+  1. `denoise_from` 只用 50 步 re-denoise，不足以将重噪声后的 placement 恢复到合理状态
+  2. 模型在混合噪声级别输入上表现差（部分 macro 有噪声、部分没有，GNN 训练时所有节点同一噪声级别）
+  3. 选择性重噪声后直接在归一化坐标空间操作，但 start_timestep 映射到 cosine schedule 的 noise level 可能不准确
+- 这些问题在 proposal 的 Risk 栏（第 1、2 条）中已预期
+- 更多 budget 迭代（8 loops）略有改善（202.45 vs 207.80），说明方向不完全错但修复力度不够
+- Assumption: 核心问题是 re-denoise 不够深，需要更多 denoising 步数或完整 re-denoising。Verification: 增加 denoise_steps 到 100/200 看效果。
+**Next**: 
+1. 增加 denoise_steps（当前 50 → 试 100, 200）看是否改善
+2. 尝试 intra-sampling 模式而非 post-sampling
+3. 分析具体哪些 macro 被 re-noise 了、re-denoise 后是变好还是变差

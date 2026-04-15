@@ -187,7 +187,8 @@ vsr_place/
 ### Phase 5: Baselines & Evaluation Pipeline 🔄 IN PROGRESS
 
 **目标**：跑全部基线，构建完整对比管线。
-**进度**：代码完成，GPU 链路验证通过（2 样本），待生成完整数据集后跑全量实验。
+**进度**：首轮 20 样本实验完成。Baseline avg_violations=184.55，VSR-Place=203.65（更差）。
+**问题**：re-denoise 步数不足 + 混合噪声级别导致模型退化。需要调参。
 
 **基线**：
 1. ChipDiffusion (unguided)
@@ -258,8 +259,8 @@ Phase 1/2/3 **可并行**开发。Phase 4 依赖三者全部完成。
 | 风险 | 严重度 | 缓解措施 |
 |------|--------|----------|
 | ChipDiffusion API 不支持中间状态恢复去噪 | 高 | 用模型 forward pass + scheduler 参数自建去噪循环 |
-| 混合噪声级别输入导致 GNN 性能下降 | 高 | 先用温和噪声级别；用最大噪声级别作为统一重启 timestep |
-| 选择性重噪声反而损害 HPWL | 中 | 消融实验诊断；post-sampling 模式作为保守后备 |
+| 混合噪声级别输入导致 GNN 性能下降 | 高 → **已触发** | 首轮实验 VSR violations 比 baseline 高 10-12%。需增加 denoise_steps 或改用全局 re-denoise |
+| 选择性重噪声反而损害 HPWL | 中 → **已触发** | re-denoise 50步不够恢复。待测 100/200 步 |
 | 验证器性能瓶颈 | 中 | GPU 矢量化实现；仅每 k 步验证；提前 profiling |
 | 基准数据格式不兼容 | 中 | 复用 ChipDiffusion 自带解析工具；优先 ICCAD04 |
 | 改进边际或为负 | 中 | 研究风险；消融帮助诊断；可报告负面结果 |
