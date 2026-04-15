@@ -164,3 +164,24 @@
 1. 增加 denoise_steps（当前 50 → 试 100, 200）看是否改善
 2. 尝试 intra-sampling 模式而非 post-sampling
 3. 分析具体哪些 macro 被 re-noise 了、re-denoise 后是变好还是变差
+
+#### 2026-04-16 01:00 HKT — 诊断并修复 timestep 转换 bug
+**Context**: 深入分析首轮实验 VSR 比 baseline 差的根因。
+**Actions**:
+- 对比 ChipDiffusion `schedulers.py` 的 `add_noise: x_t = cos(πt/2)*x + sin(πt/2)*ε` 与我们 `renoise.py` 的 `x' = sqrt(1-α)*x + sqrt(α)*ε`
+- 确认：当 α = sin²(πt/2) 时两个公式数学等价，**re-noising 公式本身没错**
+- 发现真正的 bug：`vsr_loop.py:159-160` 将 noise fraction `max_alpha` 直接作为 `start_timestep` 传给 `denoise_from`，但没有做 cosine schedule 的坐标转换
+  - 例如 α=0.3 时，正确 timestep = (2/π)*arcsin(√0.3) ≈ 0.377，我们传的是 0.3
+  - denoiser 以为噪声是 sin²(π*0.3/2) ≈ 0.206，实际是 0.3 → 噪声水平不匹配
+- `noise_level_to_timestep()` 方法已存在于 adapter.py 但从未被调用
+- 修复：
+  1. `vsr_loop.py`: 添加 `(2/π)*arcsin(√α)` 转换
+  2. `adapter.py`: `denoise_from` 默认步数 50 → 100
+  3. `configs/defaults.yaml`: `denoise_steps` 50 → 100
+- 49/49 测试通过
+**Results**: Bug 已修复，待 AutoDL 验证。
+**Decisions / Assumptions**:
+- 直接内联转换公式而非调用 `noise_level_to_timestep()` 静态方法，避免循环 import
+- denoise_steps=100 与初始采样步数一致，保证足够的去噪质量
+- Assumption: 修复 timestep 转换后 VSR violations 应低于 baseline。Verification: AutoDL 跑 20 样本对比。
+**Next**: push → AutoDL 拉取 → 重跑 baseline vs VSR-Place 对比。

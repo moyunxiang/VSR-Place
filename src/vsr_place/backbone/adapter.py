@@ -183,7 +183,7 @@ class ChipDiffusionAdapter:
         x_start: Tensor,
         cond: Any,
         start_timestep: float,
-        num_steps: int = 50,
+        num_steps: int = 100,
         **kwargs: Any,
     ) -> Tensor:
         """Resume denoising from an intermediate noisy state.

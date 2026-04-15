@@ -60,8 +60,8 @@ vsr:
     t_start: 0.5
     t_end: 0.01
 
-  # Denoise steps for repair re-denoising
-  denoise_steps: 50
+  # Denoise steps for repair re-denoising (match initial sampling steps)
+  denoise_steps: 100
 
 # === Evaluation ===
 eval:

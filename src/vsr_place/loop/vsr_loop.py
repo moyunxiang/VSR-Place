@@ -155,9 +155,12 @@ class VSRLoop:
             x_hat_0 = x  # Current placement is the clean estimate
             x_renoised = selective_renoise(x_hat_0, mask, alpha)
 
-            # Step 7: Determine restart timestep from max alpha among selected macros
+            # Step 7: Convert noise level to cosine schedule timestep
+            # alpha is noise fraction; need to map to scheduler's t coordinate
+            # For cosine schedule: sin²(πt/2) = alpha => t = (2/π)*arcsin(√α)
             max_alpha = alpha[mask].max().item()
-            start_timestep = max_alpha  # Will be mapped to diffusion schedule by backend
+            import math
+            start_timestep = (2.0 / math.pi) * math.asin(math.sqrt(max(1e-8, min(max_alpha, 1.0 - 1e-8))))
 
             # Step 8: Re-denoise
             x = self.backend.denoise_from(
