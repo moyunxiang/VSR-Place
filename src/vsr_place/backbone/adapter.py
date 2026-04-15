@@ -232,6 +232,93 @@ class ChipDiffusionAdapter:
 
         return x
 
+    def denoise_repaint(
+        self,
+        x_hat_0: Tensor,
+        cond: Any,
+        mask: Tensor,
+        start_timestep: float,
+        num_steps: int = 100,
+    ) -> Tensor:
+        """RePaint-style re-denoising: fix non-offending macros, regenerate offending ones.
+
+        At each denoising step, non-offending macros are replaced with the
+        forward-diffused version of x_hat_0 at the current timestep. This
+        ensures all macros have consistent noise levels (eliminating the
+        mixed-noise problem) while allowing the model to freely regenerate
+        only the offending macros.
+
+        Ref: RePaint (Lugmayr et al., 2022) adapted from image inpainting
+        to object-space layout repair.
+
+        Args:
+            x_hat_0: (V, 2) or (B, V, 2) clean placement estimate.
+            cond: PyG Data object.
+            mask: (V,) boolean tensor. True = offending macro (regenerate),
+                  False = keep fixed (replace from forward diffusion).
+            start_timestep: Cosine schedule timestep to start from.
+            num_steps: Number of denoising steps.
+
+        Returns:
+            (V, 2) or (B, V, 2) repaired placement.
+        """
+        single = x_hat_0.dim() == 2
+        if single:
+            x_hat_0 = x_hat_0.unsqueeze(0)
+
+        cond = cond.to(self.device)
+        x_hat_0 = x_hat_0.to(self.device)
+        b = x_hat_0.shape[0]
+
+        if start_timestep <= 1e-6:
+            return x_hat_0.squeeze(0) if single else x_hat_0
+
+        # Expand mask for broadcasting: (1, V, 1)
+        mask_expanded = mask.unsqueeze(0).unsqueeze(-1).to(self.device)  # (1, V, 1)
+
+        with torch.no_grad():
+            self.scheduler.set_timesteps(num_steps)
+            all_timesteps = self.scheduler.timesteps.to(self.device)
+
+            start_idx = 0
+            for i, ts in enumerate(all_timesteps):
+                if ts.item() <= start_timestep + 1e-6:
+                    start_idx = i
+                    break
+
+            timesteps = all_timesteps[start_idx:]
+
+            # Initialize: add noise to entire placement at start_timestep
+            eps_init = torch.randn_like(x_hat_0)
+            t_start = timesteps[0].expand(b)
+            x = self.scheduler.add_noise(x_hat_0, eps_init, t_start)
+
+            for i in range(len(timesteps) - 1):
+                t = timesteps[i].expand(b).to(self.device)
+                t_next = timesteps[i + 1].expand(b).to(self.device)
+
+                # Model predicts noise for ALL macros (consistent noise level)
+                eps_pred = self.model(x, cond, t)
+                z = torch.randn_like(x) if i < len(timesteps) - 2 else torch.zeros_like(x)
+                result = self.scheduler.step(eps_pred, t, t_next, x, z)
+                x_denoised = result[0] if isinstance(result, tuple) else result
+
+                # RePaint: replace non-offending macros with forward-diffused x_hat_0
+                if i < len(timesteps) - 2:
+                    eps_known = torch.randn_like(x_hat_0)
+                    x_known = self.scheduler.add_noise(x_hat_0, eps_known, t_next)
+                else:
+                    # Last step: use clean x_hat_0 directly
+                    x_known = x_hat_0
+
+                # mask=True: use model output (offending, needs repair)
+                # mask=False: use forward-diffused original (non-offending, preserve)
+                x = torch.where(mask_expanded, x_denoised, x_known)
+
+        if single:
+            x = x.squeeze(0)
+        return x
+
     def decode_placement(
         self, x_normalized: Tensor, cond: Any
     ) -> tuple[Tensor, Tensor]:

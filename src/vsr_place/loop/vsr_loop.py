@@ -151,23 +151,36 @@ class VSRLoop:
             # Step 5: Compute re-noising strength
             alpha = self.strength.compute_alpha(feedback, mask, loop_iter=loop_count)
 
-            # Step 6: Selective re-noising
-            x_hat_0 = x  # Current placement is the clean estimate
-            x_renoised = selective_renoise(x_hat_0, mask, alpha)
-
-            # Step 7: Convert noise level to cosine schedule timestep
-            # alpha is noise fraction; need to map to scheduler's t coordinate
+            # Step 6: Compute re-noising timestep
+            # alpha is noise fraction; convert to cosine schedule timestep
             # For cosine schedule: sin²(πt/2) = alpha => t = (2/π)*arcsin(√α)
             max_alpha = alpha[mask].max().item()
             import math
-            start_timestep = (2.0 / math.pi) * math.asin(math.sqrt(max(1e-8, min(max_alpha, 1.0 - 1e-8))))
-
-            # Step 8: Re-denoise
-            x = self.backend.denoise_from(
-                x_renoised, cond,
-                start_timestep=start_timestep,
-                num_steps=self.denoise_steps,
+            start_timestep = (2.0 / math.pi) * math.asin(
+                math.sqrt(max(1e-8, min(max_alpha, 1.0 - 1e-8)))
             )
+
+            # Step 7: RePaint-style re-denoising
+            # Instead of selective re-noising + standard denoising (which creates
+            # mixed noise levels that degrade GNN performance), use RePaint:
+            # - Add noise to ALL macros uniformly (consistent noise level)
+            # - At each denoising step, replace non-offending macros with
+            #   forward-diffused x_hat_0, only let model regenerate offending ones
+            if hasattr(self.backend, "denoise_repaint"):
+                x = self.backend.denoise_repaint(
+                    x, cond, mask,
+                    start_timestep=start_timestep,
+                    num_steps=self.denoise_steps,
+                )
+            else:
+                # Fallback: selective re-noise + standard denoise
+                x_renoised = selective_renoise(x, mask, alpha)
+                x = self.backend.denoise_from(
+                    x_renoised, cond,
+                    start_timestep=start_timestep,
+                    num_steps=self.denoise_steps,
+                )
+
             if x.dim() == 3:
                 x = x.squeeze(0)
 
