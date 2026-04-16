@@ -127,9 +127,9 @@ class VSRLoop:
         loop_count = 0
 
         while True:
-            # Step 2: Decode and verify
+            # Step 2: Decode and verify (on CPU to avoid OOM for large circuits)
             centers, sizes = self.backend.decode_placement(x, cond)
-            feedback = self.verifier(centers, sizes)
+            feedback = self.verifier(centers.cpu(), sizes.cpu())
             feedback_history.append(feedback)
 
             if self.save_intermediates:

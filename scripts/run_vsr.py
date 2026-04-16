@@ -271,7 +271,7 @@ def run_single_sample(adapter, verifier, loop, x_in, cond, sample_idx, device, l
         placement = placement.squeeze(0)  # (V, 2)
         # Verify the baseline result
         centers, sizes = adapter.decode_placement(placement, cond)
-        feedback = verifier(centers, sizes)
+        feedback = verifier(centers.cpu(), sizes.cpu())
         metrics = {
             "method": "baseline",
             **feedback.global_stats,
@@ -285,7 +285,7 @@ def run_single_sample(adapter, verifier, loop, x_in, cond, sample_idx, device, l
 
     # Decode final placement and compute verification metrics
     centers, sizes = adapter.decode_placement(placement, cond)
-    final_feedback = verifier(centers, sizes)
+    final_feedback = verifier(centers.cpu(), sizes.cpu())
     legality_metrics = compute_legality_metrics(final_feedback)
 
     metrics.update({

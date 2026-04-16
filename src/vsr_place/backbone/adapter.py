@@ -389,6 +389,8 @@ class ChipDiffusionAdapter:
         """Extract canvas width, height, and offset from cond."""
         if hasattr(cond, "chip_size") and cond.chip_size is not None:
             chip_size = cond.chip_size
+            if isinstance(chip_size, (list, tuple)):
+                chip_size = torch.tensor(chip_size, dtype=torch.float32)
             if chip_size.dim() == 1 and chip_size.shape[0] == 4:
                 canvas_w = (chip_size[2] - chip_size[0]).item()
                 canvas_h = (chip_size[3] - chip_size[1]).item()
