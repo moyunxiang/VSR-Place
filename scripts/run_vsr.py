@@ -186,6 +186,62 @@ def load_benchmark_data(task: str):
     return val_set
 
 
+def filter_macros_only(x: torch.Tensor, cond) -> tuple:
+    """Filter to macro-only subgraph (drop standard cells).
+
+    Required for ISPD2005 where circuits have 200K+ nodes but only
+    a few hundred to thousands of macros. Running pairwise overlap
+    on all nodes would be infeasible (N^2 memory).
+
+    Args:
+        x: (V, 2) placement coordinates.
+        cond: PyG Data object with is_macros attribute.
+
+    Returns:
+        Tuple of (x_macro, cond_macro) with only macro nodes.
+    """
+    if not hasattr(cond, "is_macros") or cond.is_macros is None:
+        return x, cond  # No macro info, return as-is
+
+    macro_mask = cond.is_macros.bool()
+    n_macros = macro_mask.sum().item()
+
+    if n_macros == 0 or n_macros == len(macro_mask):
+        return x, cond  # All or none are macros
+
+    # Map old indices to new indices
+    old_to_new = torch.full((len(macro_mask),), -1, dtype=torch.long)
+    old_to_new[macro_mask] = torch.arange(n_macros)
+
+    # Filter node features
+    x_macro = x[macro_mask]
+    cond_x_macro = cond.x[macro_mask]
+
+    # Filter edges (keep only edges between macros)
+    edge_index = cond.edge_index
+    src_is_macro = macro_mask[edge_index[0]]
+    dst_is_macro = macro_mask[edge_index[1]]
+    edge_mask = src_is_macro & dst_is_macro
+
+    edge_index_macro = old_to_new[edge_index[:, edge_mask]]
+    edge_attr_macro = cond.edge_attr[edge_mask] if cond.edge_attr is not None else None
+
+    from torch_geometric.data import Data
+    cond_macro = Data(
+        x=cond_x_macro,
+        edge_index=edge_index_macro,
+        edge_attr=edge_attr_macro,
+        is_ports=torch.zeros(n_macros, dtype=torch.bool),
+        is_macros=torch.ones(n_macros, dtype=torch.bool),
+    )
+
+    # Preserve chip_size
+    if hasattr(cond, "chip_size"):
+        cond_macro.chip_size = cond.chip_size
+
+    return x_macro, cond_macro
+
+
 def run_single_sample(adapter, verifier, loop, x_in, cond, sample_idx, device, legalize=False):
     """Run VSR-Place on a single benchmark sample.
 
@@ -265,6 +321,14 @@ def run_experiment(cfg: dict, seed: int = 42):
     # Load benchmark data
     print(f"Loading benchmark: {task}")
     val_set = load_benchmark_data(task)
+
+    # Filter to macro-only if requested (required for large circuits like ISPD2005)
+    macro_only = cfg.get("macro_only", False)
+    if macro_only:
+        print("Filtering to macro-only subgraph...")
+        val_set = [filter_macros_only(x, cond) for x, cond in val_set]
+        first_x, first_cond = val_set[0]
+        print(f"  Macros per circuit: {[cond.x.shape[0] for _, cond in val_set]}")
 
     num_samples = min(
         cfg.get("eval", {}).get("num_samples", len(val_set)),
@@ -369,6 +433,7 @@ def main():
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--no-vsr", action="store_true", help="Run baseline without VSR")
     parser.add_argument("--legalize", action="store_true", help="Apply legalizer after placement")
+    parser.add_argument("--macro-only", action="store_true", help="Filter to macro-only subgraph (for ISPD2005)")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -386,6 +451,8 @@ def main():
         cfg.setdefault("vsr", {})["enabled"] = False
     if args.legalize:
         cfg["legalize"] = True
+    if args.macro_only:
+        cfg["macro_only"] = True
 
     if args.dry_run:
         print(yaml.dump(cfg, default_flow_style=False))
