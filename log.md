@@ -213,3 +213,22 @@
 - 更多 budget 在温和噪声下有持续改善（每次微调一点），而激进噪声下收敛到 ~184
 - 默认配置更新为最佳：α=0.08, denoise_steps=200, budget=8
 **Next**: 跑更多种子验证稳定性 → 跑完整消融实验 → 更新论文结果
+
+#### 2026-04-16 03:00 HKT — Colab ISPD2005 baseline 数据整合
+**Context**: 另一台服务器（Google Colab H100）跑完了 ChipDiffusion 在 ISPD2005 上的 baseline。需要整合这些数据并规划 ISPD2005 上的 VSR-Place 实验。
+**Actions**:
+- 收到 3 个文件：`baseline_report.md`（结果汇总）、`ISPD2005_DATA_PIPELINE.md`（数据流程文档）、`VSR_Place_Final_v2.ipynb`（Colab notebook）、`eval_ispd2005.log`（完整 eval 日志）
+- 分析 baseline 结果：8 个 ISPD2005 电路，guided + legalization 模式
+  - 平均 legality 0.986, HPWL ratio 0.748
+  - adaptec2 是 outlier（8.3% violation），其他 7 个 <1%
+- 发现 IBM ICCAD04 不可用（官方源离线），只能用 ISPD2005
+- 发现 checkpoint 路径问题：eval log 显示 "no checkpoint found"，可能用了随机权重
+- 提取了完整的 `parse_bookshelf()` 函数和 ISPD chip sizes
+- 将数据文档移入 `docs/`，删除不需要的 notebook 和 log（已提取有用信息）
+**Results**: ISPD2005 数据流程完整记录，baseline 参考数字已有。
+**Decisions / Assumptions**:
+- Decision: 放弃 ICCAD04，只用 ISPD2005 作为真实基准
+- Decision: 将 `parse_bookshelf()` 集成到 `scripts/parse_ispd2005.py` 中
+- Assumption: Colab baseline 可能用了随机权重（checkpoint 路径错误）。Verification: 用正确路径重跑确认。
+- VSR-Place 在 ISPD2005 上需要支持 `macro_only` 模式和 old-format pickle（graph*.pickle + output*.pickle）
+**Next**: 集成 ISPD2005 解析脚本 → 在 AutoDL 上下载解析 ISPD2005 → 跑 VSR-Place on ISPD2005

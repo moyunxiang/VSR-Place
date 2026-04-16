@@ -187,8 +187,11 @@ vsr_place/
 ### Phase 5: Baselines & Evaluation Pipeline 🔄 IN PROGRESS
 
 **目标**：跑全部基线，构建完整对比管线。
-**进度**：首轮 20 样本实验完成。Baseline avg_violations=184.55，VSR-Place=203.65（更差）。
-**问题**：re-denoise 步数不足 + 混合噪声级别导致模型退化。需要调参。
+**进度**：
+- v1.61 合成数据：VSR-Place (177.20) 超越 baseline (184.30)，-3.8%。RePaint + α=0.08 + denoise=200 + budget=8。
+- ISPD2005 baseline（Colab H100 跑出）：8 电路，avg legality=0.986, avg HPWL ratio=0.748。
+- **下一步**：在 ISPD2005 上跑 VSR-Place，目标改善 adaptec2 的 8.3% violation。
+- **注意**：IBM ICCAD04 不可用（官方源离线），只用 ISPD2005。
 
 **基线**：
 1. ChipDiffusion (unguided)
