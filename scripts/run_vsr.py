@@ -313,12 +313,7 @@ def run_experiment(cfg: dict, seed: int = 42):
 
     task = cfg.get("benchmark", {}).get("task", "v1.61")
 
-    # Load model
-    from vsr_place.backbone.adapter import ChipDiffusionAdapter
-    print(f"Loading checkpoint: {checkpoint_path}")
-    adapter = ChipDiffusionAdapter.from_checkpoint(checkpoint_path, device=device)
-
-    # Load benchmark data
+    # Load benchmark data first (need shape for model init)
     print(f"Loading benchmark: {task}")
     val_set = load_benchmark_data(task)
 
@@ -327,8 +322,16 @@ def run_experiment(cfg: dict, seed: int = 42):
     if macro_only:
         print("Filtering to macro-only subgraph...")
         val_set = [filter_macros_only(x, cond) for x, cond in val_set]
-        first_x, first_cond = val_set[0]
         print(f"  Macros per circuit: {[cond.x.shape[0] for _, cond in val_set]}")
+
+    # Load model with correct input_shape from data
+    from vsr_place.backbone.adapter import ChipDiffusionAdapter
+    first_x, first_cond = val_set[0]
+    input_shape = tuple(first_x.shape)  # (V, 2)
+    print(f"Loading checkpoint: {checkpoint_path} (input_shape={input_shape})")
+    adapter = ChipDiffusionAdapter.from_checkpoint(
+        checkpoint_path, device=device, input_shape=input_shape,
+    )
 
     num_samples = min(
         cfg.get("eval", {}).get("num_samples", len(val_set)),

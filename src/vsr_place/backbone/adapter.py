@@ -47,6 +47,7 @@ class ChipDiffusionAdapter:
         checkpoint_path: str,
         model_config: dict | None = None,
         device: str = "cuda",
+        input_shape: tuple | None = None,
     ) -> "ChipDiffusionAdapter":
         """Load a ChipDiffusion model from a checkpoint.
 
@@ -56,6 +57,8 @@ class ChipDiffusionAdapter:
             checkpoint_path: Path to .ckpt checkpoint file.
             model_config: Model constructor kwargs. If None, uses default large config.
             device: Device to load model on.
+            input_shape: (V, 2) shape override. If provided, overrides the default.
+                For ISPD2005 each circuit has a different number of macros.
 
         Returns:
             ChipDiffusionAdapter instance.
@@ -65,7 +68,12 @@ class ChipDiffusionAdapter:
         from common.checkpoint import Checkpointer
 
         if model_config is None:
-            model_config = _default_large_config(device=device)
+            model_config = _default_large_config(
+                input_shape=input_shape or (61, 2),
+                device=device,
+            )
+        elif input_shape is not None:
+            model_config["input_shape"] = tuple(input_shape)
 
         model = ContinuousDiffusionModel(**model_config).to(device)
 
