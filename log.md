@@ -232,3 +232,32 @@
 - Assumption: Colab baseline 可能用了随机权重（checkpoint 路径错误）。Verification: 用正确路径重跑确认。
 - VSR-Place 在 ISPD2005 上需要支持 `macro_only` 模式和 old-format pickle（graph*.pickle + output*.pickle）
 **Next**: 集成 ISPD2005 解析脚本 → 在 AutoDL 上下载解析 ISPD2005 → 跑 VSR-Place on ISPD2005
+
+#### 2026-04-16 04:00 HKT — ISPD2005 实验 + guided 采样集成
+**Context**: 在 AutoDL RTX 4090 上跑 ISPD2005 验证。
+**Actions**:
+- AutoDL 上下载 + 解析 ISPD2005（8 电路，graph/output pickle 就绪）
+- 修复几个问题：
+  1. `adapter.from_checkpoint` 支持动态 `input_shape`（ISPD2005 每个电路 macro 数量不同）
+  2. `chip_size` list→tensor 转换
+  3. verifier 移到 CPU 避免大电路 OOM（bigblue2 有 23K macros → overlap matrix 5.3 亿 entries）
+- 跑通 ISPD2005 baseline（unguided）和 VSR-Place：
+  - Baseline: avg 1,089,525 violations (8 circuits)
+  - VSR-Place: avg 1,321,859 violations (+21%，更差)
+- 结论：unguided 模式下 ISPD2005 真实电路 violations 太高（百万级），VSR 的温和 re-noising 反而加噪声
+- 集成 **guided sampling**（opt 模式，匹配 Colab baseline）：
+  - `adapter.guided_sample()` 使用 ChipDiffusion 的 `reverse_samples`
+  - `_default_large_config()` 支持 guidance='opt'/'sgd'
+  - `--guidance opt` CLI 参数
+  - VSRLoop 的 `run()` 在 `_use_guided_initial=True` 时用 `guided_sample`
+- AutoDL 断连（可能实例停机），代码已推送 GitHub
+**Results**: guided 采样代码就绪，待下次开实例验证。
+**Decisions / Assumptions**:
+- Decision: guided 模式参数直接从 eval log 提取（grad_descent_rate=0.008, hpwl_guidance_weight=0.0016 等）
+- Decision: VSR + guided 的组合是下一个关键实验——guided 将 violations 降到 1.4%，VSR 在此基础上精修有合理空间
+- Assumption: guided_sample 能正确 work（ChipDiffusion 的 reverse_samples 已验证）
+**Next**: 
+1. 重连 AutoDL，跑 guided baseline + VSR-Place on adaptec1-4
+2. 重点对比 adaptec2（8.3% 违规 outlier）
+3. 如果 VSR 有效，扩展到全部 8 电路
+4. 整理论文级结果表
