@@ -118,7 +118,13 @@ class VSRLoop:
             cond = cond.to(self.backend.device)
 
         # Step 1: Initial generation (single sample)
-        x = self.backend.sample(cond, num_samples=1, **sample_kwargs)
+        # Use guided_sample if backend supports it AND guidance is enabled,
+        # otherwise fall back to unguided sample.
+        use_guided = getattr(self.backend, "_use_guided_initial", False)
+        if use_guided and hasattr(self.backend, "guided_sample"):
+            x = self.backend.guided_sample(cond, num_samples=1)
+        else:
+            x = self.backend.sample(cond, num_samples=1, **sample_kwargs)
         if x.dim() == 3:
             x = x.squeeze(0)  # (B=1, V, 2) -> (V, 2)
 

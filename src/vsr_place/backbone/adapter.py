@@ -48,6 +48,7 @@ class ChipDiffusionAdapter:
         model_config: dict | None = None,
         device: str = "cuda",
         input_shape: tuple | None = None,
+        guidance: str = "none",
     ) -> "ChipDiffusionAdapter":
         """Load a ChipDiffusion model from a checkpoint.
 
@@ -71,6 +72,7 @@ class ChipDiffusionAdapter:
             model_config = _default_large_config(
                 input_shape=input_shape or (61, 2),
                 device=device,
+                guidance=guidance,
             )
         elif input_shape is not None:
             model_config["input_shape"] = tuple(input_shape)
@@ -170,6 +172,30 @@ class ChipDiffusionAdapter:
                 x = samples
 
         return x
+
+    def guided_sample(self, cond: Any, num_samples: int = 1, num_steps: int = 100) -> Tensor:
+        """Sample with ChipDiffusion's built-in guidance (uses reverse_samples).
+
+        This path supports guidance_mode='opt' (Adam-based constrained opt)
+        or 'sgd' (gradient descent). Matches ChipDiffusion's eval.py baseline.
+
+        Args:
+            cond: PyG Data object.
+            num_samples: Batch size.
+            num_steps: Number of reverse diffusion steps.
+
+        Returns:
+            (B, V, 2) tensor of placements in normalized coords.
+        """
+        cond = cond.to(self.device)
+        # Override the model's internal diffusion steps for this call
+        old_steps = getattr(self.model, "max_diffusion_steps", 1000)
+        self.model.max_diffusion_steps = num_steps
+        try:
+            samples, _ = self.model.reverse_samples(num_samples, None, cond)
+        finally:
+            self.model.max_diffusion_steps = old_steps
+        return samples
 
     def predict_x0(self, x_t: Tensor, cond: Any, t: Tensor) -> Tensor:
         """Predict clean x_0 from noisy x_t at timestep t.
@@ -458,11 +484,17 @@ class ChipDiffusionAdapter:
         return math.sin(math.pi / 2.0 * t) ** 2
 
 
-def _default_large_config(input_shape=(61, 2), device="cpu") -> dict:
+def _default_large_config(input_shape=(61, 2), device="cpu", guidance: str = "none") -> dict:
     """Default model config matching ChipDiffusion Large+v2.
 
     Derived from checkpoints/large-v2/config.yaml shipped with the
     official pretrained checkpoint.
+
+    Args:
+        input_shape: (V, 2) — only input_shape[1]=2 matters for GNN.
+        device: 'cuda' or 'cpu'.
+        guidance: 'none' | 'sgd' | 'opt'. 'opt' enables Adam-based
+            constrained optimization during sampling (matches Colab baseline).
     """
     from omegaconf import OmegaConf
 
@@ -494,7 +526,7 @@ def _default_large_config(input_shape=(61, 2), device="cpu") -> dict:
         "mask_key": "is_ports",
     })
 
-    return {
+    cfg = {
         "backbone": "att_gnn",
         "backbone_params": backbone_params,
         "input_shape": tuple(input_shape),
@@ -506,8 +538,39 @@ def _default_large_config(input_shape=(61, 2), device="cpu") -> dict:
         "use_mask_as_input": True,
         "num_classes": 10,
         "device": device,
-        "guidance_mode": "none",
+        "guidance_mode": guidance,
         "legality_guidance_weight": 0.0,
         "hpwl_guidance_weight": 0.0,
         "grad_descent_steps": 0,
     }
+
+    if guidance == "opt":
+        # Match Colab baseline: Adam-based constrained optimization guidance
+        cfg.update({
+            "guidance_mode": "opt",
+            "guidance_step": 1000,
+            "forward_guidance_weight": 0.0,
+            "grad_descent_steps": 20,
+            "grad_descent_rate": 0.008,
+            "hpwl_guidance_weight": 0.0016,
+            "alpha_init": 0.0,
+            "alpha_lr": 0.0005,
+            "alpha_critical_factor": 0.5,
+            "legality_potential_target": 0.0001,
+            "use_adam": True,
+            "legality_softmax_factor_min": 10.0,
+            "legality_softmax_factor_max": 20.0,
+            "legality_softmax_critical_factor": 0.1,
+        })
+    elif guidance == "sgd":
+        cfg.update({
+            "guidance_mode": "sgd",
+            "guidance_step": 1000,
+            "forward_guidance_weight": 0.0,
+            "legality_guidance_weight": 1.0,
+            "hpwl_guidance_weight": 1.0,
+            "grad_descent_steps": 5,
+            "grad_descent_rate": 0.1,
+        })
+
+    return cfg

@@ -242,7 +242,7 @@ def filter_macros_only(x: torch.Tensor, cond) -> tuple:
     return x_macro, cond_macro
 
 
-def run_single_sample(adapter, verifier, loop, x_in, cond, sample_idx, device, legalize=False):
+def run_single_sample(adapter, verifier, loop, x_in, cond, sample_idx, device, legalize=False, guidance="none"):
     """Run VSR-Place on a single benchmark sample.
 
     Args:
@@ -266,8 +266,11 @@ def run_single_sample(adapter, verifier, loop, x_in, cond, sample_idx, device, l
         metrics = result.metrics.copy()
         metrics["method"] = "vsr_place"
     else:
-        # Baseline mode: just sample
-        placement = adapter.sample(cond, num_samples=1)
+        # Baseline mode: sample (guided or unguided)
+        if guidance != "none":
+            placement = adapter.guided_sample(cond, num_samples=1)
+        else:
+            placement = adapter.sample(cond, num_samples=1)
         placement = placement.squeeze(0)  # (V, 2)
         # Verify the baseline result
         centers, sizes = adapter.decode_placement(placement, cond)
@@ -328,9 +331,10 @@ def run_experiment(cfg: dict, seed: int = 42):
     from vsr_place.backbone.adapter import ChipDiffusionAdapter
     first_x, first_cond = val_set[0]
     input_shape = tuple(first_x.shape)  # (V, 2)
-    print(f"Loading checkpoint: {checkpoint_path} (input_shape={input_shape})")
+    guidance = cfg.get("guidance", "none")
+    print(f"Loading checkpoint: {checkpoint_path} (input_shape={input_shape}, guidance={guidance})")
     adapter = ChipDiffusionAdapter.from_checkpoint(
-        checkpoint_path, device=device, input_shape=input_shape,
+        checkpoint_path, device=device, input_shape=input_shape, guidance=guidance,
     )
 
     num_samples = min(
@@ -351,6 +355,10 @@ def run_experiment(cfg: dict, seed: int = 42):
         min_spacing=verifier_cfg.get("min_spacing", 0.0),
         check_spacing=verifier_cfg.get("check_spacing", False),
     )
+
+    # Flag adapter to use guided_sample for initial VSR sampling if guidance enabled
+    if guidance != "none":
+        adapter._use_guided_initial = True
 
     # Build VSR loop (or None for baseline)
     vsr_cfg = cfg.get("vsr", {})
@@ -391,7 +399,7 @@ def run_experiment(cfg: dict, seed: int = 42):
         t_sample = time.time()
         metrics, placement = run_single_sample(
             adapter, verifier, loop, x_in, cond, i, device,
-            legalize=legalize,
+            legalize=legalize, guidance=guidance,
         )
         elapsed = time.time() - t_sample
 
@@ -437,6 +445,8 @@ def main():
     parser.add_argument("--no-vsr", action="store_true", help="Run baseline without VSR")
     parser.add_argument("--legalize", action="store_true", help="Apply legalizer after placement")
     parser.add_argument("--macro-only", action="store_true", help="Filter to macro-only subgraph (for ISPD2005)")
+    parser.add_argument("--guidance", type=str, default="none",
+                        choices=["none", "sgd", "opt"], help="Guidance mode during sampling")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -456,6 +466,8 @@ def main():
         cfg["legalize"] = True
     if args.macro_only:
         cfg["macro_only"] = True
+    if args.guidance != "none":
+        cfg["guidance"] = args.guidance
 
     if args.dry_run:
         print(yaml.dump(cfg, default_flow_style=False))
