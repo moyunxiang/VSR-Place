@@ -26,12 +26,18 @@ results/runs/
 # results/tables/ and results/figures/ are NOT ignored
 
 # Data and checkpoints (downloaded via scripts)
-data/
-checkpoints/
-*.pt
+# Note: data/ispd_placements.pkl is tracked via git add -f (small, precious)
+# Note: checkpoints/neural_vsr/*.pt are tracked via git add -f (small, our work)
+data/*
+!data/ispd_placements.pkl
+checkpoints/*
+!checkpoints/neural_vsr/
 *.pth
-*.ckpt
 *.safetensors
+local_artifacts/
+third_party/chipdiffusion/benchmarks/
+third_party/chipdiffusion/datasets/graph/ispd2005/
+third_party/chipdiffusion/data-gen/outputs/
 
 # OS
 .DS_Store

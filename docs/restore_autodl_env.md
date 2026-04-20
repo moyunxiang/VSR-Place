@@ -22,6 +22,39 @@
 | ISPD2005 Bookshelf benchmarks | `python scripts/parse_ispd2005.py --download` | ~5 min | 1.7GB parsed |
 | Synthetic v1.61 (for unguided experiments) | `cd third_party/chipdiffusion && python data-gen/generate.py versions@_global_=v1 num_train_samples=0 num_val_samples=20` | ~10 min | ~6MB |
 
+## ⚡ Fast restore via local cache
+
+Kept locally at `/home/dev/workspace/vsr_place/local_artifacts/` (not in git, too big):
+
+| File | Size | What |
+|------|------|------|
+| `large-v2.ckpt` | 73MB | ChipDiffusion pretrained model |
+| `config.yaml` | 2KB | its config |
+| `ispd2005dp.tar.xz` | 104MB | raw ISPD2005 Bookshelf archive |
+
+**scp these to new AutoDL instance to skip re-download** (Google Drive + UTexas may be slow/blocked):
+
+```bash
+# From Claude machine to new AutoDL:
+scp /home/dev/workspace/vsr_place/local_artifacts/large-v2.ckpt \
+    autodl:/root/autodl-tmp/VSR-Place/checkpoints/large-v2/large-v2.ckpt
+
+scp /home/dev/workspace/vsr_place/local_artifacts/config.yaml \
+    autodl:/root/autodl-tmp/VSR-Place/checkpoints/large-v2/config.yaml
+
+scp /home/dev/workspace/vsr_place/local_artifacts/ispd2005dp.tar.xz \
+    autodl:/tmp/ispd2005dp.tar.xz
+
+# Then on AutoDL, extract (instead of wget):
+cd /root/autodl-tmp/VSR-Place/third_party/chipdiffusion
+mkdir -p benchmarks/ispd2005
+tar xJf /tmp/ispd2005dp.tar.xz -C benchmarks/ispd2005/
+
+# Parse:
+cd /root/autodl-tmp/VSR-Place
+python scripts/parse_ispd2005.py  # (no --download since we have the tarball)
+```
+
 ## Full restore sequence (new AutoDL instance)
 
 ```bash
