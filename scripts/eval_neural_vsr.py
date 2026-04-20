@@ -25,12 +25,13 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(PROJECT_ROOT / "third_party" / "chipdiffusion"))
 sys.path.insert(0, str(PROJECT_ROOT / "third_party" / "chipdiffusion" / "diffusion"))
+sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 
 os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import torch
 
-from scripts.run_vsr import load_benchmark_data, filter_macros_only  # noqa: E402
+from run_vsr import load_benchmark_data, filter_macros_only  # noqa: E402
 from vsr_place.backbone.adapter import ChipDiffusionAdapter  # noqa: E402
 from vsr_place.verifier.verifier import Verifier  # noqa: E402
 from vsr_place.renoising.local_repair import local_repair_loop  # noqa: E402

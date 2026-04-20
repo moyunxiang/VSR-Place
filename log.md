@@ -314,3 +314,31 @@
 - Assumption: GNN 能学到比 hand-crafted 更好的 repair policy（合成训练后）。Verification: Day 4 gate。
 - Assumption: 能租到 A100 80GB（Day 7 需要）。Backup: 只报告小电路结果 + limitation
 **Next**: Day 1 开干——设计 `NeuralVSR` GNN 架构 + 合成数据生成器。
+
+#### 2026-04-20 18:00 HKT — Day 1 NeuralVSR 架构 + 训练管线
+**Context**: NeurIPS 冲刺 Day 1-3 工作。
+**Actions**:
+- 建立 `src/vsr_place/neural/`：model.py, dataset.py, train.py, infer.py
+- `NeuralVSR`: 3 层 GATv2, hidden=128, heads=4, 103,426 params
+- `SyntheticVSRDataset`: 生成 (bad placement, violations, target delta) 三元组
+- 训练脚本 + smoke test 通过
+- 8 个新 neural 测试 + 49 原有 = 57 全通过
+- v1 训练（target=legal 位置）：loss 从 0.23 降到 0.22，**几乎没学到**——原因：从 bad 到 legal 有多解
+- v2 训练（target=hand-crafted 的修复输出，teacher distillation）：**loss 从 0.22 → 0.001**，降了 200 倍，模型真学到了
+- v2 在 ISPD2005 上评估：**失败** (-23% 到 -158%)，原因是分布 mismatch：
+  - 训练 canvas=10, macros 30-150
+  - ISPD2005 canvas 10.69-23.19, macros 543-8170
+  - 即使 num_steps=1 也差（-15.8%），不是 overshoot 问题
+- 开启 v3 训练：canvas=15, macros 300-700, perturb=0.3（更接近 ISPD2005 分布）
+**Results**:
+- 基础设施完整（model + dataset + train + infer + eval + 8 tests）
+- Teacher distillation 数学上 work（loss → 0.001）
+- Sim-to-real gap 是主要挑战
+**Decisions / Assumptions**:
+- Target: teacher distillation (hand-crafted output 作为 target)，避免 legal 位置的多解性
+- Assumption: v3 的更真实合成分布能闭合 sim-to-real gap。Verification: 等训练完跑 eval。
+- Plan B: 如果 v3 仍失败，Plan B 就是：接受 NeuralVSR 和 hand-crafted 质量相近，主打**速度** (1 forward pass vs 100 iterations, 100x speedup) 作为论文卖点
+**Next**:
+1. 等 v3 训练完（~1h）
+2. ISPD2005 eval 验证
+3. 如果 v3 还不行，修正/训练数据再迭代或切 Plan B
