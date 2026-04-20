@@ -373,3 +373,29 @@
 2. Run on real data with MORE training epochs / larger training set overnight
 3. Paper story pivot: quality-speed Pareto curve, not violation reduction leaderboard
 4. Frame sim-to-real as known limitation, show that even mediocre NeuralVSR provides non-trivial improvement
+
+#### 2026-04-20 21:00 HKT — Plan B 尝试：用真实 ISPD2005 数据训练
+**Context**: 合成数据 sim-to-real gap 无法闭合，试用真实 guided placement 作为训练数据。
+**Actions**:
+- 实现 `scripts/gen_ispd_placements.py` 批量生成 guided 采样
+- 实现 `src/vsr_place/neural/real_dataset.py` + `scripts/train_neural_vsr_real.py`
+- 在 AutoDL 上尝试生成 3 电路 × 8 种子 = 24 样本
+- **只有 3 样本成功**（adaptec1 seed 0-2），其他全部 OOM
+- 24GB 显存对重复 guided sampling 是瓶颈（memory fragmentation 累积）
+
+**Hard truth**:
+- 24GB GPU 上无法稳定生成足够的真实训练数据
+- 3 个样本过小，无法训练有泛化的 GNN
+- 需要 A100 80GB 才能批量跑 guided sampling
+
+**Status check on Plan B**:
+- Hand-crafted: **稳定 -37% 到 -62%** ✅（已有全部数据）
+- NeuralVSR 合成训练: **-12% 到 -158%** ❌ (sim-to-real fail)
+- NeuralVSR 真实训练: **数据不够** ❌ (GPU 限制)
+
+**Decision point**:
+1. 路线 C: 租 A100 80GB (≥¥30/h × 几小时) 生成充足真实训练数据 → 重训 NeuralVSR
+2. 路线 D: 接受现状，改论文定位为 "hand-crafted 版本"。投 ICCAD/DAC 而非 NeurIPS main
+3. 路线 E: 纯 NeurIPS-friendly 架构改动——完全不用 NeuralVSR，把 hand-crafted 本身重新包装成 "non-differentiable projection layer for diffusion" 的理论贡献
+
+**Next**: 等用户决策路线 C/D/E
