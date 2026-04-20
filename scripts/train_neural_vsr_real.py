@@ -69,12 +69,10 @@ def main():
     parser.add_argument("--num-layers", type=int, default=3)
     parser.add_argument("--heads", type=int, default=4)
     parser.add_argument("--device", type=str, default="cuda")
-    parser.add_argument("--repair-iters", type=int, default=30,
-                        help="Hand-crafted iterations for target")
-    parser.add_argument("--augment", type=int, default=30,
-                        help="Augmentations per real sample (0 = none)")
-    parser.add_argument("--perturb-scale", type=float, default=0.02,
-                        help="Augmentation perturbation scale (fraction of canvas)")
+    parser.add_argument("--trajectory-steps", type=int, default=30,
+                        help="Hand-crafted steps unrolled per sample (each = 1 training pair)")
+    parser.add_argument("--repair-step", type=float, default=0.3,
+                        help="Hand-crafted step size")
     args = parser.parse_args()
 
     from vsr_place.neural.model import NeuralVSR
@@ -86,9 +84,8 @@ def main():
     print(f"Loading placements from {args.data}...", flush=True)
     full_ds = RealISPDDataset(
         args.data,
-        repair_iters=args.repair_iters,
-        augmentations_per_sample=args.augment,
-        perturb_scale=args.perturb_scale,
+        trajectory_steps=args.trajectory_steps,
+        repair_step=args.repair_step,
     )
     n_total = len(full_ds)
     n_val = max(1, int(n_total * args.val_split))

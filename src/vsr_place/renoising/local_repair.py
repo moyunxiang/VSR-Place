@@ -96,13 +96,26 @@ def local_repair_loop(
     num_steps: int = 50,
     step_size: float = 0.2,
     only_mask: Tensor | None = None,
+    return_trajectory: bool = False,
 ) -> Tensor:
     """Iteratively apply local repair until convergence or budget exhausted.
 
+    Args:
+        return_trajectory: If True, return list of (x_k, x_{k+1}) pairs
+            for learning single-step physics. Default False = return final x.
+
     Returns:
-        (N, 2) repaired centers.
+        (N, 2) repaired centers, or list of pairs if return_trajectory=True.
     """
     x = centers.clone()
-    for _ in range(num_steps):
-        x = local_repair_step(x, sizes, canvas_w, canvas_h, step_size, only_mask)
-    return x
+    if return_trajectory:
+        pairs = []
+        for _ in range(num_steps):
+            x_prev = x.clone()
+            x = local_repair_step(x_prev, sizes, canvas_w, canvas_h, step_size, only_mask)
+            pairs.append((x_prev, x.clone()))
+        return pairs
+    else:
+        for _ in range(num_steps):
+            x = local_repair_step(x, sizes, canvas_w, canvas_h, step_size, only_mask)
+        return x
