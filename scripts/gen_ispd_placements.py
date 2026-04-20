@@ -56,10 +56,26 @@ def main():
     else:
         done = set()
 
+    # Reuse adapter across seeds for same circuit (avoids reloading 73MB checkpoint)
     for i in args.circuits:
         x_in, cond = val_set[i]
         n_macros = cond.x.shape[0]
         print(f"\n=== circuit {i} ({n_macros} macros) ===", flush=True)
+
+        torch.cuda.empty_cache()
+        try:
+            adapter = ChipDiffusionAdapter.from_checkpoint(
+                args.checkpoint, device="cuda",
+                input_shape=tuple(x_in.shape), guidance="opt",
+            )
+            cw, ch = adapter.get_canvas_size(cond)
+            cond_gpu = cond.to("cuda")
+        except torch.cuda.OutOfMemoryError:
+            print(f"  Loading adapter OOM, skip circuit {i}", flush=True)
+            continue
+        except Exception as e:
+            print(f"  Adapter load ERROR {type(e).__name__}: {e}", flush=True)
+            continue
 
         for seed in args.seeds:
             if (i, seed) in done:
@@ -67,13 +83,8 @@ def main():
             torch.cuda.empty_cache()
             torch.manual_seed(seed)
             try:
-                adapter = ChipDiffusionAdapter.from_checkpoint(
-                    args.checkpoint, device="cuda",
-                    input_shape=tuple(x_in.shape), guidance="opt",
-                )
-                cw, ch = adapter.get_canvas_size(cond)
                 t0 = time.time()
-                placement = adapter.guided_sample(cond.to("cuda"), num_samples=1).squeeze(0)
+                placement = adapter.guided_sample(cond_gpu, num_samples=1).squeeze(0)
                 centers, sizes = adapter.decode_placement(placement, cond)
                 elapsed = time.time() - t0
 
@@ -88,18 +99,17 @@ def main():
                     "canvas_h": ch,
                 })
                 print(f"  seed={seed}: done ({elapsed:.1f}s, {len(placements)} total)", flush=True)
-
-                # Incremental save
                 with open(out_path, "wb") as f:
                     pickle.dump(placements, f)
             except torch.cuda.OutOfMemoryError:
                 print(f"  seed={seed}: OOM, skip", flush=True)
+                torch.cuda.empty_cache()
             except Exception as e:
                 print(f"  seed={seed}: ERROR {type(e).__name__}: {e}", flush=True)
-            finally:
-                if "adapter" in locals():
-                    del adapter
-                torch.cuda.empty_cache()
+
+        # Free adapter before moving to next circuit
+        del adapter
+        torch.cuda.empty_cache()
 
     print(f"\nDone. {len(placements)} placements saved to {out_path}")
 
