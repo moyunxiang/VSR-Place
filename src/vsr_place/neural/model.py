@@ -87,20 +87,39 @@ class NeuralVSR(nn.Module):
         node_features: torch.Tensor,
         edge_index: torch.Tensor,
         edge_attr: torch.Tensor | None = None,
+        canvas_scale: float | None = None,
     ) -> torch.Tensor:
         """Predict per-macro displacement.
 
         Args:
             centers: (N, 2) macro centers.
             node_features: (N, node_feat_dim) per-macro features.
-            edge_index: (2, E) edge connectivity (undirected/bidirectional).
-            edge_attr: (E, edge_feat_dim) edge features, or None.
+            edge_index: (2, E) edge connectivity.
+            edge_attr: (E, edge_feat_dim) edge features.
+            canvas_scale: if provided, normalize inputs by this scale for
+                scale-invariance. Output displacement is rescaled back.
 
         Returns:
             (N, 2) predicted displacement.
         """
-        # Concatenate position and features as initial node representation
-        h = torch.cat([centers, node_features], dim=-1)  # (N, 2+F)
+        if canvas_scale is not None:
+            # Normalize: centers ∈ [0,1], sizes (in features) ∈ [0,~0.1]
+            c_in = centers / canvas_scale
+            # Assume node features layout: [severity, boundary, overlap_count, width, height]
+            # Normalize by canvas_scale where appropriate
+            f_in = node_features.clone()
+            # severity, boundary: divide by canvas_scale (they have length units)
+            f_in[:, 0] = f_in[:, 0] / canvas_scale
+            f_in[:, 1] = f_in[:, 1] / canvas_scale
+            # overlap_count: unitless, leave
+            # width, height: divide by canvas_scale
+            f_in[:, 3] = f_in[:, 3] / canvas_scale
+            f_in[:, 4] = f_in[:, 4] / canvas_scale
+        else:
+            c_in = centers
+            f_in = node_features
+
+        h = torch.cat([c_in, f_in], dim=-1)
         h = self.input_proj(h)
         h = F.relu(h)
 
@@ -111,6 +130,9 @@ class NeuralVSR(nn.Module):
             h = norm(h + h_res)
 
         delta = self.output_proj(h)
+        if canvas_scale is not None:
+            # Output was predicted in normalized space; rescale
+            delta = delta * canvas_scale
         return delta
 
     def num_parameters(self) -> int:

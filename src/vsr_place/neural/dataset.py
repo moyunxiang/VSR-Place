@@ -202,10 +202,12 @@ def generate_synthetic_sample(
     elif target_mode == "teacher":
         # Target = final displacement after running hand-crafted repair to convergence.
         # NeuralVSR learns to predict this full trajectory in a single forward pass.
+        # We use 30 iterations (not 100) to keep target small enough for a single
+        # forward pass to approximate, and to speed up data generation.
         from vsr_place.renoising.local_repair import local_repair_loop
         centers_repaired = local_repair_loop(
             centers_bad, sizes, canvas_side, canvas_side,
-            num_steps=100, step_size=0.3,
+            num_steps=30, step_size=0.3,
         )
         target_delta = centers_repaired - centers_bad
     else:

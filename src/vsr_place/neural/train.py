@@ -127,8 +127,11 @@ def train(
             edge_attr = batch["edge_attr"].to(device)
             target = batch["target_delta"].to(device)
 
-            pred = model(centers, node_feats, edge_idx, edge_attr)
-            loss = ((pred - target) ** 2).mean()
+            # Use canvas from first sample in batch for scale normalization
+            cscale = batch["canvas_info"][0][0]
+            pred = model(centers, node_feats, edge_idx, edge_attr, canvas_scale=cscale)
+            # Loss in normalized space for scale-invariance
+            loss = (((pred - target) / cscale) ** 2).mean()
 
             optim.zero_grad()
             loss.backward()
@@ -155,8 +158,9 @@ def train(
                     edge_attr = batch["edge_attr"].to(device)
                     target = batch["target_delta"].to(device)
 
-                    pred = model(centers, node_feats, edge_idx, edge_attr)
-                    loss = ((pred - target) ** 2).mean()
+                    cscale = batch["canvas_info"][0][0]
+                    pred = model(centers, node_feats, edge_idx, edge_attr, canvas_scale=cscale)
+                    loss = (((pred - target) / cscale) ** 2).mean()
                     val_loss += loss.item()
                     n_val_batches += 1
             val_loss /= max(1, n_val_batches)

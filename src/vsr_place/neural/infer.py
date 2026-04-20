@@ -52,12 +52,15 @@ def neural_repair_loop(
     if only_mask is not None:
         only_mask = only_mask.to(device)
 
+    # Use max canvas dimension as scale (assumes roughly square-ish)
+    canvas_scale = max(canvas_w, canvas_h)
+
     for _ in range(num_steps):
         feats = compute_violation_features(
             x.cpu(), sizes_dev.cpu(), canvas_w, canvas_h,
         ).to(device)
 
-        delta = model(x, feats, edge_index_dev, edge_attr_dev)
+        delta = model(x, feats, edge_index_dev, edge_attr_dev, canvas_scale=canvas_scale)
 
         if only_mask is not None:
             delta = delta * only_mask.unsqueeze(-1)
