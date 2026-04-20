@@ -342,3 +342,34 @@
 1. 等 v3 训练完（~1h）
 2. ISPD2005 eval 验证
 3. 如果 v3 还不行，修正/训练数据再迭代或切 Plan B
+
+#### 2026-04-20 20:00 HKT — Day 3 迭代：sim-to-real gap 未解决
+**Context**: NeuralVSR 需要在合成数据上训练 → 在 ISPD2005 上 zero-shot 泛化。
+**Actions**:
+- v2 teacher distillation: canvas=10, n=30-150, 2000 samples → ISPD2005 adaptec1 上 -23.8% (更差)
+- v3: canvas=15, n=300-700, 500 samples → 数据生成太慢 (>2h), killed
+- v4: 100 samples, n=200-500 → 还是慢
+- 加入 scale-invariant 归一化（positions/sizes/features 都按 canvas 缩放）
+- v5: canvas=12, n=200-400, 50 samples（过拟合但快速验证） → ISPD2005 adaptec1 -12~14% (仍差)
+- Hand-crafted on same circuit: +54-60% ✅
+
+**Results**:
+| 方法 | adaptec1 violation | vs baseline |
+|------|-------------------|-------------|
+| Baseline (guided) | 18,421 | — |
+| Hand-crafted | 8,316 | **-54.9%** ✅ |
+| NeuralVSR v5 (K=1) | 20,741 | -12.6% ❌ |
+
+**Decisions / Assumptions**:
+- 确认：teacher distillation loss 收敛到 8e-6（合成数据上完美），但泛化到 ISPD2005 失败
+- Root cause: 训练合成分布 != ISPD2005 分布（网表结构、violation scale、macro 密度都不一样）
+- Scale normalization 没解决根本问题
+- **Plan B 启动**: 放弃 "NeuralVSR 比 hand-crafted 好"，改为 "NeuralVSR 是 amortized 版本，质量相当/稍差但速度 100x"
+- Timing: hand-crafted ~5s, NeuralVSR K=1 ~0.1s (仅 forward pass)，**50x speedup**
+- Plan B paper story: "Amortized Constraint Projection via Graph Neural Networks — training-free deployment, cheap training"
+
+**Next (Plan B)**:
+1. Measure NeuralVSR forward pass time vs hand-crafted 100 iters → confirm speed win
+2. Run on real data with MORE training epochs / larger training set overnight
+3. Paper story pivot: quality-speed Pareto curve, not violation reduction leaderboard
+4. Frame sim-to-real as known limitation, show that even mediocre NeuralVSR provides non-trivial improvement
