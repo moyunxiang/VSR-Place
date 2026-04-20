@@ -156,15 +156,21 @@ def generate_synthetic_sample(
     perturb_scale: float = 0.5,
     edge_density: float = 0.05,
     seed: int | None = None,
+    target_mode: str = "teacher",
 ) -> SyntheticSample:
     """Generate one synthetic training sample.
 
     Args:
         n_range: (min, max) number of macros.
-        canvas_side: canvas is canvas_side × canvas_side.
-        perturb_scale: how much to perturb legal placement (as fraction of canvas).
-        edge_density: edge probability multiplier.
-        seed: RNG seed for reproducibility.
+        canvas_side: canvas size.
+        perturb_scale: perturbation magnitude (fraction of canvas).
+        edge_density: netlist edge probability multiplier.
+        seed: RNG seed.
+        target_mode:
+            'legal' - target = displacement back to original legal placement
+                      (unstable because multiple legal placements exist)
+            'teacher' - target = displacement predicted by running hand-crafted
+                        local_repair to convergence. Distill repair policy.
 
     Returns:
         SyntheticSample with (x_bad, target_delta, sizes, edge_index, edge_attr).
@@ -174,9 +180,8 @@ def generate_synthetic_sample(
 
     n = int(torch.randint(n_range[0], n_range[1] + 1, (1,)).item())
 
-    # Generate sizes, legal placement, netlist
+    # Sizes
     sizes = _generate_macro_sizes(n, canvas_side)
-    # Adjust sizes so they fit
     max_w = sizes[:, 0].max().item()
     max_h = sizes[:, 1].max().item()
     if max_w > canvas_side / 2 or max_h > canvas_side / 2:
@@ -189,11 +194,22 @@ def generate_synthetic_sample(
     # Perturb to create violations
     perturb = torch.randn_like(centers_legal) * perturb_scale
     centers_bad = centers_legal + perturb
-    # Clamp within canvas
     centers_bad[:, 0] = centers_bad[:, 0].clamp(0, canvas_side)
     centers_bad[:, 1] = centers_bad[:, 1].clamp(0, canvas_side)
 
-    target_delta = centers_legal - centers_bad
+    if target_mode == "legal":
+        target_delta = centers_legal - centers_bad
+    elif target_mode == "teacher":
+        # Target = final displacement after running hand-crafted repair to convergence.
+        # NeuralVSR learns to predict this full trajectory in a single forward pass.
+        from vsr_place.renoising.local_repair import local_repair_loop
+        centers_repaired = local_repair_loop(
+            centers_bad, sizes, canvas_side, canvas_side,
+            num_steps=100, step_size=0.3,
+        )
+        target_delta = centers_repaired - centers_bad
+    else:
+        raise ValueError(f"Unknown target_mode: {target_mode}")
 
     return SyntheticSample(
         centers_bad=centers_bad,
