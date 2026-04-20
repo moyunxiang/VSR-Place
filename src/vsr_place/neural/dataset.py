@@ -235,7 +235,13 @@ def compute_violation_features(
 
 
 class SyntheticVSRDataset(Dataset):
-    """Dataset of synthetic (placement, violations, target_displacement) triples."""
+    """Dataset of synthetic (placement, violations, target_displacement) triples.
+
+    Args:
+        precompute: If True, generate all samples up front (faster training
+                    but higher memory). If False, regenerate on __getitem__
+                    with deterministic seed.
+    """
 
     def __init__(
         self,
@@ -245,6 +251,8 @@ class SyntheticVSRDataset(Dataset):
         perturb_scale: float = 0.5,
         edge_density: float = 0.05,
         seed: int = 0,
+        precompute: bool = True,
+        verbose: bool = False,
     ):
         self.num_samples = num_samples
         self.n_range = n_range
@@ -252,11 +260,25 @@ class SyntheticVSRDataset(Dataset):
         self.perturb_scale = perturb_scale
         self.edge_density = edge_density
         self.base_seed = seed
+        self.precompute = precompute
+
+        if precompute:
+            if verbose:
+                print(f"Precomputing {num_samples} synthetic samples...", flush=True)
+            self._cache = []
+            for i in range(num_samples):
+                if verbose and i % 500 == 0 and i > 0:
+                    print(f"  {i}/{num_samples}", flush=True)
+                self._cache.append(self._make_item(i))
+            if verbose:
+                print(f"  done", flush=True)
+        else:
+            self._cache = None
 
     def __len__(self):
         return self.num_samples
 
-    def __getitem__(self, idx: int) -> dict:
+    def _make_item(self, idx: int) -> dict:
         sample = generate_synthetic_sample(
             n_range=self.n_range,
             canvas_side=self.canvas_side,
@@ -278,3 +300,8 @@ class SyntheticVSRDataset(Dataset):
             "canvas_w": sample.canvas_w,
             "canvas_h": sample.canvas_h,
         }
+
+    def __getitem__(self, idx: int) -> dict:
+        if self._cache is not None:
+            return self._cache[idx]
+        return self._make_item(idx)

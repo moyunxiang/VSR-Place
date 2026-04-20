@@ -82,14 +82,16 @@ def train(
     print(f"  arch: hidden={hidden_dim} layers={num_layers} heads={heads}")
     print(f"  device={device}")
 
-    # Datasets
+    # Datasets (precompute once to avoid per-epoch regeneration)
     train_ds = SyntheticVSRDataset(
         num_samples=num_train, n_range=n_range,
         canvas_side=canvas_side, perturb_scale=perturb_scale, seed=0,
+        precompute=True, verbose=True,
     )
     val_ds = SyntheticVSRDataset(
         num_samples=num_val, n_range=n_range,
         canvas_side=canvas_side, perturb_scale=perturb_scale, seed=10_000_000,
+        precompute=True, verbose=True,
     )
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
