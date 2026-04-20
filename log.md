@@ -399,3 +399,27 @@
 3. 路线 E: 纯 NeurIPS-friendly 架构改动——完全不用 NeuralVSR，把 hand-crafted 本身重新包装成 "non-differentiable projection layer for diffusion" 的理论贡献
 
 **Next**: 等用户决策路线 C/D/E
+
+#### 2026-04-20 22:30 HKT — Plan C 无 A100 部分完成
+**Context**: 用户选 Plan C，先把不用 A100 的都做了。
+**Actions**:
+- 加数据增强（每个真样本 × 50 扰动 = 153 样本）→ 训练完成但 val loss 0.069 太高
+- 切"轨迹蒸馏"：记录 hand-crafted 每步的 (x_k, x_{k+1})，模型学单步物理
+- 3 真样本 × 50 trajectory steps = 150 pairs → val loss 0.0037（好很多）
+- 但在 ISPD2005 上仍然 **NeuralVSR (-9.6% 到 -164%)** 比 baseline 差
+- 瓶颈确认：**只有 3 个真样本（全 adaptec1）**，多样性严重不足
+
+**Exhausted non-A100 options**:
+1. ✅ 合成数据 (sim-to-real gap)
+2. ✅ 真数据增强（扰动多样性不够）
+3. ✅ 轨迹蒸馏（数据量勉强够训练，但没见过其他电路）
+
+**根本问题**: 24GB GPU 只能跑 adaptec1/adaptec3/bigblue1 的 guided sampling，其他 5 个电路 OOM。而 adaptec3/bigblue1 只能跑 1 seed 就 OOM。所以最多能获得 adaptec1×8 + adaptec3×1 + bigblue1×1 ≈ 10 样本。还是 too little。
+
+**A100 能做什么**:
+- 80GB 显存可以跑所有 8 个电路
+- 每个电路 8 种子 = 64 样本
+- 每样本 trajectory 30 步 = 1920 训练对
+- 预估 A100 3-4h 可以生成全部数据，¥100-120
+
+**Decision needed**: 租 A100 吗？不租的话结果就是"Plan D - hand-crafted only" 投 EDA 会议。
