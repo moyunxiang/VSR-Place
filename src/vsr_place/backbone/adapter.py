@@ -188,11 +188,16 @@ class ChipDiffusionAdapter:
             (B, V, 2) tensor of placements in normalized coords.
         """
         cond = cond.to(self.device)
+        # reverse_samples needs x_in for shape + mask derivation
+        # Use zeros (ports will be masked via cond.is_ports automatically)
+        num_vertices = cond.x.shape[0]
+        x_in = torch.zeros(num_samples, num_vertices, 2, device=self.device)
+
         # Override the model's internal diffusion steps for this call
         old_steps = getattr(self.model, "max_diffusion_steps", 1000)
         self.model.max_diffusion_steps = num_steps
         try:
-            samples, _ = self.model.reverse_samples(num_samples, None, cond)
+            samples, _ = self.model.reverse_samples(num_samples, x_in, cond)
         finally:
             self.model.max_diffusion_steps = old_steps
         return samples

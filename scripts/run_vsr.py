@@ -242,7 +242,7 @@ def filter_macros_only(x: torch.Tensor, cond) -> tuple:
     return x_macro, cond_macro
 
 
-def run_single_sample(adapter, verifier, loop, x_in, cond, sample_idx, device, legalize=False, guidance="none"):
+def run_single_sample(adapter, verifier, loop, x_in, cond, sample_idx, device, legalize=False, guidance="none", postproc=False):
     """Run VSR-Place on a single benchmark sample.
 
     Args:
@@ -281,14 +281,34 @@ def run_single_sample(adapter, verifier, loop, x_in, cond, sample_idx, device, l
             "num_repair_loops": 0,
         }
 
+    # Decode final placement
+    centers, sizes = adapter.decode_placement(placement, cond)
+    centers_cpu = centers.cpu()
+    sizes_cpu = sizes.cpu()
+
+    # Optional: VSR post-processing (local_repair on offending macros)
+    if postproc:
+        from vsr_place.renoising.local_repair import local_repair_loop
+        canvas_w, canvas_h = adapter.get_canvas_size(cond)
+        pre_fb = verifier(centers_cpu, sizes_cpu)
+        mask = pre_fb.severity_vector > 0
+        if mask.any():
+            centers_cpu = local_repair_loop(
+                centers_cpu, sizes_cpu, canvas_w, canvas_h,
+                num_steps=100, step_size=0.3, only_mask=mask,
+            )
+        metrics["method"] = metrics.get("method", "baseline") + "_postproc"
+
     # Optional: apply ChipDiffusion's legalizer after VSR/baseline
     if legalize:
         placement = adapter.legalize(placement, cond, mode="opt",
                                      step_size=0.2, grad_descent_steps=5000)
+        centers, sizes = adapter.decode_placement(placement, cond)
+        centers_cpu = centers.cpu()
+        sizes_cpu = sizes.cpu()
 
-    # Decode final placement and compute verification metrics
-    centers, sizes = adapter.decode_placement(placement, cond)
-    final_feedback = verifier(centers.cpu(), sizes.cpu())
+    # Final verification
+    final_feedback = verifier(centers_cpu, sizes_cpu)
     legality_metrics = compute_legality_metrics(final_feedback)
 
     metrics.update({
@@ -400,7 +420,10 @@ def run_experiment(cfg: dict, seed: int = 42):
         metrics, placement = run_single_sample(
             adapter, verifier, loop, x_in, cond, i, device,
             legalize=legalize, guidance=guidance,
+            postproc=cfg.get("postproc", False),
         )
+        # Free GPU memory between samples (especially important for guided sampling)
+        torch.cuda.empty_cache() if torch.cuda.is_available() else None
         elapsed = time.time() - t_sample
 
         metrics["seed"] = seed
@@ -447,6 +470,8 @@ def main():
     parser.add_argument("--macro-only", action="store_true", help="Filter to macro-only subgraph (for ISPD2005)")
     parser.add_argument("--guidance", type=str, default="none",
                         choices=["none", "sgd", "opt"], help="Guidance mode during sampling")
+    parser.add_argument("--postproc", action="store_true",
+                        help="Use VSR as post-processing (local_repair) instead of re-denoise")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -468,6 +493,8 @@ def main():
         cfg["macro_only"] = True
     if args.guidance != "none":
         cfg["guidance"] = args.guidance
+    if args.postproc:
+        cfg["postproc"] = True
 
     if args.dry_run:
         print(yaml.dump(cfg, default_flow_style=False))
