@@ -1,0 +1,202 @@
+[
+  {
+    "circuit": "adaptec1",
+    "n_macros": 543,
+    "seed": 42,
+    "baseline_violations": 18553,
+    "baseline_overlap": 18393,
+    "baseline_boundary": 160,
+    "vsr_violations": 7602,
+    "vsr_overlap": 7347,
+    "vsr_boundary": 255,
+    "t_sample": 17.957715034484863,
+    "t_repair": 3.9345502853393555,
+    "n_offending_macros": 543
+  },
+  {
+    "circuit": "adaptec1",
+    "n_macros": 543,
+    "seed": 123,
+    "baseline_violations": 21576,
+    "baseline_overlap": 21429,
+    "baseline_boundary": 147,
+    "vsr_violations": 9557,
+    "vsr_overlap": 9212,
+    "vsr_boundary": 345,
+    "t_sample": 16.853571891784668,
+    "t_repair": 5.520461559295654,
+    "n_offending_macros": 543
+  },
+  {
+    "circuit": "adaptec1",
+    "n_macros": 543,
+    "seed": 300,
+    "baseline_violations": 19826,
+    "baseline_overlap": 19670,
+    "baseline_boundary": 156,
+    "vsr_violations": 8056,
+    "vsr_overlap": 7817,
+    "vsr_boundary": 239,
+    "t_sample": 15.070348739624023,
+    "t_repair": 4.826262950897217,
+    "n_offending_macros": 543
+  },
+  {
+    "circuit": "adaptec2",
+    "n_macros": 566,
+    "seed": 42,
+    "error": "OOM"
+  },
+  {
+    "circuit": "adaptec2",
+    "n_macros": 566,
+    "seed": 123,
+    "error": "OOM"
+  },
+  {
+    "circuit": "adaptec2",
+    "n_macros": 566,
+    "seed": 300,
+    "error": "OOM"
+  },
+  {
+    "circuit": "adaptec3",
+    "n_macros": 723,
+    "seed": 42,
+    "baseline_violations": 42205,
+    "baseline_overlap": 41484,
+    "baseline_boundary": 721,
+    "vsr_violations": 16375,
+    "vsr_overlap": 15793,
+    "vsr_boundary": 582,
+    "t_sample": 17.251821041107178,
+    "t_repair": 7.376890659332275,
+    "n_offending_macros": 723
+  },
+  {
+    "circuit": "adaptec3",
+    "n_macros": 723,
+    "seed": 123,
+    "error": "OOM"
+  },
+  {
+    "circuit": "adaptec3",
+    "n_macros": 723,
+    "seed": 300,
+    "error": "OOM"
+  },
+  {
+    "circuit": "adaptec4",
+    "n_macros": 1329,
+    "seed": 42,
+    "error": "OOM"
+  },
+  {
+    "circuit": "adaptec4",
+    "n_macros": 1329,
+    "seed": 123,
+    "error": "OOM"
+  },
+  {
+    "circuit": "adaptec4",
+    "n_macros": 1329,
+    "seed": 300,
+    "error": "OOM"
+  },
+  {
+    "circuit": "bigblue1",
+    "n_macros": 560,
+    "seed": 42,
+    "baseline_violations": 10574,
+    "baseline_overlap": 10467,
+    "baseline_boundary": 107,
+    "vsr_violations": 7028,
+    "vsr_overlap": 6808,
+    "vsr_boundary": 220,
+    "t_sample": 16.173531532287598,
+    "t_repair": 7.6627891063690186,
+    "n_offending_macros": 560
+  },
+  {
+    "circuit": "bigblue1",
+    "n_macros": 560,
+    "seed": 123,
+    "baseline_violations": 11095,
+    "baseline_overlap": 10992,
+    "baseline_boundary": 103,
+    "vsr_violations": 6293,
+    "vsr_overlap": 6078,
+    "vsr_boundary": 215,
+    "t_sample": 15.828328371047974,
+    "t_repair": 6.2851362228393555,
+    "n_offending_macros": 560
+  },
+  {
+    "circuit": "bigblue1",
+    "n_macros": 560,
+    "seed": 300,
+    "baseline_violations": 11803,
+    "baseline_overlap": 11698,
+    "baseline_boundary": 105,
+    "vsr_violations": 7668,
+    "vsr_overlap": 7408,
+    "vsr_boundary": 260,
+    "t_sample": 15.87813138961792,
+    "t_repair": 4.665574550628662,
+    "n_offending_macros": 560
+  },
+  {
+    "circuit": "bigblue2",
+    "n_macros": 23084,
+    "seed": 42,
+    "error": "OOM"
+  },
+  {
+    "circuit": "bigblue2",
+    "n_macros": 23084,
+    "seed": 123,
+    "error": "OOM"
+  },
+  {
+    "circuit": "bigblue2",
+    "n_macros": 23084,
+    "seed": 300,
+    "error": "OOM"
+  },
+  {
+    "circuit": "bigblue3",
+    "n_macros": 1298,
+    "seed": 42,
+    "error": "OOM"
+  },
+  {
+    "circuit": "bigblue3",
+    "n_macros": 1298,
+    "seed": 123,
+    "error": "OOM"
+  },
+  {
+    "circuit": "bigblue3",
+    "n_macros": 1298,
+    "seed": 300,
+    "error": "OOM"
+  },
+  {
+    "circuit": "bigblue4",
+    "n_macros": 8170,
+    "seed": 42,
+    "error": "OOM"
+  },
+  {
+    "circuit": "bigblue4",
+    "n_macros": 8170,
+    "seed": 123,
+    "error": "OOM"
+  },
+  {
+    "circuit": "bigblue4",
+    "n_macros": 8170,
+    "seed": 300,
+    "error": "OOM"
+  }
+]

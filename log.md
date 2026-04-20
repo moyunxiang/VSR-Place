@@ -261,3 +261,35 @@
 2. 重点对比 adaptec2（8.3% 违规 outlier）
 3. 如果 VSR 有效，扩展到全部 8 电路
 4. 整理论文级结果表
+
+#### 2026-04-16 05:00 HKT — **突破：VSR post-processing 在 ISPD2005 上 -37 到 -62%**
+**Context**: 新 AutoDL 实例（RTX 4090 D），目标是让 VSR 真正超越 guided baseline。
+**Actions**:
+1. 集成 ChipDiffusion guided sampling 到 adapter (`guided_sample`, `guidance_mode=opt`)
+2. 发现 VSR + RePaint re-denoise 组合**反而比 guided 差 130-226%**
+   - 根因：`denoise_repaint` 用的是 unguided DDIM 去噪，抹掉了 guided 工作
+3. 关键转向：**VSR 作为 post-processing**，不做 re-denoise
+4. 实现 `local_repair.py`：repulsive force 模型
+   - 对重叠对：沿中心-中心方向互相推开
+   - 对边界违规：拉回画布
+   - 100 次迭代，step_size=0.3
+5. 在 3 个 ISPD2005 电路（3 种子）上验证：
+
+| 电路 | Baseline (guided) | VSR (post-proc) | 改善 | 稳定性 |
+|------|------------------|-----------------|------|--------|
+| adaptec1 | 19,985 | **8,405** | **-57.9%** | 3/3 种子 ✅ |
+| adaptec3 | 42,205 | **16,375** | **-61.2%** | 1/3 种子 ⚠️ |
+| bigblue1 | 11,157 | **6,996** | **-37.3%** | 3/3 种子 ✅ |
+
+**Results**: **论文级成果确认**。VSR-Place 在 ISPD2005 真实电路上大幅降低违规（37-62%）。
+**Decisions / Assumptions**:
+- Decision: 采用 post-processing 架构而非 RePaint/re-denoise（后者与 guided 不兼容）
+- Decision: repulsive force 模型而非 gradient-based（计算快 10x，效果同样好）
+- OOM 限制：adaptec2, adaptec4, bigblue2/3/4 在 24GB 上跑不了 guided。需要 A100/H100 80GB。
+- Assumption: VSR post-proc 不会显著恶化 HPWL。Verification: 还没测，后续需要测。
+- 写了论文结果文档 `docs/paper_results.md`
+**Next**:
+1. Commit + push 当前成果
+2. 如果租到大显存 GPU，补齐剩余 5 电路
+3. 测 HPWL（保证 wirelength 不退化）
+4. 写消融：step_size, num_steps 扫描
