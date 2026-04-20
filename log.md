@@ -293,3 +293,24 @@
 2. 如果租到大显存 GPU，补齐剩余 5 电路
 3. 测 HPWL（保证 wirelength 不退化）
 4. 写消融：step_size, num_steps 扫描
+
+#### 2026-04-16 06:00 HKT — **Pivot to NeuralVSR (NeurIPS 2026)**
+**Context**: 评估当前工作是否能投 NeurIPS：不够——hand-crafted repulsive force 不算 ML 贡献。决定 pivot。
+**Actions**:
+- 写了新 proposal `proposal_v2.md`：NeuralVSR - 学习的 GNN 代替 hand-crafted force
+- 核心创新：50K 参数 GNN 作为 "learned projection operator"，amortize test-time optimization
+- 训练：合成数据（1M pairs）上训练，zero-shot 到 ISPD2005
+- 对比：Universal Guidance / RePaint / Classifier guidance 都要求可微或 binary mask，NeuralVSR 处理非可微 verifier 信号
+- 写了 2 周冲刺 plan：
+  - Week 1: 架构 + 合成数据 + 训练 + 小电路评估 (Day 1-7)
+  - Week 2: 消融 + baselines + 写论文 (Day 8-14)
+- 写了 `docs/hardware_requirements.md`：4090 训练 + A100 80GB 做大电路评估，总预算 ¥300-500
+- 每日 gate 和 Plan B（如果 NeuralVSR 比 hand-crafted 差则重新框定为 "framework of verifier-guided methods"）
+**Results**: 完整 pivot 计划就绪。保留 80% 现有基础设施，只替换 hand-crafted 部分。
+**Decisions / Assumptions**:
+- Decision: 保留 `local_repair.py` 作为 baseline（"hand-crafted" 对照）
+- Decision: 新增 `src/vsr_place/neural/` 模块，独立于 `renoising/`
+- Decision: 合成数据用 ChipDiffusion 的 generator（已验证能用）
+- Assumption: GNN 能学到比 hand-crafted 更好的 repair policy（合成训练后）。Verification: Day 4 gate。
+- Assumption: 能租到 A100 80GB（Day 7 需要）。Backup: 只报告小电路结果 + limitation
+**Next**: Day 1 开干——设计 `NeuralVSR` GNN 架构 + 合成数据生成器。
