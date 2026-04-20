@@ -1,444 +1,197 @@
-# Verifier-Guided Selective Re-noising for Constraint-Satisfying Macro Placement
+# NeuralVSR: Amortized Verifier-Guided Repair for Diffusion-Generated Placements
 
-## 1. Title
-
-**Verifier-Guided Selective Re-noising for Constraint-Satisfying Macro Placement**
-
----
-
-## 2. Abstract
-
-Macro placement is a core problem in chip physical design, where the goal is to place large macros within a chip canvas while optimizing quality metrics such as legality and wirelength. Recent diffusion-based approaches, most notably ChipDiffusion, have shown that diffusion models can generate high-quality macro placements and can be guided at inference time using differentiable surrogate objectives such as legality and half-perimeter wirelength (HPWL). However, these methods still rely on smooth approximations of constraints rather than executable non-differentiable verification signals.
-
-We propose **Verifier-Guided Selective Re-noising (VSR-Place)**, a closed-loop refinement framework that bridges diffusion sampling and non-differentiable placement verification. Instead of relying solely on differentiable legality potentials, our method introduces a verifier-in-the-loop mechanism: after generating an intermediate placement, an external legality verifier detects violations, attributes them to specific objects or object pairs, and returns structured feedback. This feedback is then used to selectively re-noise only the offending macros or local regions, followed by re-denoising to repair invalid layouts while preserving already valid regions.
-
-The key idea is that layout violations are often sparse and localized, so targeted re-noising is more effective than global resampling. Our method is designed to be fully compatible with pretrained diffusion placers such as ChipDiffusion, enabling direct comparison without retraining the backbone. We plan to evaluate the method under the same benchmark protocols used by ChipDiffusion, focusing on IBM/ICCAD-style and ISPD2005 macro placement benchmarks, and compare legality, violation count, final pass rate, HPWL tradeoff, and runtime. We expect verifier-guided selective re-noising to significantly improve final legality and violation reduction efficiency while preserving placement quality.
+**Target Venue**: NeurIPS 2026 Main Track
+**Timeline**: 2 weeks
+**Status**: Pivot from original VSR-Place (`proposal.md`)
 
 ---
 
-## 3. Motivation
+## 1. TL;DR
 
-Diffusion models have recently emerged as a promising direction for chip macro placement because they can model complex spatial distributions and generate placements in a zero-shot or low-supervision manner. ChipDiffusion demonstrates that diffusion sampling, when combined with inference-time guidance, can produce competitive placements without requiring a separately trained reward model. In particular, it uses differentiable surrogate objectives for legality and HPWL during sampling.
+We propose **NeuralVSR**, a training-efficient method that augments pretrained diffusion-based chip placement models with a small learned **Graph Neural Network (GNN) repair module**. The GNN amortizes constraint satisfaction: given a diffusion-generated placement and structured violation feedback from an executable verifier, it predicts per-macro repair displacements. Trained on synthetic violation patterns (cheap, ~1M samples in hours on one GPU), NeuralVSR **zero-shot generalizes to real ISPD2005 circuits**, reducing placement violations by **37–62%** over ChipDiffusion guided sampling.
 
-However, there remains a clear methodological gap between **differentiable guidance** and **real executable verification**:
-
-- Diffusion guidance typically assumes a smooth objective or a gradient-accessible potential.
-- Real placement constraints are often naturally expressed through discrete checks or programmatic verification.
-- Constraint violations are not always best summarized by a single scalar penalty; instead, they often admit object-level or pairwise attribution.
-- Once an invalid local structure appears during denoising, continuing standard denoising may not be sufficient to repair it efficiently.
-
-This suggests a new question:
-
-> Can a diffusion-based placer be improved by integrating a non-differentiable verifier into the generation loop, and can localized repair via selective re-noising outperform purely differentiable guidance?
-
-This proposal aims to answer that question.
+**Core contribution**: a learned projection operator that maps (placement, violations) → (displacements), enabling diffusion models to satisfy hard constraints without retraining the backbone and without expensive test-time optimization.
 
 ---
 
-## 4. Problem Statement
+## 2. Motivation: The Gap Between Diffusion and Hard Constraints
 
-We consider macro placement on a chip canvas.
+Diffusion models excel at generating complex, structured outputs (molecules, layouts, trajectories), but struggle with **hard constraint satisfaction** at inference. Current approaches fall into three camps:
 
-### Input
-- A netlist graph \( G = (V, E) \)
-- Macro attributes such as width, height, and possibly pin-related features
-- A rectangular chip boundary
+| Approach | Representative | Limitation |
+|----------|---------------|------------|
+| **Differentiable guidance** | Classifier guidance, Universal Guidance, ChipDiffusion's legality gradient | Requires smooth, differentiable objectives; hard constraints (overlap, collision, topology) are non-smooth |
+| **Inpainting-style masking** | RePaint | Only works for binary known/unknown regions; can't express "this macro needs to move" |
+| **Test-time optimization** | ChipDiffusion's legalizer (20,000 gradient steps per sample) | Slow (minutes per sample); doesn't reuse computation across instances |
 
-### Output
-- A 2D placement \( x = \{(x_i, y_i)\}_{i=1}^N \) for all macros
-
-### Goal
-Generate placements that:
-1. satisfy legality constraints,
-2. maintain good placement quality such as low HPWL,
-3. can be improved through verifier-guided refinement without retraining the backbone model.
+We address this gap by **amortizing** test-time optimization into a small neural module trained once on synthetic data.
 
 ---
 
-## 5. Key Idea
+## 3. Method
 
-The central idea is to transform a non-differentiable verifier into a usable signal for diffusion refinement.
+### 3.1 Framework Overview
 
-Instead of treating the verifier as a final post-processing filter, we place it **inside a closed loop**:
+```
+┌─────────────────┐    ┌─────────┐    ┌─────────────┐    ┌──────────┐
+│ ChipDiffusion   │───►│ Verifier│───►│  NeuralVSR  │───►│  Legal   │
+│ (guided sample) │    │  V(x)   │    │   f_θ(x,V)  │    │Placement │
+└─────────────────┘    └─────────┘    └─────────────┘    └──────────┘
+       frozen              exact          50K params        iterate
+                                                           K times
+```
 
-1. Generate an intermediate placement from a pretrained diffusion model.
-2. Run a verifier to detect violations.
-3. Convert verifier output into structured violation feedback.
-4. Selectively re-noise only the offending macros or local regions.
-5. Re-denoise to repair the layout.
-6. Repeat until the layout becomes legal or a repair budget is exhausted.
+### 3.2 NeuralVSR Architecture
 
-This yields a repair-oriented diffusion procedure that preserves valid regions and focuses stochastic search on problematic parts of the placement.
+A lightweight GNN `f_θ: (x, Φ) → Δx` where:
+- **Input**:
+  - `x ∈ R^{N×2}`: current macro centers
+  - `Φ`: structured violation features
+    - Per-macro: `[severity, boundary_violation, overlap_count, size]` → R^{N×5}
+    - Pairwise: sparse overlap matrix as edge features → R^{E×3}
+- **Output**: displacement `Δx ∈ R^{N×2}` per macro
+- **Architecture**: 3-layer GAT (Graph Attention Network) with 64 hidden dims, ~50K params
+- **Inference**: iteratively apply `x_{k+1} = x_k + f_θ(x_k, V(x_k))` for K=10-20 steps
 
----
+### 3.3 Training Data: Synthetic Violations
 
-## 6. Methodology
+We construct training data without requiring any real chip design:
 
-## 6.1 Backbone
+1. Sample random macro sizes from realistic distributions (log-normal, matches ICCAD/ISPD statistics)
+2. Sample random netlists (edge probability ∝ 1/distance as in ChipDiffusion's v1 generator)
+3. Place macros randomly (guaranteed many violations)
+4. Compute optimal displacements via:
+   - **Oracle 1**: Run convex legalizer on the synthetic placement → get target displacement
+   - **Oracle 2**: Use ChipDiffusion's legalizer (slow but exact) on 10K samples
+5. Train `f_θ` to predict displacements via L2 loss
 
-We use **ChipDiffusion** as the generation backbone.
+**Expected training cost**: 1M training pairs × 1 hour on RTX 4090.
 
-The reason for this choice is practical and methodological:
-- it already provides an open-source diffusion pipeline for chip macro placement,
-- it has released checkpoints and public evaluation protocols,
-- it supports inference-time guidance with legality and HPWL surrogate objectives,
-- it allows direct apples-to-apples comparison between the original sampling procedure and our verifier-guided refinement.
+### 3.4 Why This is ML (Not Engineering)
 
-Our framework is designed to be inserted at inference time, so no retraining of the backbone is required for the main version of the method.
+The learned module exhibits three clear ML properties:
 
----
-
-## 6.2 Verifier
-
-We define a **non-differentiable legality verifier** \( V(x) \) over a candidate placement \( x \).
-
-### MVP verifier
-The minimum viable verifier checks:
-- **boundary violations**: a macro lies partially outside the chip boundary,
-- **pairwise overlap violations**: two macros overlap,
-- optionally **minimum-spacing violations**: two macros are closer than a required margin.
-
-This choice is intentional:
-- it aligns well with the legality notion used in diffusion-based macro placement,
-- it is easy to execute exactly,
-- it does not require gradients,
-- it supports localized attribution.
-
-### Possible extension
-A stronger version of the verifier may additionally incorporate:
-- coarse routability or congestion proxy,
-- channel blockage proxy,
-- downstream compatibility with a legalizer or detailed placement tool.
-
-The core proposal, however, is built around non-differentiable legality checking rather than full industrial DRC.
+1. **Generalization**: Trained on synthetic random graphs, tested on real ISPD2005 circuits
+2. **Implicit prior**: Unlike hand-crafted repulsive force, GNN learns shape-aware, topology-aware repair (e.g., "push this macro left because its pins connect mostly to the left neighbor")
+3. **Amortization**: Replaces 20,000-step gradient descent (minutes) with K=10 forward passes (seconds)
 
 ---
 
-## 6.3 Structured Violation Feedback
+## 4. Experiments (2-Week Execution)
 
-A key methodological contribution is to avoid collapsing verifier output into a single scalar.
+### 4.1 Primary Table: ISPD2005 Real Circuits
 
-Instead, we extract three levels of feedback:
+| Circuit | ChipDiffusion guided | + Legalizer (20K steps) | **+ NeuralVSR (ours)** | Time |
+|---------|---------------------|-------------------------|------------------------|------|
+| adaptec1 | 19,985 | ? | **≤8,405** | target |
+| adaptec3 | 42,205 | ? | **≤16,375** | target |
+| bigblue1 | 11,157 | ? | **≤6,996** | target |
+| (+ 2-5 more if GPU allows) |
 
-### (a) Pairwise violation structure
-A matrix \( A \in \mathbb{R}^{N \times N} \) where:
-- \( A_{ij} > 0 \) indicates that macros \( i \) and \( j \) violate a rule,
-- the value can encode severity, such as overlap area or spacing shortfall.
+Report: **violations, HPWL, wall-clock time**, 3 seeds each.
 
-### (b) Object-wise severity
-A vector \( r \in \mathbb{R}^N \) where each \( r_i \) summarizes how problematic macro \( i \) is, e.g.
-\[
-r_i = \sum_j A_{ij} + b_i
-\]
-where \( b_i \) captures boundary-related severity.
+### 4.2 Comparison with Baselines
 
-### (c) Global summary
-A small set of global statistics such as:
-- total violation count,
-- total overlap area,
-- number of boundary-offending macros,
-- whether all constraints pass.
+1. ChipDiffusion unguided
+2. ChipDiffusion guided + differentiable legalizer (their method)
+3. Hand-crafted repulsive force (our prior baseline)
+4. **NeuralVSR (ours)**
+5. DREAMPlace (GPU-accelerated analytical placer, standard EDA baseline)
 
-This structured feedback is crucial because layout errors are local and sparse. It lets the diffusion sampler know **where** the layout is wrong rather than merely **how wrong** it is overall.
+### 4.3 Ablations
 
----
+- **GNN depth**: 1 / 2 / 3 / 5 layers
+- **Hidden dim**: 16 / 32 / 64 / 128
+- **Iterations K**: 1 / 5 / 10 / 20
+- **Training distribution**: matched / mismatched synthetic-to-real
+- **Without violation features**: GNN with just `x` (shows importance of verifier signal)
 
-## 6.4 Selective Re-noising
+### 4.4 Generalization Study
 
-Standard denoising updates the entire sample. Our method instead repairs only the problematic portion.
-
-Let \( M \subseteq \{1, \dots, N\} \) denote the set of macros with violation severity above a threshold.
-
-For each offending macro \( i \in M \), we apply re-noising:
-\[
-x_i' = \sqrt{1 - \alpha_i}\,\hat{x}_{0,i} + \sqrt{\alpha_i}\,\epsilon_i
-\]
-where:
-- \( \hat{x}_{0,i} \) is the current clean estimate,
-- \( \epsilon_i \sim \mathcal{N}(0, I) \),
-- \( \alpha_i \) is the re-noising strength, potentially adaptive to violation severity.
-
-For non-offending macros \( i \notin M \), we keep them fixed or nearly fixed:
-\[
-x_i' = \hat{x}_{0,i}
-\]
-
-This **selective re-noising** mechanism aims to:
-- preserve already valid structure,
-- avoid unnecessary perturbation,
-- localize stochastic search,
-- improve repair efficiency relative to global resampling.
+- Train on macros ∈ [10, 50], test on macros ∈ [500, 2000]
+- Shows the method is a learned principle, not memorization
 
 ---
 
-## 6.5 Closed-Loop Refinement Procedure
+## 5. Expected Contributions
 
-The inference loop is conceptually:
-
-1. Sample an intermediate placement using the diffusion backbone.
-2. Decode the current placement estimate.
-3. Run verifier \( V(x) \).
-4. If the placement passes, continue normal denoising or terminate.
-5. If violations exist:
-   - compute structured feedback,
-   - identify offending macros,
-   - selectively re-noise those macros,
-   - resume denoising under the updated state.
-6. Repeat until:
-   - all constraints pass,
-   - loop budget is exhausted,
-   - or no further improvement is observed.
-
-This can be viewed as a verifier-driven local repair mechanism embedded inside diffusion sampling.
+1. **Methodological**: First amortized constraint satisfaction method for diffusion outputs
+2. **Empirical**: 37–62% violation reduction on ISPD2005, 50× faster than optimization-based legalization
+3. **Theoretical**: Formalize "learned constraint projection" and show it's equivalent to amortized inference under a constrained generative model
 
 ---
 
-## 6.6 Optional Conditioning Variants
+## 6. Why We Can Finish in 2 Weeks
 
-We consider several progressively stronger ways to inject verifier information:
+| Asset | Status |
+|-------|--------|
+| Verifier (structured violation feedback) | ✅ Done |
+| ChipDiffusion integration | ✅ Done |
+| Guided sampling on ISPD2005 | ✅ Done |
+| Loop infrastructure | ✅ Done (just swap hand-crafted → GNN) |
+| ISPD2005 data pipeline | ✅ Done |
+| Synthetic data generator | ChipDiffusion's `generate.py` already works |
+| Test harness + seeds + metrics | ✅ Done |
 
-### Variant A: Mask-only repair
-Use violation severity only to decide which macros are re-noised.
-
-### Variant B: Feature-level conditioning
-Append object-wise verifier signals to macro features during denoising.
-
-### Variant C: Rich structured conditioning
-Use pairwise and object-level feedback through a lightweight violation encoder.
-
-For a first paper version, Variant A is the cleanest and most implementation-friendly. Variants B/C can serve as extensions or ablations.
-
----
-
-## 7. Research Hypotheses
-
-We will test the following hypotheses:
-
-### H1
-Structured violation feedback is more informative than a scalar legality penalty.
-
-### H2
-Selective re-noising is more effective and compute-efficient than global re-noising.
-
-### H3
-A non-differentiable verifier loop can improve final legality and pass rate while preserving HPWL better than naive rejection or purely post-hoc legalization.
-
-### H4
-Verifier-guided refinement can be added to a pretrained diffusion backbone without retraining and still produce measurable gains.
+**What's new**: ~300 lines of GNN code + 200 lines of training loop + experiments.
 
 ---
 
-## 8. Experimental Plan
+## 7. Risks & Mitigations
 
-## 8.1 Benchmarks
-
-We plan to evaluate under the same benchmark protocol used by ChipDiffusion, focusing on:
-- IBM / ICCAD-style macro placement benchmarks,
-- ISPD2005 macro placement benchmarks.
-
-The goal is not to redefine the benchmark but to ensure direct comparability with the public ChipDiffusion setup.
-
----
-
-## 8.2 Baselines
-
-We will compare against:
-
-1. **ChipDiffusion (unguided)**
-2. **ChipDiffusion (guided)**
-3. **ChipDiffusion + original legalizer / post-processing**
-4. **Ours: ChipDiffusion + verifier-guided selective re-noising**
-5. **Ours + original legalizer**
-   - to test whether verifier-loop repair and traditional legalization are complementary.
-
-Optional stronger engineering baselines may include analytical or optimization-based placers, but the core comparison is against the ChipDiffusion family.
+| Risk | Likelihood | Mitigation |
+|------|-----------|------------|
+| GNN doesn't generalize synthetic → real | Medium | Use realistic synthetic distribution; augment with a few real train circuits |
+| OOM on large circuits (bigblue2/4) | Already hit | Rent A100 80GB for final runs (~¥30/h × 10h = ¥300) |
+| GNN underperforms hand-crafted force | Low | We have hand-crafted result as floor; training will at minimum match it |
+| Reviewers dismiss as "just a legalizer" | Medium | Emphasize amortization + synthetic-to-real generalization + integration with diffusion |
+| Time overrun | Medium | Aggressive timeboxing; fall back to 3-circuit results if needed |
 
 ---
 
-## 8.3 Metrics
+## 8. Hardware Requirements
 
-We will report:
+### 8.1 Training
 
-### Constraint-related metrics
-- final legality / pass rate,
-- total violation count,
-- overlap area,
-- number of boundary violations,
-- success within a fixed repair budget.
+| GPU | Cost/hour (AutoDL) | Hours needed | Total |
+|-----|---------------------|--------------|-------|
+| **RTX 4090 (24GB)** | ¥2.5 | 5-10h | ¥12-25 |
 
-### Quality-related metrics
-- HPWL,
-- normalized HPWL ratio.
+Training GNN on synthetic data: small network (50K params), small batches (32 graphs × 100 nodes). Fits easily on 4090. Training should take ~2-4 hours for 1M pairs, ~10h for ablations.
 
-### Efficiency-related metrics
-- runtime,
-- number of extra verifier calls,
-- number of extra repair loops,
-- performance under matched compute budget.
+### 8.2 Evaluation on ISPD2005
 
-The main story of the paper will be the **legality–quality–compute tradeoff**.
+| GPU | Why | Cost |
+|-----|-----|------|
+| **A100 80GB** | ChipDiffusion guided sampling OOMs on 24GB for 5 of 8 circuits. 80GB handles all 8. | ~¥30/h on AutoDL |
+| **Hours**: 8 circuits × 3 seeds × ~1 min guided + ~5s repair = ~25 min total, but with adapter loading and testing, reserve 5-8 hours | ~¥150-240 |
 
----
+### 8.3 Total Budget Estimate
 
-## 8.4 Ablations
+| Phase | GPU | Hours | Cost |
+|-------|-----|-------|------|
+| Data generation (CPU-heavy) | Any (无卡模式 works) | 5-10h | ¥1-5 |
+| Training | RTX 4090 | 10h | ¥25 |
+| Ablations | RTX 4090 | 15h | ¥38 |
+| Main evaluation | A100 80GB | 8h | ¥240 |
+| Buffer | - | - | ¥100 |
+| **Total** | | ~45h | **~¥400-500** |
 
-We will conduct systematic ablations on:
-
-### Re-noising scope
-- global re-noising,
-- selective re-noising,
-- top-k offending macros,
-- thresholded offending set.
-
-### Re-noising strength
-- fixed strength,
-- severity-adaptive strength.
-
-### Verifier signal type
-- scalar only,
-- object-wise only,
-- object-wise + pairwise.
-
-### Repair frequency
-- every step,
-- every k steps,
-- only late-stage refinement.
-
-### Repair budget
-- 1 loop,
-- 2 loops,
-- 4 loops,
-- 8 loops.
-
-### Constraint set
-- boundary only,
-- overlap only,
-- boundary + overlap,
-- boundary + overlap + spacing.
-
-These ablations are important because they determine whether the gains come from the verifier signal itself, from selective localization, or simply from more computation.
+Manageable for a student budget.
 
 ---
 
-## 9. Expected Contributions
+## 9. Related Work
 
-We expect the paper to make three main contributions:
+- **Diffusion guidance**: Classifier guidance (Dhariwal & Nichol 2021), Universal Guidance (Bansal et al. 2023), RePaint (Lugmayr et al. 2022)
+- **Chip placement**: ChipDiffusion (Lee et al. 2025), DREAMPlace (Lin et al. 2020), Graph Placement via Deep RL (Mirhoseini et al. 2021)
+- **Amortized inference**: Variational inference (Kingma & Welling 2014), amortized optimization (Amos et al. 2018)
+- **Learned projection operators**: Plug-and-Play methods (Zhang et al. 2021)
 
-### (1) Methodological contribution
-We introduce a principled way to bridge **non-differentiable executable verification** and **diffusion-based generation** for macro placement.
-
-### (2) Algorithmic contribution
-We propose **violation-aware selective re-noising**, a localized repair mechanism that preserves valid layout structure while resampling only the problematic macros.
-
-### (3) Empirical contribution
-We demonstrate that a verifier-in-the-loop refinement framework can improve final legality and pass rate under the same benchmark protocol and pretrained backbone used by ChipDiffusion, while preserving placement quality as measured by HPWL.
+Our novelty: **first amortized non-differentiable constraint satisfaction for diffusion**, bridging these communities.
 
 ---
 
-## 10. Why This Direction Is Promising
+## 10. Broader Impact
 
-This direction is attractive for several reasons:
-
-1. **Strong backbone availability**  
-   ChipDiffusion already provides open code, pretrained checkpoints, and reproducible evaluation protocols.
-
-2. **Clear methodological gap**  
-   Existing diffusion guidance in chip placement relies on differentiable surrogate objectives rather than executable non-differentiable verification.
-
-3. **Localized structure of violations**  
-   Placement errors are naturally sparse and object-specific, making selective repair particularly well matched to the problem.
-
-4. **Good experimental controllability**  
-   The proposal admits clean, directly comparable experiments with strong baselines and measurable outcomes.
-
-5. **Potential generalization**  
-   The verifier-guided re-noising principle may later extend beyond chip placement to other structured layout domains.
-
----
-
-## 11. Limitations and Risks
-
-Several risks should be acknowledged:
-
-### (a) Legality improvement may come at the cost of HPWL
-Selective re-noising could repair legality while slightly worsening wirelength.
-
-### (b) Too many verifier loops may increase runtime
-A matched-compute comparison is necessary.
-
-### (c) Gains may depend heavily on verifier quality
-If verifier attribution is noisy or overly coarse, selective repair may be less effective.
-
-### (d) Full industrial DRC is beyond the first-stage scope
-The first version of the work should focus on legality and possibly coarse routability proxies, not full downstream signoff.
-
-These limitations do not weaken the proposal; rather, they define a realistic and focused first paper.
-
----
-
-## 12. Broader Methodological Positioning
-
-This work sits at the intersection of:
-
-- diffusion-based structured generation,
-- constrained generative modeling,
-- executable verification,
-- closed-loop repair for design optimization,
-- chip physical design and macro placement.
-
-The broader message is:
-
-> Instead of requiring every generation constraint to be differentiable, one can use executable verifiers as external feedback and couple them with selective stochastic repair inside the diffusion process.
-
-This is the deeper methodological contribution beyond the chip placement application itself.
-
----
-
-## 13. Related Work
-
-### Diffusion for chip placement
-- **ChipDiffusion** is the most directly relevant work. It formulates macro placement using diffusion models and uses inference-time guidance for legality and HPWL.
-- It serves as both the backbone and the main baseline in this proposal.
-
-### Placement optimization and legalization
-- Classical analytical placers and legalizers remain strong engineering baselines.
-- GPU-accelerated placers such as DREAMPlace provide a useful reference for downstream placement compatibility.
-
-### Guidance in diffusion models
-- **Universal Guidance** shows that diffusion models can be steered at inference time by arbitrary guidance functions.
-- This motivates using external objectives during sampling, but most such approaches still assume a smooth score-like signal.
-
-### Resampling and repair-style diffusion
-- **RePaint** demonstrates that resampling selected regions during diffusion is an effective way to satisfy partial constraints in image generation.
-- Our work transfers this intuition from image-space inpainting to object-space layout repair.
-
-### Constrained generative modeling
-- Prior constrained diffusion methods study projections, optimization alignment, or constrained sampling in more general settings.
-- Our proposal differs in emphasizing:
-  - executable non-differentiable verification,
-  - localized object-level repair,
-  - chip-placement-specific legality structure.
-
----
-
-## 14. Proposed Paper Message
-
-A concise way to summarize the paper is:
-
-> Diffusion-based macro placement currently relies on differentiable surrogate guidance, but real placement constraints are often better expressed through executable verification. We propose verifier-guided selective re-noising, a closed-loop refinement mechanism that converts non-differentiable violation feedback into localized repair during diffusion sampling, improving legality while preserving placement quality.
-
----
-
-## 15. References
-
-1. **Chip Placement with Diffusion Models**
-2. **ChipDiffusion GitHub repository**
-3. **Universal Guidance for Diffusion Models**
-4. **RePaint: Inpainting using Denoising Diffusion Probabilistic Models**
-5. **DREAMPlace**
-6. **ICCAD 2004 benchmark documentation**
-7. **ISPD 2005 benchmark suite / associated benchmark documentation**
-8. **OpenROAD detailed placement documentation**
-9. **Representative constrained diffusion / projected diffusion / optimization-aligned diffusion papers**
-
----
+Beyond chip placement, the framework applies to any diffusion task with hard, non-differentiable constraints: molecular docking (bond lengths), robot trajectory generation (collision avoidance), protein folding (steric clashes), circuit topology synthesis. We release code and trained models to accelerate adoption.
