@@ -1,169 +1,129 @@
 # AutoDL SSH 配置教程（给 Claude 用）
 
-> 每次开新 AutoDL 实例后，按这个教程把新的 SSH 信息配好，Claude 就能直接连过去跑实验。
-
-## 前置：从 AutoDL 获取连接信息
-
-1. 登录 [AutoDL 控制台](https://www.autodl.com/console/instance/list)
-2. 找到你的实例，点「快捷工具」→「JupyterLab」或查看 SSH 信息
-3. 记下这三个东西：
-
-| 项目 | 示例 | 在哪找 |
-|------|------|--------|
-| **登录地址** | `connect.bjb1.seetacloud.com` | SSH 信息里 Host 字段 |
-| **端口** | `43348` | SSH 信息里 Port 字段 |
-| **密码** | `9Iwv2c0zLhJs` | SSH 信息里 Password 字段，或控制台设置 |
+> 每次开新 AutoDL 实例，你只需要给我两样东西：
+> 1. **登录指令**（AutoDL 控制台复制的那行，形如 `ssh -p 12345 root@connect.xxx.seetacloud.com`）
+> 2. **密码**（形如 `9Iwv2c0zLhJs`）
+>
+> 你有两种用法：**手动**（你在聊天框执行一个命令）或 **托管**（你直接把两样信息告诉 Claude，Claude 自己配）。
 
 ---
 
-## 一键配置（在 Claude 的终端里跑）
+## 用法 A：手动配置（最简单，推荐）
 
-### Step 1：更新 SSH config
-
-**注意**：把下面的 `HostName`、`Port` 替换成你实际的值。
-
-在 Claude 的聊天框输入：
+把下面这段命令复制到 Claude 聊天框，**替换里面的两个值**然后发送：
 
 ```
-! cat > ~/.ssh/config << 'EOF'
+! SSH_CMD='ssh -p 12345 root@connect.bjb1.seetacloud.com' && \
+  PASSWORD='你的密码' && \
+  PORT=$(echo "$SSH_CMD" | grep -oP '(?<=-p )\d+') && \
+  HOST=$(echo "$SSH_CMD" | grep -oP 'root@\K[^ ]+') && \
+  mkdir -p ~/.ssh && \
+  cat > ~/.ssh/config << EOF
 Host autodl
-    HostName connect.bjb1.seetacloud.com
-    Port 43348
+    HostName $HOST
+    Port $PORT
     User root
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
     ServerAliveInterval 30
-    ServerAliveCountMax 3
 EOF
+  echo "$PASSWORD" > ~/.ssh/autodl_pass && chmod 600 ~/.ssh/autodl_pass && \
+  sshpass -f ~/.ssh/autodl_pass ssh autodl "echo 'SSH OK' && nvidia-smi -L"
 ```
 
-> `StrictHostKeyChecking no` 和 `UserKnownHostsFile /dev/null` 是为了避免每次换实例都要手动确认 host key。
+**替换规则**：
+- `ssh -p 12345 root@connect.bjb1.seetacloud.com` → AutoDL 给你的那行**登录指令原样粘贴**
+- `你的密码` → AutoDL 给你的**密码原样粘贴**
 
-### Step 2：更新密码文件
-
-**注意**：把 `你的新密码` 替换成实际密码。
-
+执行成功会看到：
 ```
-! echo '你的新密码' > ~/.ssh/autodl_pass && chmod 600 ~/.ssh/autodl_pass
-```
-
-### Step 3：告诉 Claude 信息已更新
-
-在聊天里直接跟我说：
-
-```
-autodl 已经配好了，请继续跑实验
+SSH OK
+GPU 0: NVIDIA GeForce RTX 4090 (UUID: ...)
 ```
 
-或者更具体：
+然后告诉 Claude：
 
 ```
-新 AutoDL 实例已配置，连接地址 connect.bjb1.seetacloud.com:43348，
-你可以 sshpass -f ~/.ssh/autodl_pass ssh autodl 连过去
+autodl 已配好，继续跑实验
 ```
 
 ---
 
-## Claude 内部使用的命令（参考）
+## 用法 B：托管给 Claude 配（懒人版）
 
-Claude 会用这些命令连到 AutoDL：
+直接把两样信息发给 Claude：
+
+```
+帮我配 autodl，登录指令: ssh -p 12345 root@connect.bjb1.seetacloud.com
+密码: 你的密码
+```
+
+Claude 会自动解析并执行上面的配置命令。
+
+> ⚠️ **安全提醒**：密码会出现在聊天记录里。如果介意可以用「用法 A」自己执行。
+
+---
+
+## 验证配置成功
+
+配置后 Claude 会跑这个确认：
 
 ```bash
-# 测试连接
-sshpass -f ~/.ssh/autodl_pass ssh autodl "echo ALIVE && nvidia-smi -L"
-
-# 跑命令
-sshpass -f ~/.ssh/autodl_pass ssh autodl "cd /root/autodl-tmp/VSR-Place && <command>"
-
-# 传文件
-sshpass -f ~/.ssh/autodl_pass scp local_file.py autodl:/root/autodl-tmp/VSR-Place/local_file.py
+sshpass -f ~/.ssh/autodl_pass ssh autodl "nvidia-smi -L && ls /root/autodl-tmp/VSR-Place 2>/dev/null"
 ```
 
-如果这些命令报错，通常是：
-- `Connection refused` → 实例停机了，去 AutoDL 控制台开机
-- `Permission denied` → 密码错了，更新 `~/.ssh/autodl_pass`
-- `Host key verification failed` → SSH config 里没加 `StrictHostKeyChecking no`
+如果显示 GPU 信息 + `README.md src/ ...`，说明：
+1. SSH 连通 ✅
+2. 之前的项目还在（数据盘持久化）✅
 
 ---
 
-## 新实例首次使用（第一次开实例时）
+## 常见情况
 
-如果是全新 AutoDL 账号或完全新建的实例，还需要：
+### 换了新实例（最常见）
 
-### 1. 选镜像
+AutoDL 控制台「释放实例」再「新建」→ 登录指令和密码都会变。
+按上面「用法 A」或「用法 B」**重跑一次**配置即可。
 
-推荐：`PyTorch 2.6+ / CUDA 12.8 / Python 3.10`（或任意 PyTorch 2.3+ 的镜像）
+### 同一实例只是重启
 
-### 2. 连接测试
-
+SSH 信息不变，啥都不用做。直接告诉 Claude：
 ```
-! sshpass -f ~/.ssh/autodl_pass ssh autodl "nvidia-smi"
-```
-
-应该看到 GPU 信息（RTX 4090 / 3090 / 5090 等）。
-
-### 3. 如果实例是全新的，需要完整部署
-
-跟 Claude 说：
-
-```
-新 AutoDL 实例，需要完整部署。按 docs/autodl_guide.md 流程走：
-clone 仓库 → 装依赖 → 下 checkpoint → 下数据
+autodl 已恢复，继续跑
 ```
 
-### 4. 如果实例继承了之前的数据盘（推荐做法）
+### 全新账号（第一次用）
 
-数据盘 `/root/autodl-tmp/` 是持久化的，关机不丢。所以：
-
+配好 SSH 后告诉 Claude：
 ```
-! sshpass -f ~/.ssh/autodl_pass ssh autodl "ls /root/autodl-tmp/VSR-Place/"
+新 AutoDL，需要从头部署，请按 docs/autodl_guide.md 流程走
 ```
-
-如果能看到 `README.md`, `src/`, `checkpoints/large-v2/` 等，说明之前的环境还在。
-只需要告诉 Claude：
-
-```
-AutoDL 已配置好，VSR-Place 目录在 /root/autodl-tmp/VSR-Place，
-请 git pull 同步最新代码然后继续跑实验
-```
-
-Claude 会：
-1. SSH 进去
-2. `git pull` 更新代码
-3. 继续上次中断的实验
-
----
-
-## 快速参考卡
-
-| 情况 | 你要做的 | 跟 Claude 说 |
-|------|---------|-------------|
-| 同一实例，只是重启了 | 不用做什么 | "AutoDL 已恢复，继续跑" |
-| 换了新实例（同账号） | 更新 `~/.ssh/config`（Host/Port）+ `~/.ssh/autodl_pass` | "AutoDL 换了新实例，已配好新的 SSH 信息" |
-| 全新账号 | 开实例 → 配 SSH → 告诉 Claude 需要完整部署 | "新 AutoDL 账号，全新实例，请完整部署" |
 
 ---
 
 ## 故障排查
 
-### 问题 1：`ssh: connect to host ... Connection refused`
+| 报错 | 原因 | 解决 |
+|------|------|------|
+| `Connection refused` | 实例没开机 | AutoDL 控制台「开机」 |
+| `Permission denied` | 密码错了 | 重跑配置命令，检查密码复制对了没 |
+| `grep: -P: 不支持` | 系统没 PCRE grep | 改用 `ssh -p 12345 root@host.com` 手动填到 `~/.ssh/config` |
+| `sshpass: command not found` | 没装 sshpass | `! apt-get install -y sshpass` |
 
-**原因**：实例没开机
-**解决**：去 AutoDL 控制台「开机」，等 30 秒再试
+---
 
-### 问题 2：`ssh: Permission denied`
+## 快速参考：Claude 内部用的命令
 
-**原因**：密码错了（换实例后密码会变）
-**解决**：从 AutoDL 控制台复制最新密码，重新写入 `~/.ssh/autodl_pass`
+```bash
+# 测连接
+sshpass -f ~/.ssh/autodl_pass ssh autodl "echo ALIVE"
 
-### 问题 3：实例关机后数据还在吗？
+# 跑远程命令
+sshpass -f ~/.ssh/autodl_pass ssh autodl "cd /root/autodl-tmp/VSR-Place && <cmd>"
 
-**数据盘 `/root/autodl-tmp/`**：**持久化**，关机不丢（包括 checkpoint、数据、代码）
-**系统盘 `/root/` 其他位置**：**每次开机重置**，装的 pip 包可能需要重装
+# 传文件上去
+sshpass -f ~/.ssh/autodl_pass scp file.py autodl:/root/autodl-tmp/VSR-Place/
 
-建议把所有项目文件放 `/root/autodl-tmp/`，pip 包也可以装到这里（`pip install --target=/root/autodl-tmp/pypkgs`）。
-
-### 问题 4：密码泄露了怎么办？
-
-- AutoDL 控制台可以重置 SSH 密码
-- 重置后记得更新 `~/.ssh/autodl_pass`
+# 从远程拉文件
+sshpass -f ~/.ssh/autodl_pass scp autodl:/root/autodl-tmp/VSR-Place/results.csv .
+```
