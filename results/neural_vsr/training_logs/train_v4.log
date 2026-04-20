@@ -1,0 +1,5 @@
+=== NeuralVSR Training ===
+  train=100 val=20 bs=4 epochs=20
+  arch: hidden=128 layers=3 heads=4
+  device=cuda
+Precomputing 100 synthetic samples...

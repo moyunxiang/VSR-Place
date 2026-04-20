@@ -1,0 +1,59 @@
+Loading placements from data/ispd_placements.pkl...
+Precomputing targets for 153 samples (3 real + 150 augmented)...
+  50/153
+  100/153
+  150/153
+  total=153, train=123, val=30
+  params: 103,426
+epoch   1/50  train=0.093453  val=0.091044  time=0.7s [best]
+epoch   2/50  train=0.090176  val=0.089632  time=0.4s [best]
+epoch   3/50  train=0.088667  val=0.087270  time=0.4s [best]
+epoch   4/50  train=0.087056  val=0.085449  time=0.5s [best]
+epoch   5/50  train=0.085891  val=0.087234  time=0.5s
+epoch   6/50  train=0.083448  val=0.079845  time=0.5s [best]
+epoch   7/50  train=0.079682  val=0.078984  time=0.5s [best]
+epoch   8/50  train=0.079179  val=0.076651  time=0.5s [best]
+epoch   9/50  train=0.077863  val=0.075616  time=0.5s [best]
+epoch  10/50  train=0.075803  val=0.079626  time=0.5s
+epoch  11/50  train=0.076023  val=0.074426  time=0.5s [best]
+epoch  12/50  train=0.076208  val=0.081524  time=0.5s
+epoch  13/50  train=0.074082  val=0.073853  time=0.5s [best]
+epoch  14/50  train=0.073695  val=0.073373  time=0.5s [best]
+epoch  15/50  train=0.074717  val=0.073504  time=0.5s
+epoch  16/50  train=0.073819  val=0.073977  time=0.5s
+epoch  17/50  train=0.072929  val=0.071987  time=0.5s [best]
+epoch  18/50  train=0.073258  val=0.072219  time=0.5s
+epoch  19/50  train=0.074323  val=0.075181  time=0.5s
+epoch  20/50  train=0.072941  val=0.074033  time=0.5s
+epoch  21/50  train=0.071903  val=0.072471  time=0.5s
+epoch  22/50  train=0.071616  val=0.071077  time=0.5s [best]
+epoch  23/50  train=0.071011  val=0.071590  time=0.5s
+epoch  24/50  train=0.071246  val=0.071958  time=0.5s
+epoch  25/50  train=0.070662  val=0.073831  time=0.5s
+epoch  26/50  train=0.073478  val=0.072537  time=0.5s
+epoch  27/50  train=0.071189  val=0.070986  time=0.5s [best]
+epoch  28/50  train=0.070250  val=0.070929  time=0.5s [best]
+epoch  29/50  train=0.070035  val=0.070165  time=0.5s [best]
+epoch  30/50  train=0.070168  val=0.071013  time=0.5s
+epoch  31/50  train=0.069793  val=0.070896  time=0.5s
+epoch  32/50  train=0.070323  val=0.071499  time=0.5s
+epoch  33/50  train=0.070207  val=0.069808  time=0.5s [best]
+epoch  34/50  train=0.069405  val=0.069774  time=0.5s [best]
+epoch  35/50  train=0.069454  val=0.069847  time=0.5s
+epoch  36/50  train=0.069413  val=0.070282  time=0.5s
+epoch  37/50  train=0.069558  val=0.070070  time=0.5s
+epoch  38/50  train=0.069416  val=0.070284  time=0.5s
+epoch  39/50  train=0.069300  val=0.069446  time=0.5s [best]
+epoch  40/50  train=0.069062  val=0.072370  time=0.5s
+epoch  41/50  train=0.069054  val=0.069443  time=0.5s [best]
+epoch  42/50  train=0.068898  val=0.069281  time=0.5s [best]
+epoch  43/50  train=0.068740  val=0.069502  time=0.5s
+epoch  44/50  train=0.068588  val=0.069186  time=0.5s [best]
+epoch  45/50  train=0.068600  val=0.069166  time=0.5s [best]
+epoch  46/50  train=0.068498  val=0.069071  time=0.6s [best]
+epoch  47/50  train=0.068497  val=0.069069  time=0.5s [best]
+epoch  48/50  train=0.068446  val=0.069050  time=0.5s [best]
+epoch  49/50  train=0.068404  val=0.069045  time=0.5s [best]
+epoch  50/50  train=0.068380  val=0.069043  time=0.5s [best]
+
+Best val loss: 0.069043  saved to checkpoints/neural_vsr/real_v1.pt

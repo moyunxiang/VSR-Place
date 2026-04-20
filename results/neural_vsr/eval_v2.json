@@ -1,0 +1,50 @@
+[
+  {
+    "circuit": "adaptec1",
+    "n_macros": 543,
+    "seed": 42,
+    "t_sample": 16.63703942298889,
+    "baseline_violations": 18698,
+    "baseline_overlap": 18533,
+    "baseline_boundary": 165,
+    "n_offending": 543,
+    "hand_violations": 7548,
+    "t_hand": 4.737210035324097,
+    "neural_violations": 23150,
+    "t_neural": 0.40906620025634766,
+    "hand_improvement": 59.632046208150605,
+    "neural_improvement": -23.81003315862659
+  },
+  {
+    "circuit": "adaptec3",
+    "n_macros": 723,
+    "seed": 42,
+    "t_sample": 16.740112781524658,
+    "baseline_violations": 39975,
+    "baseline_overlap": 39257,
+    "baseline_boundary": 718,
+    "n_offending": 723,
+    "hand_violations": 15988,
+    "t_hand": 6.292624235153198,
+    "neural_violations": 103427,
+    "t_neural": 0.5953176021575928,
+    "hand_improvement": 60.00500312695435,
+    "neural_improvement": -158.729205753596
+  },
+  {
+    "circuit": "bigblue1",
+    "n_macros": 560,
+    "seed": 42,
+    "t_sample": 15.258130311965942,
+    "baseline_violations": 10574,
+    "baseline_overlap": 10467,
+    "baseline_boundary": 107,
+    "n_offending": 560,
+    "hand_violations": 7028,
+    "t_hand": 5.11719822883606,
+    "neural_violations": 23610,
+    "t_neural": 0.886394739151001,
+    "hand_improvement": 33.535086060147535,
+    "neural_improvement": -123.28352562890107
+  }
+]

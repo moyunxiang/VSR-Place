@@ -1,0 +1,108 @@
+Loading placements from data/ispd_placements.pkl...
+Building trajectory dataset from 3 real placements × 50 steps...
+  3/3 (150 pairs)
+Computing violation features for 150 items...
+  total=150, train=120, val=30
+  params: 103,426
+epoch   1/100  train=0.005547  val=0.006064  time=1.0s [best]
+epoch   2/100  train=0.004616  val=0.005912  time=0.5s [best]
+epoch   3/100  train=0.004474  val=0.005784  time=0.5s [best]
+epoch   4/100  train=0.004400  val=0.005710  time=0.5s [best]
+epoch   5/100  train=0.004328  val=0.005618  time=0.5s [best]
+epoch   6/100  train=0.004244  val=0.005543  time=0.5s [best]
+epoch   7/100  train=0.004206  val=0.005694  time=0.5s
+epoch   8/100  train=0.004172  val=0.005426  time=0.5s [best]
+epoch   9/100  train=0.004082  val=0.005525  time=0.5s
+epoch  10/100  train=0.004075  val=0.005313  time=0.5s [best]
+epoch  11/100  train=0.003946  val=0.005272  time=0.5s [best]
+epoch  12/100  train=0.004003  val=0.005402  time=0.5s
+epoch  13/100  train=0.003851  val=0.005095  time=0.5s [best]
+epoch  14/100  train=0.003756  val=0.005143  time=0.5s
+epoch  15/100  train=0.003817  val=0.005393  time=0.5s
+epoch  16/100  train=0.003730  val=0.004931  time=0.5s [best]
+epoch  17/100  train=0.003608  val=0.004909  time=0.5s [best]
+epoch  18/100  train=0.003624  val=0.004998  time=0.5s
+epoch  19/100  train=0.003480  val=0.004880  time=0.5s [best]
+epoch  20/100  train=0.003338  val=0.004780  time=0.5s [best]
+epoch  21/100  train=0.003368  val=0.004689  time=0.5s [best]
+epoch  22/100  train=0.003241  val=0.004663  time=0.5s [best]
+epoch  23/100  train=0.003194  val=0.004554  time=0.5s [best]
+epoch  24/100  train=0.003158  val=0.004759  time=0.5s
+epoch  25/100  train=0.003571  val=0.004827  time=0.5s
+epoch  26/100  train=0.003553  val=0.004704  time=0.5s
+epoch  27/100  train=0.003276  val=0.004596  time=0.5s
+epoch  28/100  train=0.003061  val=0.004571  time=0.4s
+epoch  29/100  train=0.003212  val=0.004527  time=0.5s [best]
+epoch  30/100  train=0.003191  val=0.004456  time=0.5s [best]
+epoch  31/100  train=0.003056  val=0.004404  time=0.5s [best]
+epoch  32/100  train=0.002957  val=0.004446  time=0.5s
+epoch  33/100  train=0.002927  val=0.004558  time=0.5s
+epoch  34/100  train=0.002843  val=0.004312  time=0.5s [best]
+epoch  35/100  train=0.002871  val=0.004270  time=0.5s [best]
+epoch  36/100  train=0.002783  val=0.004205  time=0.5s [best]
+epoch  37/100  train=0.002870  val=0.004225  time=0.5s
+epoch  38/100  train=0.002717  val=0.004102  time=0.5s [best]
+epoch  39/100  train=0.002732  val=0.004202  time=0.5s
+epoch  40/100  train=0.002820  val=0.004937  time=0.5s
+epoch  41/100  train=0.002847  val=0.004141  time=0.5s
+epoch  42/100  train=0.002666  val=0.004103  time=0.5s
+epoch  43/100  train=0.002682  val=0.004110  time=0.5s
+epoch  44/100  train=0.002676  val=0.004176  time=0.5s
+epoch  45/100  train=0.002639  val=0.004034  time=0.5s [best]
+epoch  46/100  train=0.002622  val=0.003973  time=0.5s [best]
+epoch  47/100  train=0.002571  val=0.004082  time=0.5s
+epoch  48/100  train=0.002606  val=0.004046  time=0.5s
+epoch  49/100  train=0.002813  val=0.004239  time=0.5s
+epoch  50/100  train=0.002606  val=0.004091  time=0.5s
+epoch  51/100  train=0.002573  val=0.003970  time=0.5s [best]
+epoch  52/100  train=0.002528  val=0.003945  time=0.5s [best]
+epoch  53/100  train=0.002511  val=0.003938  time=0.5s [best]
+epoch  54/100  train=0.002544  val=0.003972  time=0.5s
+epoch  55/100  train=0.002670  val=0.003949  time=0.5s
+epoch  56/100  train=0.002533  val=0.004044  time=0.5s
+epoch  57/100  train=0.002495  val=0.003901  time=0.5s [best]
+epoch  58/100  train=0.002487  val=0.003961  time=0.5s
+epoch  59/100  train=0.002456  val=0.003895  time=0.5s [best]
+epoch  60/100  train=0.002432  val=0.003898  time=0.5s
+epoch  61/100  train=0.002427  val=0.003869  time=0.5s [best]
+epoch  62/100  train=0.002423  val=0.003915  time=0.5s
+epoch  63/100  train=0.002385  val=0.004001  time=0.5s
+epoch  64/100  train=0.002425  val=0.003842  time=0.5s [best]
+epoch  65/100  train=0.002411  val=0.003905  time=0.5s
+epoch  66/100  train=0.002430  val=0.003961  time=0.5s
+epoch  67/100  train=0.002462  val=0.003835  time=0.5s [best]
+epoch  68/100  train=0.002373  val=0.003869  time=0.5s
+epoch  69/100  train=0.002359  val=0.003845  time=0.5s
+epoch  70/100  train=0.002374  val=0.003821  time=0.5s [best]
+epoch  71/100  train=0.002360  val=0.003839  time=0.5s
+epoch  72/100  train=0.002333  val=0.003810  time=0.5s [best]
+epoch  73/100  train=0.002324  val=0.003806  time=0.5s [best]
+epoch  74/100  train=0.002323  val=0.003831  time=0.5s
+epoch  75/100  train=0.002322  val=0.003828  time=0.5s
+epoch  76/100  train=0.002318  val=0.003777  time=0.5s [best]
+epoch  77/100  train=0.002297  val=0.003782  time=0.5s
+epoch  78/100  train=0.002302  val=0.003789  time=0.5s
+epoch  79/100  train=0.002335  val=0.003863  time=0.5s
+epoch  80/100  train=0.002307  val=0.003771  time=0.5s [best]
+epoch  81/100  train=0.002291  val=0.003793  time=0.5s
+epoch  82/100  train=0.002285  val=0.003763  time=0.5s [best]
+epoch  83/100  train=0.002271  val=0.003767  time=0.5s
+epoch  84/100  train=0.002264  val=0.003758  time=0.5s [best]
+epoch  85/100  train=0.002262  val=0.003749  time=0.5s [best]
+epoch  86/100  train=0.002259  val=0.003768  time=0.5s
+epoch  87/100  train=0.002263  val=0.003749  time=0.5s
+epoch  88/100  train=0.002249  val=0.003757  time=0.5s
+epoch  89/100  train=0.002247  val=0.003753  time=0.5s
+epoch  90/100  train=0.002250  val=0.003746  time=0.5s [best]
+epoch  91/100  train=0.002242  val=0.003755  time=0.5s
+epoch  92/100  train=0.002243  val=0.003743  time=0.5s [best]
+epoch  93/100  train=0.002238  val=0.003741  time=0.5s [best]
+epoch  94/100  train=0.002237  val=0.003743  time=0.5s
+epoch  95/100  train=0.002235  val=0.003742  time=0.5s
+epoch  96/100  train=0.002233  val=0.003740  time=0.5s [best]
+epoch  97/100  train=0.002232  val=0.003741  time=0.5s
+epoch  98/100  train=0.002231  val=0.003740  time=0.5s [best]
+epoch  99/100  train=0.002231  val=0.003740  time=0.5s [best]
+epoch 100/100  train=0.002231  val=0.003740  time=0.5s
+
+Best val loss: 0.003740  saved to checkpoints/neural_vsr/real_traj_v1.pt

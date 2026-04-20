@@ -1,0 +1,19 @@
+=== NeuralVSR Training ===
+  train=2000 val=200 bs=16 epochs=5
+  arch: hidden=128 layers=3 heads=4
+  device=cuda
+Precomputing 2000 synthetic samples...
+  500/2000
+  1000/2000
+  1500/2000
+  done
+Precomputing 200 synthetic samples...
+  done
+  params: 103,426
+epoch   1/5  train_loss=0.230088  val_loss=0.226940  time=3.0s [best]
+epoch   2/5  train_loss=0.226687  val_loss=0.225745  time=2.3s [best]
+epoch   3/5  train_loss=0.224110  val_loss=0.221299  time=2.1s [best]
+epoch   4/5  train_loss=0.221506  val_loss=0.219397  time=2.2s [best]
+epoch   5/5  train_loss=0.219683  val_loss=0.218730  time=2.2s [best]
+
+Best val loss: 0.218730  saved to checkpoints/neural_vsr/v1_2k.pt

@@ -1,0 +1,18 @@
+[
+  {
+    "circuit": "adaptec1",
+    "n_macros": 543,
+    "seed": 42,
+    "t_sample": 17.14257264137268,
+    "baseline_violations": 19748,
+    "baseline_overlap": 19612,
+    "baseline_boundary": 136,
+    "n_offending": 543,
+    "hand_violations": 7618,
+    "t_hand": 4.883159875869751,
+    "neural_violations": 35832,
+    "t_neural": 0.15796351432800293,
+    "hand_improvement": 61.423941664978734,
+    "neural_improvement": -81.44622240226859
+  }
+]

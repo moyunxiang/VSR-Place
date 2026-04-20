@@ -1,0 +1,31 @@
+=== NeuralVSR Training ===
+  train=50 val=10 bs=4 epochs=20
+  arch: hidden=128 layers=3 heads=4
+  device=cuda
+Precomputing 50 synthetic samples...
+  done
+Precomputing 10 synthetic samples...
+  done
+  params: 103,426
+epoch   1/20  train_loss=0.000539  val_loss=0.000261  time=0.5s [best]
+epoch   2/20  train_loss=0.000107  val_loss=0.000058  time=0.1s [best]
+epoch   3/20  train_loss=0.000032  val_loss=0.000019  time=0.1s [best]
+epoch   4/20  train_loss=0.000014  val_loss=0.000010  time=0.2s [best]
+epoch   5/20  train_loss=0.000009  val_loss=0.000008  time=0.2s [best]
+epoch   6/20  train_loss=0.000008  val_loss=0.000008  time=0.2s [best]
+epoch   7/20  train_loss=0.000008  val_loss=0.000008  time=0.2s [best]
+epoch   8/20  train_loss=0.000008  val_loss=0.000008  time=0.2s [best]
+epoch   9/20  train_loss=0.000008  val_loss=0.000008  time=0.2s [best]
+epoch  10/20  train_loss=0.000008  val_loss=0.000008  time=0.2s
+epoch  11/20  train_loss=0.000008  val_loss=0.000008  time=0.2s [best]
+epoch  12/20  train_loss=0.000008  val_loss=0.000008  time=0.2s [best]
+epoch  13/20  train_loss=0.000008  val_loss=0.000008  time=0.2s [best]
+epoch  14/20  train_loss=0.000008  val_loss=0.000008  time=0.2s
+epoch  15/20  train_loss=0.000008  val_loss=0.000008  time=0.2s
+epoch  16/20  train_loss=0.000008  val_loss=0.000008  time=0.2s [best]
+epoch  17/20  train_loss=0.000008  val_loss=0.000008  time=0.1s [best]
+epoch  18/20  train_loss=0.000008  val_loss=0.000008  time=0.1s [best]
+epoch  19/20  train_loss=0.000008  val_loss=0.000008  time=0.1s [best]
+epoch  20/20  train_loss=0.000008  val_loss=0.000008  time=0.2s [best]
+
+Best val loss: 0.000008  saved to checkpoints/neural_vsr/v5_norm.pt
