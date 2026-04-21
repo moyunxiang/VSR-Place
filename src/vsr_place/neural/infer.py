@@ -26,6 +26,7 @@ def neural_residual_repair(
     hand_step_size: float = 0.3,
     only_mask: torch.Tensor | None = None,
     device: str = "cpu",
+    residual_scale: float = 0.1,
 ) -> torch.Tensor:
     """Residual repair: hand-crafted first, then neural correction.
 
@@ -51,7 +52,11 @@ def neural_residual_repair(
 
     feats = compute_violation_features(x.cpu(), sizes_dev.cpu(), canvas_w, canvas_h).to(device)
     delta = model(x, feats, edge_index_dev, edge_attr_dev, canvas_scale=canvas_scale)
-    x = x + delta
+    # Only apply residual to offending macros; scale down to avoid overshoot
+    if only_mask is not None:
+        mask_dev = only_mask.to(device).unsqueeze(-1).float()
+        delta = delta * mask_dev
+    x = x + residual_scale * delta
 
     # Clamp to canvas bounds
     half_w = sizes_dev[:, 0] / 2
