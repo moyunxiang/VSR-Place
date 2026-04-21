@@ -1,0 +1,272 @@
+
+============================================================
+  adaptec1 (idx=0)
+============================================================
+/root/autodl-tmp/VSR-Place/scripts/run_vsr.py:145: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  x = torch.tensor(pickle.load(f), dtype=torch.float32)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/diffusion/models.py:1433: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  t_vec = torch.tensor(t, device=x.device).expand(B)
+/root/miniconda3/lib/python3.12/contextlib.py:105: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
+  self.gen = func(*args, **kwds)
+/root/miniconda3/lib/python3.12/site-packages/torch_geometric/utils/_scatter.py:91: UserWarning: The usage of `scatter(reduce='max')` can be accelerated via the 'torch-scatter' package, but it was not found
+  warnings.warn(
+  seed=42: baseline= 18695 hand=  7757 neural=  N/A   (hand +58.5%, neural +nan%)
+/root/autodl-tmp/VSR-Place/scripts/run_vsr.py:145: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  x = torch.tensor(pickle.load(f), dtype=torch.float32)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=123: baseline= 20118 hand=  9543 neural=  N/A   (hand +52.6%, neural +nan%)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=300: baseline= 19568 hand=  8983 neural=  N/A   (hand +54.1%, neural +nan%)
+
+============================================================
+  adaptec2 (idx=1)
+============================================================
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=42: baseline= 40193 hand= 10688 neural=  N/A   (hand +73.4%, neural +nan%)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=123: baseline= 32379 hand= 11523 neural=  N/A   (hand +64.4%, neural +nan%)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=300: baseline= 35476 hand= 11775 neural=  N/A   (hand +66.8%, neural +nan%)
+
+============================================================
+  adaptec3 (idx=2)
+============================================================
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=42: baseline= 44413 hand= 16750 neural=  N/A   (hand +62.3%, neural +nan%)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=123: baseline= 38587 hand= 16192 neural=  N/A   (hand +58.0%, neural +nan%)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=300: baseline= 36289 hand= 16248 neural=  N/A   (hand +55.2%, neural +nan%)
+
+============================================================
+  adaptec4 (idx=3)
+============================================================
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=42: baseline=114210 hand= 36250 neural=  N/A   (hand +68.3%, neural +nan%)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=123: baseline=109924 hand= 37127 neural=  N/A   (hand +66.2%, neural +nan%)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=300: baseline=104561 hand= 36695 neural=  N/A   (hand +64.9%, neural +nan%)
+
+============================================================
+  bigblue1 (idx=4)
+============================================================
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=42: baseline= 11347 hand=  7266 neural=  N/A   (hand +36.0%, neural +nan%)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=123: baseline= 10416 hand=  6935 neural=  N/A   (hand +33.4%, neural +nan%)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=300: baseline= 11799 hand=  6989 neural=  N/A   (hand +40.8%, neural +nan%)
+
+============================================================
+  bigblue2 (idx=5)
+============================================================
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=42: OOM
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=123: OOM
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=300: OOM
+
+============================================================
+  bigblue3 (idx=6)
+============================================================
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=42: baseline=232841 hand= 31136 neural=  N/A   (hand +86.6%, neural +nan%)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=123: baseline=192494 hand= 30184 neural=  N/A   (hand +84.3%, neural +nan%)
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=300: baseline=201443 hand= 30377 neural=  N/A   (hand +84.9%, neural +nan%)
+
+============================================================
+  bigblue4 (idx=7)
+============================================================
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=42: OOM
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=123: OOM
+Loaded 8 validation samples from task 'ispd2005' (/root/autodl-tmp/VSR-Place/third_party/chipdiffusion/datasets/graph/ispd2005)
+ENCODER USED IN ATTGNN True
+loading checkpoint from checkpoints/large-v2/large-v2.ckpt
+successfully loaded step
+successfully loaded state dict for model
+successfully loaded optim
+successfully loaded grad_scaler
+Successfully loaded checkpoint from checkpoints/large-v2/large-v2.ckpt
+  seed=300: OOM
+
+======================================================================
+SUMMARY
+======================================================================
+Circuit    Baseline   Hand       Neural     hand%      neural%   
+----------------------------------------------------------------------
+adaptec1   19460      8761       N/A        +55.0%      N/A
+adaptec2   36016      11329      N/A        +68.5%      N/A
+adaptec3   39763      16397      N/A        +58.8%      N/A
+adaptec4   109565     36691      N/A        +66.5%      N/A
+bigblue1   11187      7063       N/A        +36.9%      N/A
+bigblue3   208926     30566      N/A        +85.4%      N/A
+
+Results saved to results/ispd2005/final/a800_full.json

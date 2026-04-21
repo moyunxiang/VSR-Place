@@ -1,0 +1,109 @@
+Loading placements from data/ispd_placements_full.pkl...
+Building trajectory dataset from 15 real placements × 30 steps...
+  10/15 (300 pairs)
+  15/15 (450 pairs)
+Computing violation features for 450 items...
+  total=450, train=360, val=90
+  params: 103,426
+epoch   1/100  train=0.021062  val=0.041830  time=2.4s [best]
+epoch   2/100  train=0.019833  val=0.040955  time=2.8s [best]
+epoch   3/100  train=0.021856  val=0.040566  time=4.7s [best]
+epoch   4/100  train=0.020606  val=0.040453  time=2.1s [best]
+epoch   5/100  train=0.021181  val=0.040395  time=2.0s [best]
+epoch   6/100  train=0.018921  val=0.040350  time=2.0s [best]
+epoch   7/100  train=0.016724  val=0.040017  time=2.6s [best]
+epoch   8/100  train=0.019308  val=0.039944  time=2.0s [best]
+epoch   9/100  train=0.015990  val=0.039767  time=3.6s [best]
+epoch  10/100  train=0.018590  val=0.039763  time=2.0s [best]
+epoch  11/100  train=0.019403  val=0.039702  time=1.9s [best]
+epoch  12/100  train=0.018903  val=0.039985  time=2.1s
+epoch  13/100  train=0.017826  val=0.039502  time=2.5s [best]
+epoch  14/100  train=0.022005  val=0.039700  time=2.0s
+epoch  15/100  train=0.019149  val=0.039374  time=2.9s [best]
+epoch  16/100  train=0.018640  val=0.038353  time=2.1s [best]
+epoch  17/100  train=0.018193  val=0.038335  time=1.8s [best]
+epoch  18/100  train=0.016734  val=0.037991  time=2.0s [best]
+epoch  19/100  train=0.016506  val=0.037803  time=2.0s [best]
+epoch  20/100  train=0.016333  val=0.038092  time=1.9s
+epoch  21/100  train=0.018714  val=0.038300  time=2.4s
+epoch  22/100  train=0.020301  val=0.038210  time=2.6s
+epoch  23/100  train=0.020289  val=0.037758  time=2.4s [best]
+epoch  24/100  train=0.019444  val=0.036726  time=2.9s [best]
+epoch  25/100  train=0.019344  val=0.037119  time=2.1s
+epoch  26/100  train=0.016044  val=0.036872  time=2.4s
+epoch  27/100  train=0.014947  val=0.036557  time=1.8s [best]
+epoch  28/100  train=0.018076  val=0.036143  time=2.2s [best]
+epoch  29/100  train=0.017357  val=0.036231  time=2.2s
+epoch  30/100  train=0.016595  val=0.037314  time=2.2s
+epoch  31/100  train=0.016317  val=0.035932  time=2.2s [best]
+epoch  32/100  train=0.019007  val=0.037766  time=2.0s
+epoch  33/100  train=0.017485  val=0.036201  time=2.8s
+epoch  34/100  train=0.014866  val=0.036285  time=2.5s
+epoch  35/100  train=0.017633  val=0.036425  time=1.9s
+epoch  36/100  train=0.018203  val=0.035760  time=3.6s [best]
+epoch  37/100  train=0.017652  val=0.036987  time=1.9s
+epoch  38/100  train=0.016904  val=0.036830  time=2.0s
+epoch  39/100  train=0.016984  val=0.035682  time=2.0s [best]
+epoch  40/100  train=0.016633  val=0.035188  time=2.1s [best]
+epoch  41/100  train=0.018816  val=0.036187  time=2.0s
+epoch  42/100  train=0.012883  val=0.035620  time=4.4s
+epoch  43/100  train=0.018062  val=0.036236  time=1.9s
+epoch  44/100  train=0.016378  val=0.036510  time=1.8s
+epoch  45/100  train=0.016271  val=0.035982  time=1.9s
+epoch  46/100  train=0.015263  val=0.036181  time=1.9s
+epoch  47/100  train=0.015630  val=0.035588  time=1.9s
+epoch  48/100  train=0.015484  val=0.035911  time=1.9s
+epoch  49/100  train=0.015542  val=0.036142  time=1.9s
+epoch  50/100  train=0.014382  val=0.035599  time=1.9s
+epoch  51/100  train=0.013853  val=0.035684  time=1.8s
+epoch  52/100  train=0.015210  val=0.036241  time=1.9s
+epoch  53/100  train=0.017990  val=0.035364  time=1.9s
+epoch  54/100  train=0.014373  val=0.035689  time=1.9s
+epoch  55/100  train=0.015584  val=0.036380  time=1.8s
+epoch  56/100  train=0.014968  val=0.036024  time=1.9s
+epoch  57/100  train=0.017336  val=0.036073  time=1.9s
+epoch  58/100  train=0.017042  val=0.036070  time=2.0s
+epoch  59/100  train=0.015308  val=0.035651  time=1.9s
+epoch  60/100  train=0.017996  val=0.035479  time=1.9s
+epoch  61/100  train=0.015065  val=0.035727  time=1.8s
+epoch  62/100  train=0.017487  val=0.036260  time=2.0s
+epoch  63/100  train=0.014936  val=0.035720  time=1.9s
+epoch  64/100  train=0.014720  val=0.035311  time=1.9s
+epoch  65/100  train=0.015958  val=0.035399  time=1.9s
+epoch  66/100  train=0.016416  val=0.035885  time=1.9s
+epoch  67/100  train=0.015164  val=0.035286  time=1.9s
+epoch  68/100  train=0.014326  val=0.035026  time=1.9s [best]
+epoch  69/100  train=0.016053  val=0.035264  time=2.0s
+epoch  70/100  train=0.013109  val=0.035288  time=1.8s
+epoch  71/100  train=0.016040  val=0.035555  time=1.9s
+epoch  72/100  train=0.015231  val=0.035228  time=1.9s
+epoch  73/100  train=0.015339  val=0.035362  time=1.9s
+epoch  74/100  train=0.018067  val=0.035431  time=1.9s
+epoch  75/100  train=0.015785  val=0.035551  time=1.9s
+epoch  76/100  train=0.014446  val=0.035172  time=2.0s
+epoch  77/100  train=0.014342  val=0.035107  time=2.0s
+epoch  78/100  train=0.015608  val=0.035372  time=3.2s
+epoch  79/100  train=0.016030  val=0.035077  time=1.9s
+epoch  80/100  train=0.014897  val=0.035233  time=3.4s
+epoch  81/100  train=0.014470  val=0.035285  time=2.5s
+epoch  82/100  train=0.016225  val=0.035192  time=3.3s
+epoch  83/100  train=0.016726  val=0.035307  time=2.0s
+epoch  84/100  train=0.013142  val=0.035285  time=2.0s
+epoch  85/100  train=0.015745  val=0.035163  time=2.0s
+epoch  86/100  train=0.014607  val=0.035125  time=2.6s
+epoch  87/100  train=0.012775  val=0.035033  time=2.6s
+epoch  88/100  train=0.014693  val=0.035023  time=2.0s [best]
+epoch  89/100  train=0.015649  val=0.035125  time=1.9s
+epoch  90/100  train=0.015309  val=0.035106  time=2.0s
+epoch  91/100  train=0.013152  val=0.035048  time=2.0s
+epoch  92/100  train=0.015125  val=0.035058  time=2.6s
+epoch  93/100  train=0.014748  val=0.035041  time=2.5s
+epoch  94/100  train=0.016379  val=0.035098  time=1.9s
+epoch  95/100  train=0.015447  val=0.035110  time=2.0s
+epoch  96/100  train=0.015392  val=0.035094  time=2.4s
+epoch  97/100  train=0.015697  val=0.035092  time=1.9s
+epoch  98/100  train=0.015660  val=0.035090  time=2.4s
+epoch  99/100  train=0.015913  val=0.035090  time=3.5s
+epoch 100/100  train=0.015237  val=0.035090  time=2.2s
+
+Best val loss: 0.035023  saved to checkpoints/neural_vsr/real_traj_v2.pt
