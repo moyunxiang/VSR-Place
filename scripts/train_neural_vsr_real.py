@@ -74,14 +74,17 @@ def main():
     parser.add_argument("--repair-step", type=float, default=0.3,
                         help="Hand-crafted step size")
     parser.add_argument("--target", type=str, default="teacher",
-                        choices=["teacher", "gt_legal"],
-                        help="Training target: teacher=hand-crafted output, gt_legal=ISPD2005 .pl")
+                        choices=["teacher", "gt_legal", "residual"],
+                        help="Training target: teacher=hand-crafted output, "
+                             "gt_legal=ISPD2005 .pl, residual=ISPD-.pl minus hand-crafted output")
     parser.add_argument("--ispd-dir", type=str,
                         default="third_party/chipdiffusion/datasets/graph/ispd2005",
-                        help="Path to parsed ISPD2005 pickles (for gt_legal target)")
+                        help="Path to parsed ISPD2005 pickles (for gt_legal/residual target)")
     parser.add_argument("--augmentations", type=int, default=0,
-                        help="Random perturbations per sample (gt_legal target only)")
+                        help="Random perturbations per sample")
     parser.add_argument("--perturb-scale", type=float, default=0.02)
+    parser.add_argument("--hpwl-weight", type=float, default=2.0,
+                        help="Hand-crafted HPWL weight (for residual target)")
     args = parser.parse_args()
 
     from vsr_place.neural.model import NeuralVSR
@@ -96,6 +99,17 @@ def main():
         full_ds = GTLegalDataset(
             guided_pkl=args.data,
             ispd_data_dir=args.ispd_dir,
+            augmentations=args.augmentations,
+            perturb_scale=args.perturb_scale,
+        )
+    elif args.target == "residual":
+        from vsr_place.neural.residual_dataset import ResidualDataset
+        full_ds = ResidualDataset(
+            guided_pkl=args.data,
+            ispd_data_dir=args.ispd_dir,
+            hpwl_weight=args.hpwl_weight,
+            repair_steps=100,
+            repair_step=0.3,
             augmentations=args.augmentations,
             perturb_scale=args.perturb_scale,
         )

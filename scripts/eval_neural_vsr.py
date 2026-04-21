@@ -36,7 +36,7 @@ from vsr_place.backbone.adapter import ChipDiffusionAdapter  # noqa: E402
 from vsr_place.verifier.verifier import Verifier  # noqa: E402
 from vsr_place.renoising.local_repair import local_repair_loop  # noqa: E402
 from vsr_place.neural.train import load_model  # noqa: E402
-from vsr_place.neural.infer import neural_repair_loop  # noqa: E402
+from vsr_place.neural.infer import neural_repair_loop, neural_residual_repair  # noqa: E402
 from vsr_place.metrics.hpwl import compute_hpwl_from_edges  # noqa: E402
 
 
@@ -44,7 +44,8 @@ CIRCUIT_NAMES = ["adaptec1", "adaptec2", "adaptec3", "adaptec4",
                  "bigblue1", "bigblue2", "bigblue3", "bigblue4"]
 
 
-def eval_one(ckpt, neural_ckpt, circuit_idx, seed, num_steps_neural=10, device="cuda"):
+def eval_one(ckpt, neural_ckpt, circuit_idx, seed, num_steps_neural=10, device="cuda",
+             neural_mode="iterative"):
     """Evaluate all 3 methods on one circuit + seed."""
     val_set = load_benchmark_data("ispd2005")
     val_set = [filter_macros_only(x, cond) for x, cond in val_set]
@@ -115,16 +116,22 @@ def eval_one(ckpt, neural_ckpt, circuit_idx, seed, num_steps_neural=10, device="
         neural_model = load_model(neural_ckpt, device=device)
         t0 = time.time()
         if mask.any():
-            centers_neural = neural_repair_loop(
-                centers_cpu, sizes_cpu, canvas_w, canvas_h,
-                model=neural_model,
-                edge_index=edge_index,
-                edge_attr=edge_attr,
-                num_steps=num_steps_neural,
-                step_size=1.0,
-                only_mask=mask,
-                device=device,
-            )
+            if neural_mode == "residual":
+                centers_neural = neural_residual_repair(
+                    centers_cpu, sizes_cpu, canvas_w, canvas_h,
+                    model=neural_model,
+                    edge_index=edge_index, edge_attr=edge_attr,
+                    hpwl_weight=2.0, hand_steps=100, hand_step_size=0.3,
+                    only_mask=mask, device=device,
+                )
+            else:
+                centers_neural = neural_repair_loop(
+                    centers_cpu, sizes_cpu, canvas_w, canvas_h,
+                    model=neural_model,
+                    edge_index=edge_index, edge_attr=edge_attr,
+                    num_steps=num_steps_neural, step_size=1.0,
+                    only_mask=mask, device=device,
+                )
         else:
             centers_neural = centers_cpu
         t_neural = time.time() - t0
@@ -156,6 +163,8 @@ def main():
     parser.add_argument("--circuits", type=int, nargs="+", default=[0, 2, 4])
     parser.add_argument("--seeds", type=int, nargs="+", default=[42])
     parser.add_argument("--num-steps-neural", type=int, default=10)
+    parser.add_argument("--neural-mode", type=str, default="iterative",
+                        choices=["iterative", "residual"])
     parser.add_argument("--output", type=str, default="results/neural_vsr/eval.json")
     args = parser.parse_args()
 
@@ -173,7 +182,8 @@ def main():
         for seed in args.seeds:
             try:
                 row = eval_one(args.checkpoint, args.neural, i, seed,
-                               num_steps_neural=args.num_steps_neural)
+                               num_steps_neural=args.num_steps_neural,
+                               neural_mode=args.neural_mode)
                 all_results.append(row)
                 b = row["baseline_violations"]
                 h = row["hand_violations"]
