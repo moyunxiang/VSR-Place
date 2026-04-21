@@ -98,7 +98,7 @@ def eval_one(ckpt, neural_ckpt, circuit_idx, seed, num_steps_neural=10, device="
         centers_hand = local_repair_loop(
             centers_cpu, sizes_cpu, canvas_w, canvas_h,
             num_steps=100, step_size=0.3, only_mask=mask,
-            edge_index=edge_index, hpwl_weight=0.5,
+            edge_index=edge_index, hpwl_weight=2.0,
         )
         t_hand = time.time() - t0
         fb_hand = verifier(centers_hand, sizes_cpu)
