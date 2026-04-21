@@ -20,6 +20,8 @@ def local_repair_step(
     canvas_h: float,
     step_size: float = 0.1,
     only_mask: Tensor | None = None,
+    edge_index: Tensor | None = None,
+    hpwl_weight: float = 0.0,
 ) -> Tensor:
     """Nudge overlapping/boundary-violating macros to reduce violations.
 
@@ -80,6 +82,28 @@ def local_repair_step(
 
     total_force = forces + boundary_force
 
+    # --- HPWL-aware attractive force along netlist edges ---
+    # For each edge (u, v): add a gentle spring pulling them toward each other
+    # proportional to their distance. This counteracts the "push everything apart"
+    # behavior of the repulsive term, preserving wirelength.
+    if edge_index is not None and hpwl_weight > 0.0:
+        src, dst = edge_index[0], edge_index[1]
+        unique_mask_e = src < dst
+        u = src[unique_mask_e]
+        v = dst[unique_mask_e]
+        # Pull u toward v: force on u = (c_v - c_u) * weight / |edges at u|
+        edge_delta = centers[v] - centers[u]  # (E_uni, 2)
+        attractive = torch.zeros_like(centers)
+        attractive.index_add_(0, u, edge_delta)
+        attractive.index_add_(0, v, -edge_delta)
+        # Normalize by degree so highly-connected macros don't get over-pulled
+        degree = torch.zeros(centers.shape[0], device=centers.device)
+        degree.index_add_(0, u, torch.ones_like(u, dtype=torch.float))
+        degree.index_add_(0, v, torch.ones_like(v, dtype=torch.float))
+        degree = degree.clamp(min=1.0).unsqueeze(-1)
+        attractive = attractive / degree
+        total_force = total_force + hpwl_weight * attractive
+
     if only_mask is not None:
         only_mask_expanded = only_mask.unsqueeze(-1).to(total_force.device)
         total_force = total_force * only_mask_expanded
@@ -97,25 +121,29 @@ def local_repair_loop(
     step_size: float = 0.2,
     only_mask: Tensor | None = None,
     return_trajectory: bool = False,
+    edge_index: Tensor | None = None,
+    hpwl_weight: float = 0.0,
 ) -> Tensor:
     """Iteratively apply local repair until convergence or budget exhausted.
 
     Args:
-        return_trajectory: If True, return list of (x_k, x_{k+1}) pairs
-            for learning single-step physics. Default False = return final x.
+        return_trajectory: If True, return list of (x_k, x_{k+1}) pairs.
+        edge_index: (2, E) netlist edges for HPWL-aware attraction.
+        hpwl_weight: strength of wirelength-preserving attraction (0 = disabled).
 
     Returns:
         (N, 2) repaired centers, or list of pairs if return_trajectory=True.
     """
     x = centers.clone()
+    kwargs = {"only_mask": only_mask, "edge_index": edge_index, "hpwl_weight": hpwl_weight}
     if return_trajectory:
         pairs = []
         for _ in range(num_steps):
             x_prev = x.clone()
-            x = local_repair_step(x_prev, sizes, canvas_w, canvas_h, step_size, only_mask)
+            x = local_repair_step(x_prev, sizes, canvas_w, canvas_h, step_size, **kwargs)
             pairs.append((x_prev, x.clone()))
         return pairs
     else:
         for _ in range(num_steps):
-            x = local_repair_step(x, sizes, canvas_w, canvas_h, step_size, only_mask)
+            x = local_repair_step(x, sizes, canvas_w, canvas_h, step_size, **kwargs)
         return x

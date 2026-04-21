@@ -92,12 +92,13 @@ def eval_one(ckpt, neural_ckpt, circuit_idx, seed, num_steps_neural=10, device="
         "n_offending": int(mask.sum().item()),
     }
 
-    # Hand-crafted
+    # Hand-crafted (HPWL-aware: pulls connected macros together while repelling overlaps)
     if mask.any():
         t0 = time.time()
         centers_hand = local_repair_loop(
             centers_cpu, sizes_cpu, canvas_w, canvas_h,
             num_steps=100, step_size=0.3, only_mask=mask,
+            edge_index=edge_index, hpwl_weight=0.5,
         )
         t_hand = time.time() - t0
         fb_hand = verifier(centers_hand, sizes_cpu)
