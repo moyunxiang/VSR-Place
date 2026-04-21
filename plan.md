@@ -28,61 +28,120 @@
 
 ### Week 1: Core Implementation + Training
 
-#### Day 1-2（周一、周二）: GNN 架构 + 合成数据
+#### Day 1-2: GNN 架构 + 合成数据 ✅ 完成
 
-**目标**：写好 `NeuralVSR` 模型和合成训练数据生成器。
+**任务完成情况**：
+- [x] `src/vsr_place/neural/model.py`：3 层 GATv2, hidden=128, heads=4, **103K params**
+- [x] `src/vsr_place/neural/dataset.py`：合成违规电路生成器（log-normal sizes, cond_binomial edges）
+- [x] `src/vsr_place/neural/train.py`：训练循环（AdamW, cosine LR, L2 loss）
+- [x] 本地 smoke test 通过（50 样本 2 epochs）
+- [x] 新增 8 个 unit tests，57/57 全通过
 
-**任务**：
-- [ ] `src/vsr_place/neural/model.py`：3 层 GAT，输入 `(x, node_features, edge_index, edge_features)`，输出 per-macro displacement
-- [ ] `src/vsr_place/neural/dataset.py`：合成违规电路生成器
-  - 参考 ChipDiffusion 的 `data-gen/generate.py` 但更快（纯 Python，无 diffusion）
-  - 随机 macro 大小（log-normal）、随机网表、随机放置
-  - 目标：1M 训练对（`(x_bad, V(x_bad), x_good)`），4090 上 1 小时生成
-- [ ] `src/vsr_place/neural/train.py`：训练循环（PyTorch），L2 loss 预测 `Δx = x_good - x_bad`
-- [ ] 本地小样本测试（100 样本，验证 loss 下降）
+**产出**：`src/vsr_place/neural/{model.py, dataset.py, train.py, infer.py}`
 
-**产出**：跑得通的训练脚本。
+#### Day 3-4: 训练 + 调参 ⚠️ 部分完成
 
-#### Day 3-4（周三、周四）: 训练 + 调参
+**任务完成情况**：
+- [x] 租 RTX 4090D（connect.westc.seetacloud.com）
+- [x] 多轮训练迭代：v1 (legal target), v2 (teacher, 2000 合成样本), v5 (scale-invariant, 50 样本)
+- [x] **Teacher distillation 工作**：val loss 从 0.22 降到 8e-6（v2）
+- [x] 加入 scale-invariant feature normalization
+- [ ] ~~Pass criterion：NeuralVSR 在合成 val 上好 ≥10%~~ — **失败于 ISPD2005 上泛化**
 
-**目标**：训出一个能用的 NeuralVSR。
+**产出**：6 个训练好的 checkpoints（`checkpoints/neural_vsr/{v1_2k, v2_teacher, v5_norm, real_v1, real_traj_v1, best}.pt`）
 
-**任务**：
-- [ ] 租 RTX 4090（AutoDL 无卡模式生成数据 + 有卡模式训练）
-- [ ] 生成 1M 训练对（约 5h）
-- [ ] 训练 3-5 个配置（GNN 深度、隐藏维度、迭代次数）
-- [ ] 在合成验证集上对比 NeuralVSR vs hand-crafted repulsive force
-  - **Pass criterion**：NeuralVSR 在合成数据上比 hand-crafted 好 ≥10%
-- [ ] 选出最佳 checkpoint
+#### Day 5-6: ISPD2005 首次验证 ❌ Pass criterion 失败
 
-**产出**：`checkpoints/neural_vsr_best.pt`（~200KB）
+**任务完成情况**：
+- [x] 在 adaptec1 上跑评估脚本
+- [x] 对比 guided baseline / hand-crafted / NeuralVSR
+- [ ] ~~Pass criterion：NeuralVSR ≥ hand-crafted - 5%~~ — **所有变体都比 baseline 更差**
 
-#### Day 5-6（周五、周六）: ISPD2005 首次验证
+**实际结果**（adaptec1，单种子）：
 
-**目标**：证明 NeuralVSR 在真实电路上能 work。
+| 方法 | Violations | vs baseline |
+|------|-----------|-------------|
+| Guided baseline | 18,700 | — |
+| Hand-crafted | 8,400 | **-55%** ✅ |
+| NeuralVSR v2 (纯合成) | 23,150 | -23% ❌ |
+| NeuralVSR v5 (scale-invariant 合成) | 20,741 | -12% ❌ |
+| NeuralVSR real_v1 (3 真+扰动) | 34,512 | -84% ❌ |
+| NeuralVSR real_traj_v1 (3 真×30 traj) | 20,771 | -10% ❌（K=10, 最好） |
 
-**任务**：
-- [ ] 在 adaptec1, adaptec3, bigblue1 上跑（这些 24GB 能跑）
-- [ ] 对比：
-  1. Guided baseline（已有结果）
-  2. Hand-crafted repulsive force（已有结果：-37~-62%）
-  3. **NeuralVSR（新）**
-- [ ] **Pass criterion**：NeuralVSR ≥ hand-crafted 或差 <5%
-- [ ] 记录结果，如果 NeuralVSR 明显差则回 Day 3 调参
+**根因分析**：
+1. v1-v5 合成训练：sim-to-real gap 无法闭合（合成分布 != ISPD2005 分布）
+2. real_v1：3 个真样本 + 扰动增强，增强后多样性仍不够
+3. real_traj_v1：轨迹蒸馏（每样本 30 步 = 90 pairs），但 3 电路 × 1 = 只见过 adaptec1
+4. **核心瓶颈：24GB 只能稳定生成 3 个真实 guided placements**，其余 OOM
 
-**产出**：`results/neural_vsr/ispd2005_small.json`
+**产出**：`results/neural_vsr/eval_jsons/*.json`（所有 K ablation 结果）
 
-#### Day 7（周日）: 租 A100，跑剩余 5 电路
+#### Day 7: 租 A100，跑剩余 5 电路 + 重训 🔴 待做（关键）
 
-**目标**：补齐 ISPD2005 full table。
+**必须用 A100 80GB 的原因**：
+- 24GB 对 guided sampling 的 5 个电路（adaptec2/4, bigblue2/3/4）完全 OOM
+- 24GB 甚至无法稳定跑 adaptec3/bigblue1 的多种子（累积 OOM）
+- NeuralVSR 训练需要 ≥50 真实样本，24GB 拿不到
 
-**任务**：
-- [ ] 租 **A100 80GB** on AutoDL（~¥30/h × 8h = ¥240）
-- [ ] 跑 adaptec2, adaptec4, bigblue2, bigblue3, bigblue4 的 guided baseline + NeuralVSR
-- [ ] 3 种子（42, 123, 300）
-- [ ] **Pass criterion**：至少 5/8 电路有改善
+**Day 7 任务**：
+- [ ] 租 A100 80GB（~¥30/h × 4-6h = ¥120-180）
+- [ ] 生成 8 电路 × 8 种子 = **64 个真实 guided placements**
+- [ ] 用轨迹蒸馏扩成 64 × 30 = **1920 training pairs**
+- [ ] 重训 `real_traj_v2`（充分数据版本）
+- [ ] 在全 8 电路上评估 baseline / hand-crafted / NeuralVSR（3 seeds 各）
+- [ ] **Pass criterion**：NeuralVSR ≥ hand-crafted - 5%（跨 ≥5 电路）
 
-**产出**：完整 ISPD2005 表格。
+**如果 Day 7 仍然失败 → 启动 Plan B**（见文末回滚策略）
+
+---
+
+### A100 开机前的 Pre-flight Checklist（**全部 ✅**）
+
+在租 A100 之前所有不需要 A100 的工作都已完成：
+
+- [x] **代码完整**：model / dataset / train / infer / eval 全部就绪
+- [x] **Hand-crafted baseline 已验证**：-37~-62% on 3 个能跑的电路
+- [x] **训练管线已调通**：teacher distillation + trajectory distillation 两种 target，都能让 loss 收敛
+- [x] **Scale-invariant 归一化已加入**：model 支持任意 canvas 大小
+- [x] **Eval 脚本完整**：`scripts/eval_neural_vsr.py` 三方对比
+- [x] **ISPD2005 数据管线就绪**：`parse_ispd2005.py` 可一键下载+解析
+- [x] **数据备份**：73MB checkpoint + 104MB ISPD tarball 在本地缓存，scp 直接给 A100
+- [x] **SSH 恢复流程**：`docs/autodl_ssh_setup.md` + `docs/restore_autodl_env.md`
+- [x] **现有 trained checkpoints**：6 个 NeuralVSR 变体已存 git，方便对比
+
+### A100 上只需要做的事（串行，**~4-6h**）
+
+```bash
+# 1. 配 SSH（0.5h）
+# 2. clone + deps + restore caches（0.5h）
+scp local_artifacts/large-v2.ckpt autodl:/root/autodl-tmp/VSR-Place/checkpoints/large-v2/
+scp local_artifacts/ispd2005dp.tar.xz autodl:/tmp/
+# extract + parse（~5min）
+
+# 3. 生成完整真实数据（1-1.5h）
+python scripts/gen_ispd_placements.py \
+    --checkpoint checkpoints/large-v2/large-v2.ckpt \
+    --circuits 0 1 2 3 4 5 6 7 \
+    --seeds 0 1 2 3 4 5 6 7 \
+    --output data/ispd_placements_full.pkl
+# 预期 64 样本 × ~17s = 18min 实际 guided sampling + 开销 = 30min
+
+# 4. 训练（0.5h）
+python scripts/train_neural_vsr_real.py \
+    --data data/ispd_placements_full.pkl \
+    --output checkpoints/neural_vsr/real_traj_v2.pt \
+    --epochs 100 --batch-size 8 --trajectory-steps 30
+
+# 5. 评估（1-2h）
+python scripts/eval_neural_vsr.py \
+    --checkpoint checkpoints/large-v2/large-v2.ckpt \
+    --neural checkpoints/neural_vsr/real_traj_v2.pt \
+    --circuits 0 1 2 3 4 5 6 7 \
+    --seeds 42 123 300
+# 24 (circuit, seed) 对 × ~30s = 12min + 开销
+
+# 6. Commit + push 结果, 关机
+```
 
 ---
 
