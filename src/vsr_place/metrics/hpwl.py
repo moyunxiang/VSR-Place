@@ -42,6 +42,43 @@ def compute_hpwl(
     return total_hpwl
 
 
+def compute_hpwl_from_edges(
+    centers: Tensor,
+    edge_index: Tensor,
+    edge_attr: Tensor | None = None,
+) -> float:
+    """Compute HPWL using edge list (pairwise 2-pin net approximation).
+
+    For each edge (u, v), wirelength = |x_u + off_u_x - (x_v + off_v_x)|
+                                     + |y_u + off_u_y - (y_v + off_v_y)|
+    Works directly on PyG-style bidirectional edge_index (only uses each undirected
+    edge once by filtering u < v).
+
+    Args:
+        centers: (N, 2) macro centers.
+        edge_index: (2, E) edges.
+        edge_attr: (E, 4) edge features where columns [0,1] are src pin offset,
+            [2,3] are dst pin offset.
+
+    Returns:
+        Total HPWL (sum over unique edges).
+    """
+    src, dst = edge_index[0], edge_index[1]
+    unique_mask = src < dst
+    src_u = src[unique_mask]
+    dst_u = dst[unique_mask]
+
+    src_pos = centers[src_u]
+    dst_pos = centers[dst_u]
+    if edge_attr is not None:
+        attr_u = edge_attr[unique_mask]
+        src_pos = src_pos + attr_u[:, :2]
+        dst_pos = dst_pos + attr_u[:, 2:4]
+
+    delta = (src_pos - dst_pos).abs()
+    return delta.sum().item()
+
+
 def compute_hpwl_vectorized(
     centers: Tensor,
     net_mask: Tensor,

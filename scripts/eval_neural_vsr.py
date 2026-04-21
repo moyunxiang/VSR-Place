@@ -37,6 +37,7 @@ from vsr_place.verifier.verifier import Verifier  # noqa: E402
 from vsr_place.renoising.local_repair import local_repair_loop  # noqa: E402
 from vsr_place.neural.train import load_model  # noqa: E402
 from vsr_place.neural.infer import neural_repair_loop  # noqa: E402
+from vsr_place.metrics.hpwl import compute_hpwl_from_edges  # noqa: E402
 
 
 CIRCUIT_NAMES = ["adaptec1", "adaptec2", "adaptec3", "adaptec4",
@@ -77,6 +78,7 @@ def eval_one(ckpt, neural_ckpt, circuit_idx, seed, num_steps_neural=10, device="
     # Baseline
     fb_base = verifier(centers_cpu, sizes_cpu)
     mask = fb_base.severity_vector > 0
+    baseline_hpwl = compute_hpwl_from_edges(centers_cpu, edge_index, edge_attr)
 
     row = {
         "circuit": name,
@@ -86,6 +88,7 @@ def eval_one(ckpt, neural_ckpt, circuit_idx, seed, num_steps_neural=10, device="
         "baseline_violations": fb_base.global_stats["total_violations"],
         "baseline_overlap": fb_base.global_stats["num_overlap_violations"],
         "baseline_boundary": fb_base.global_stats["num_boundary_violations"],
+        "baseline_hpwl": baseline_hpwl,
         "n_offending": int(mask.sum().item()),
     }
 
@@ -99,9 +102,11 @@ def eval_one(ckpt, neural_ckpt, circuit_idx, seed, num_steps_neural=10, device="
         t_hand = time.time() - t0
         fb_hand = verifier(centers_hand, sizes_cpu)
         row["hand_violations"] = fb_hand.global_stats["total_violations"]
+        row["hand_hpwl"] = compute_hpwl_from_edges(centers_hand, edge_index, edge_attr)
         row["t_hand"] = t_hand
     else:
         row["hand_violations"] = row["baseline_violations"]
+        row["hand_hpwl"] = row["baseline_hpwl"]
         row["t_hand"] = 0.0
 
     # NeuralVSR
@@ -124,9 +129,11 @@ def eval_one(ckpt, neural_ckpt, circuit_idx, seed, num_steps_neural=10, device="
         t_neural = time.time() - t0
         fb_neural = verifier(centers_neural, sizes_cpu)
         row["neural_violations"] = fb_neural.global_stats["total_violations"]
+        row["neural_hpwl"] = compute_hpwl_from_edges(centers_neural, edge_index, edge_attr)
         row["t_neural"] = t_neural
     else:
         row["neural_violations"] = None
+        row["neural_hpwl"] = None
         row["t_neural"] = None
 
     # Improvements
