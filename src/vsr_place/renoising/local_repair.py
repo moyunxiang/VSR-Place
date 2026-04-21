@@ -108,6 +108,12 @@ def local_repair_step(
         only_mask_expanded = only_mask.unsqueeze(-1).to(total_force.device)
         total_force = total_force * only_mask_expanded
 
+    # Clamp force magnitude to avoid instability with high hpwl_weight
+    max_move = 0.5 * min(sizes[:, 0].mean().item(), sizes[:, 1].mean().item())
+    force_norm = total_force.norm(dim=-1, keepdim=True).clamp(min=1e-8)
+    clamp_factor = (max_move / force_norm).clamp(max=1.0)
+    total_force = total_force * clamp_factor
+
     new_centers = centers + step_size * total_force
     return new_centers
 
