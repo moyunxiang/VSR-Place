@@ -73,20 +73,38 @@ def main():
                         help="Hand-crafted steps unrolled per sample (each = 1 training pair)")
     parser.add_argument("--repair-step", type=float, default=0.3,
                         help="Hand-crafted step size")
+    parser.add_argument("--target", type=str, default="teacher",
+                        choices=["teacher", "gt_legal"],
+                        help="Training target: teacher=hand-crafted output, gt_legal=ISPD2005 .pl")
+    parser.add_argument("--ispd-dir", type=str,
+                        default="third_party/chipdiffusion/datasets/graph/ispd2005",
+                        help="Path to parsed ISPD2005 pickles (for gt_legal target)")
+    parser.add_argument("--augmentations", type=int, default=0,
+                        help="Random perturbations per sample (gt_legal target only)")
+    parser.add_argument("--perturb-scale", type=float, default=0.02)
     args = parser.parse_args()
 
     from vsr_place.neural.model import NeuralVSR
     from vsr_place.neural.real_dataset import RealISPDDataset
+    from vsr_place.neural.gt_dataset import GTLegalDataset
 
     device = args.device if (args.device != "cuda" or torch.cuda.is_available()) else "cpu"
 
     # Dataset
-    print(f"Loading placements from {args.data}...", flush=True)
-    full_ds = RealISPDDataset(
-        args.data,
-        trajectory_steps=args.trajectory_steps,
-        repair_step=args.repair_step,
-    )
+    print(f"Loading placements from {args.data} (target={args.target})...", flush=True)
+    if args.target == "gt_legal":
+        full_ds = GTLegalDataset(
+            guided_pkl=args.data,
+            ispd_data_dir=args.ispd_dir,
+            augmentations=args.augmentations,
+            perturb_scale=args.perturb_scale,
+        )
+    else:
+        full_ds = RealISPDDataset(
+            args.data,
+            trajectory_steps=args.trajectory_steps,
+            repair_step=args.repair_step,
+        )
     n_total = len(full_ds)
     n_val = max(1, int(n_total * args.val_split))
     n_train = n_total - n_val
