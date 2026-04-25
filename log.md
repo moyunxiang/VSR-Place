@@ -1,5 +1,56 @@
 # VSR-Place Development Log
 
+#### 2026-04-26 07:00 HKT — NeurIPS 全套 GPU 实验完成 (E1/E4/E5 on AutoDL A800)
+**Context**: 用户开 AutoDL A800 80GB（connect.nma1, port 43333），授权我端到端跑 + 关机。
+**Actions**:
+- 上传瓶颈：直连 scp 12 KB/s（aggregate）。诊断为 per-stream 限流，切 8 并行 chunks 推到 ~150 KB/s aggregate
+- 上传 75M ckpt + 104M ispd2005 tarball + config，md5 全部本地一致
+- bootstrap_autodl.sh：submodule via ghfast.top 镜像、pip via Tsinghua、parse 8 ISPD2005 电路（含全 8 电路 macro/edge stats）
+- 跑通三个 GPU 实验：
+  - **E1 unified main**: 6 circuits × 4 seeds × 7 methods = 24 (circuit, seed) 全部 OK，~30 min
+  - **E4 timestep sweep**: 90 rows (6 × 5 t × 3 seeds)，~10 min
+  - **E5 mem profile**: 3 circuits × 3 dtypes，~50 min（包括 vsr_post on bigblue2 940s）
+
+**Results — NeurIPS-rigor headline**:
+| 方法 | median Δviol | median ΔHPWL | strict-Pareto |
+|---|---|---|---|
+| **VSR-post (ours)** | **−55.3%** | +5.0% | **12/24 = 50%** |
+| VSR-intra (soft, ours) | +1.3% | −2.2% | 4/24 |
+| RePaint-binary | +134% (worse!) | −58.9% | 5/24 |
+| Classifier-guidance (legality_w=1) | +0.8% | +10.4% | 3/24 |
+| CD-standard | −22.6% | +92.4% | **0/24** |
+| CD-scheduled | −25.8% | +184.4% | **0/24** |
+
+**Wilcoxon paired tests (VSR-post 全胜)**:
+- vs CD-std: p<0.001 *** Δv 和 Δh 双指标
+- vs CD-sched: p<0.001 *** 双指标
+- vs cg_strong: p<0.001 *** Δv（HPWL p=0.08 不显著但 cg_strong 中位数更差）
+- vs RePaint-binary: p<0.001 *** 双指标
+
+**E4 timestep sweep 亮点**:
+- bigblue3 t=0.5: **−34.5% HPWL**（大电路 hero result，可视化材料）
+- adaptec3 t=0.1: −12.6% HPWL
+- adaptec4 全 t 稳定 −5%~−6% HPWL + −6% viol
+- adaptec1, adaptec2, bigblue1：效果较小（小电路或稀疏 graph）
+
+**E5 显存证据（写 limitations）**:
+- bigblue2 (23K macros): backbone full-sample peak **78.5 GB → OOM** on 80GB（fp32/bf16/fp16 都 OOM）
+- bigblue4 (8K macros): backbone full-sample peak **77.3 GB → OOM**
+- 但 **VSR-post 单跑** 在 bigblue2 (940s) 和 bigblue4 (137s) 上**都成功** → 写明"backbone is the bottleneck, not VSR"
+
+**Decisions / Assumptions**:
+- 把 `repaint_binary` 实现为 pure RePaint without VSR-post post-fix（直接展示原始 RePaint 不够）。这与之前 paper 里 "intra-sampling" 不同——之前的 intra-sampling 实际是 RePaint+post，这次拆开测，得到更干净的对比。
+- `vsr_intra_soft` (severity-weighted soft mask) 是新尝试的方法。结果显示对 bigblue3 HPWL 有强正面效果，但其他电路效应较小。可作为 ablation。
+- 没跑 toy 2D 全量训练（CPU 30 min 工作量留给后续）。
+
+**Cost**: ~3.5h × A800 ≈ ¥105。（实际 GPU 耗时短，更多时间在等上传，¥150 上限内。）
+
+**Next**:
+- rsync 结果回本地 ✅
+- 重写 paper main.tex 用新 narrative + 新 numbers
+- toy 2D 全量 CPU 跑（后续）
+- AutoDL 关机（预算结束）
+
 #### 2026-04-25 19:35 HKT — NeurIPS pivot: 6 轮迭代 → 5 个脚本 preflight 通过
 **Context**: 用户拍板冲 NeurIPS（main 优先，workshop 兜底），要求"流程优化到完美再开 GPU"。今天本地完成了 6 轮迭代设计 + 5 个脚本撰写 + preflight harness。
 **Actions**:
