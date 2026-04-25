@@ -237,17 +237,47 @@ def emit_main_table(summary, path):
 
 
 def emit_wilcoxon_table(stats, path):
+    """Format Wilcoxon paired-test table nicely.
+
+    - Primary VSR-post comparisons first, then VSR-intra ones, then any others.
+    - p-values: use $<10^{-3}$ when p<0.001 (instead of 0.0000); else 4 decimals.
+    - Stars rendered as LaTeX superscript with a thin space, not glued to the
+      number: e.g.\ ``$<\!10^{-3}$\,$^{\star\star\star}$''.
+    """
     lines = [
-        r"\begin{tabular}{lrrr}",
+        r"\begin{tabular}{lrll}",
         r"\toprule",
         r"Comparison & $n$ & $p_{\Delta v}$ & $p_{\Delta h}$ \\",
         r"\midrule",
     ]
-    for k, v in sorted(stats.items()):
-        nice = k.replace("_vs_", " vs.\\ ").replace("_", "-")
-        sig_v = "***" if v["dv"]["p"] < 0.001 else ("**" if v["dv"]["p"] < 0.01 else ("*" if v["dv"]["p"] < 0.05 else ""))
-        sig_h = "***" if v["dh"]["p"] < 0.001 else ("**" if v["dh"]["p"] < 0.01 else ("*" if v["dh"]["p"] < 0.05 else ""))
-        lines.append(f"{nice} & {v['n']} & {v['dv']['p']:.4f}{sig_v} & {v['dh']['p']:.4f}{sig_h} \\\\")
+
+    def fmt(p):
+        if p < 1e-3:
+            num = r"$<\!10^{-3}$"
+            stars = r"\,$^{\star\star\star}$"
+        elif p < 1e-2:
+            num = f"${p:.4f}$"
+            stars = r"\,$^{\star\star}$"
+        elif p < 5e-2:
+            num = f"${p:.4f}$"
+            stars = r"\,$^{\star}$"
+        else:
+            num = f"${p:.4f}$"
+            stars = r""
+        return num + stars
+
+    # Row ordering: put vsr_post comparisons first, then vsr_intra
+    def sort_key(k):
+        head = k.split("_vs_")[0]
+        order = {"vsr_post": 0, "vsr_intra": 1}.get(head, 2)
+        return (order, k)
+
+    for k in sorted(stats.keys(), key=sort_key):
+        v = stats[k]
+        # Pretty-print row label
+        a, b = k.split("_vs_")
+        nice = a.replace("_", "-") + r" vs.\ " + b.replace("_", "-")
+        lines.append(f"{nice} & {v['n']} & {fmt(v['dv']['p'])} & {fmt(v['dh']['p'])} \\\\")
     lines += [r"\bottomrule", r"\end{tabular}"]
     path.write_text("\n".join(lines) + "\n")
 
