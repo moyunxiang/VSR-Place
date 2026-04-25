@@ -378,16 +378,18 @@ rather than substitute methods.}
 \label{sec:lambda_sweep}
 
 A natural reviewer concern is whether $\lambda{=}2$ is a fitted constant.
-We sweep $\lambda \in \{0, 0.25, 0.5, 1, 2, 4\}$ on all 6 circuits, 3 seeds.
-Fig.~\ref{fig:lambda_sweep} shows the per-circuit Pareto front, and the
-cross-circuit summary is sharp: violation reduction is essentially
+We sweep $\lambda \in \{0, 0.25, 0.5, 1, 2, 3, 4, 6, 8\}$ on all 6 circuits,
+3 seeds.  Fig.~\ref{fig:lambda_sweep} shows the per-circuit Pareto front;
+the cross-circuit summary is sharp: violation reduction is essentially
 constant ($-48$ to $-52\%$ in median across the entire sweep), while
 $\Delta$HPWL slides monotonically from $+162\%$ at $\lambda=0$ (pure
-repulsive) to $-21\%$ at $\lambda=4$.  The strict-Pareto count rises
+repulsive) to $-38\%$ at $\lambda=8$.  The strict-Pareto count rises
 \emph{monotonically} with $\lambda$: $0/18$ at $\lambda=0$, $8/18$ at
-$\lambda=2$, and \textbf{$16/18$ ($89\%$) at $\lambda=4$}.  The operator
+$\lambda=2$, $16/18$ at $\lambda=4$, and \textbf{$18/18$ ($100\%$)
+at $\lambda=8$}.  The operator
 is \emph{not} a fixed heuristic; $\lambda$ exposes a smooth one-dimensional
-control with a clear sweet spot for HPWL-priority workloads.
+control that, for HPWL-priority workloads, yields a Pareto-improving
+operating point on \emph{every single (circuit, seed) trial}.
 
 \begin{figure}[h]
 \centering
@@ -579,8 +581,8 @@ placement.  Our operator instead exploits two structures: a selective mask
 (only offending macros move, preserving the backbone's global arrangement)
 and a pairwise force field (repulsion between two \emph{specifically}
 overlapping macros is a stronger gradient than an aggregated softmax).  At
-$\lambda{=}4$, a $50\times$ shorter run strictly Pareto-dominates on $89\%$
-of trials (\S\ref{sec:lambda_sweep}).  Learned GNN repair operators, in
+$\lambda{=}8$, a $50\times$ shorter run strictly Pareto-dominates on
+\emph{every} (circuit, seed) trial (\S\ref{sec:lambda_sweep}).  Learned GNN repair operators, in
 contrast, must discover this inductive bias from $\le 8$ circuits and
 consistently failed to match the hand-crafted version (supplement).
 Substantially larger circuit corpora would be needed to make learned repair
@@ -635,33 +637,39 @@ $\sim 162\%$) to $16/18$ at $\lambda=4$.
 
 \begin{table}[h]
 \centering
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{lrr|rr|rr|rr|rr|rr}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{lrr|rr|rr|rr|rr|rr|rr|rr|rr}
 \toprule
-& \multicolumn{2}{c|}{$\lambda{=}0$} & \multicolumn{2}{c|}{$\lambda{=}0.25$} &
-\multicolumn{2}{c|}{$\lambda{=}0.5$} & \multicolumn{2}{c|}{$\lambda{=}1$} &
-\multicolumn{2}{c|}{$\lambda{=}2$} & \multicolumn{2}{c}{$\lambda{=}4$} \\
+& \multicolumn{2}{c|}{$\lambda{=}0$} & \multicolumn{2}{c|}{$\lambda{=}.25$} &
+\multicolumn{2}{c|}{$\lambda{=}.5$} & \multicolumn{2}{c|}{$\lambda{=}1$} &
+\multicolumn{2}{c|}{$\lambda{=}2$} & \multicolumn{2}{c|}{$\lambda{=}3$} &
+\multicolumn{2}{c|}{$\lambda{=}4$} & \multicolumn{2}{c|}{$\lambda{=}6$} &
+\multicolumn{2}{c}{$\lambda{=}8$} \\
 Circuit & $\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ &
 $\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ &
-$\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ \\
+$\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ &
+$\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ &
+$\Delta v$ & $\Delta h$ \\
 \midrule
-adaptec1 & $-41.7$ & $+226.2$ & $-39.5$ & $+87.1$ & $-40.1$ & $+47.5$ & $-36.4$ & $+31.1$ & $-37.0$ & $-7.3$ & $-34.5$ & $-3.7$ \\
-adaptec2 & $-55.5$ & $+251.0$ & $-48.2$ & $+128.1$ & $-45.8$ & $+85.4$ & $-44.6$ & $+50.3$ & $-46.6$ & $+16.7$ & $-39.9$ & $-19.1$ \\
-adaptec3 & $-51.0$ & $+124.0$ & $-50.6$ & $+75.9$ & $-50.9$ & $+56.4$ & $-51.0$ & $+34.5$ & $-52.9$ & $+17.5$ & $-55.2$ & $+3.4$ \\
-adaptec4 & $-62.1$ & $+104.3$ & $-60.9$ & $+62.7$ & $-60.6$ & $+36.3$ & $-60.8$ & $+6.9$ & $-58.4$ & $-11.4$ & $-56.8$ & $-25.5$ \\
-bigblue1 & $-20.0$ & $+142.1$ & $-18.7$ & $-22.3$ & $-22.9$ & $-61.2$ & $-23.4$ & $-77.0$ & $-25.5$ & $-73.5$ & $-22.6$ & $-75.9$ \\
-bigblue3 & $-78.6$ & $+122.0$ & $-78.4$ & $+72.3$ & $-79.0$ & $+54.5$ & $-79.2$ & $+37.4$ & $-79.3$ & $+19.5$ & $-78.5$ & $-3.9$ \\
+adaptec1 & $-42$ & $+226$ & $-40$ & $+87$ & $-40$ & $+48$ & $-36$ & $+31$ & $-37$ & $-7$ & $-36$ & $-12$ & $-35$ & $-4$ & $-36$ & $-15$ & $-37$ & $-19$ \\
+adaptec2 & $-56$ & $+251$ & $-48$ & $+128$ & $-46$ & $+85$ & $-45$ & $+50$ & $-47$ & $+17$ & $-43$ & $-7$ & $-40$ & $-19$ & $-39$ & $-32$ & $-37$ & $-37$ \\
+adaptec3 & $-51$ & $+124$ & $-51$ & $+76$ & $-51$ & $+56$ & $-51$ & $+34$ & $-53$ & $+18$ & $-54$ & $+9$ & $-55$ & $+3$ & $-56$ & $-13$ & $-56$ & $-20$ \\
+adaptec4 & $-62$ & $+104$ & $-61$ & $+63$ & $-61$ & $+36$ & $-61$ & $+7$ & $-58$ & $-11$ & $-58$ & $-19$ & $-57$ & $-26$ & $-57$ & $-37$ & $-56$ & $-43$ \\
+bigblue1 & $-20$ & $+142$ & $-19$ & $-22$ & $-23$ & $-61$ & $-23$ & $-77$ & $-26$ & $-74$ & $-27$ & $-72$ & $-23$ & $-76$ & $-25$ & $-78$ & $-26$ & $-77$ \\
+bigblue3 & $-79$ & $+122$ & $-78$ & $+72$ & $-79$ & $+54$ & $-79$ & $+37$ & $-79$ & $+20$ & $-79$ & $+3$ & $-78$ & $-4$ & $-78$ & $-13$ & $-77$ & $-29$ \\
 \midrule
 strict-P & \multicolumn{2}{c|}{$0/18$} & \multicolumn{2}{c|}{$2/18$} &
 \multicolumn{2}{c|}{$3/18$} & \multicolumn{2}{c|}{$4/18$} &
-\multicolumn{2}{c|}{$8/18$} & \multicolumn{2}{c}{$\mathbf{16/18}$} \\
+\multicolumn{2}{c|}{$8/18$} & \multicolumn{2}{c|}{$11/18$} &
+\multicolumn{2}{c|}{$16/18$} & \multicolumn{2}{c|}{$17/18$} &
+\multicolumn{2}{c}{$\mathbf{18/18}$} \\
 \bottomrule
 \end{tabular}
-\caption{Per-circuit $\Delta v\,\%$ and $\Delta h\,\%$ across the
-$\lambda$ sweep, mean over 3 seeds.  Strict-Pareto count rises
-monotonically with $\lambda$, peaking at $89\%$ ($16/18$) at
-$\lambda{=}4$.}
+\caption{Per-circuit $\Delta v\,\%$ and $\Delta h\,\%$ across the extended
+$\lambda$ sweep (9 values, mean over 3 seeds).  Strict-Pareto count rises
+monotonically and \emph{saturates at $\lambda{=}8$ with 18/18 (100\%)}
+trials strictly Pareto-improving the raw draft.}
 \label{tab:supp-lambda}
 \end{table}
 

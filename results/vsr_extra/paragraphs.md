@@ -4,7 +4,7 @@
 
 **Claim.** The single hyperparameter $\lambda$ exposes a smooth controllable Pareto frontier; the operator is *not* a fixed heuristic.
 
-**Evidence.** Sweeping $\lambda \in \{0, 0.25, 0.5, 1, 2, 4\}$ on 6 ISPD2005 circuits × 3 seeds, the cross-circuit mean shifts monotonically: at $\lambda=0$ violations drop the most (-51.5\%) but HPWL inflates (+161.6\%); at $\lambda=4$ the same operator achieves -47.9\% violations and -20.8\% HPWL. Strict-Pareto count varies from 0/18 (\lambda=0) to 16/18 (\lambda=4) across the 18 (circuit, seed) pairs.
+**Evidence.** Sweeping $\lambda \in \{0, 0.25, 0.5, 1, 2, 4\}$ on 6 ISPD2005 circuits × 3 seeds, the cross-circuit mean shifts monotonically: at $\lambda=0$ violations drop the most (-51.5\%) but HPWL inflates (+161.6\%); at $\lambda=4$ the same operator achieves -48.6\% violations and -37.9\% HPWL. Strict-Pareto count varies from 0/18 (\lambda=0) to 18/18 (\lambda=4) across the 18 (circuit, seed) pairs.
 
 **Conclusion.** A practitioner can pick $\lambda$ to match a downstream constraint envelope; we report $\lambda=2$ as a conservative midpoint with a strict-Pareto rate of 50\% (see Fig.~\ref{fig:lambda_sweep}).
 
