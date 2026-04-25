@@ -88,10 +88,38 @@
 - [x] G1 results import 进 §4.7 (commit `21d632d`)
 - [x] supplement.tex 用新 ablations 数据填实 (commit 待推)
 - [x] main.tex self-review 一轮
+- [x] **NeurIPS reviewer round 1 全部回应**（见 review_response_plan.md + log Phase 5）
+  - F1-F12 文本修正（abstract、claims、tone-down、limitations）
+  - F4 circuit-level Wilcoxon (n=6) 替换主表
+  - W2 tuned baselines: cg legality_weight + RePaint t_start sweep → supplement Table，main 段落引用
+  - W5/E4 full-design HPWL with cells fixed at .pl → supplement Table，main 段落引用
+  - F11 bigblue3 overlap-area: 进 full_metrics 表（6 circuits 全有 overlap_area / max_overlap）
+- [ ] **AutoDL 关机**（password policy 阻止本地 SSH，需要用户手动: web 控制台或 `ssh autodl_main 'shutdown -h now'`）
 - [ ] 内部 review 一轮（你 / 同事）
 - [ ] NeurIPS abstract registration（截止前）
 - [ ] 上传 OpenReview + 完整 supplement
 - [ ] author / affiliation block（投稿时填）
+
+## Phase 5 实测 — Reviewer 回应数据
+- cg-tuned median: Δv=−7.1%, Δh=+14.2%（每电路最优 hp 后仍弱于 VSR）
+- RePaint-tuned median: Δv=**+109.4%**, Δh=−52.8%（HPWL "改善" 来自 macros 塌缩）
+- VSR-post (λ=2) median: Δv=−55.0%, Δh=−10.9%
+- 6/6 电路 VSR-post 在 Δv 上严格胜过 best-tuned cg/RePaint
+- Full-design HPWL median: VSR-post +10.7%, VSR-intra-soft −1.6%；adaptec3 例外（+73%，dense cell-macro coupling 限制）
+
+## 仓库 layout 更新
+```
+paper/main.pdf           ← 14 页（body 9 页 + refs + appendix）
+paper/supplement.pdf     ← 7 页（新增 §"Tuned baselines" + §"Full-design HPWL"）
+paper/figures/table_baseline_sweeps.tex  ← NEW
+paper/figures/table_full_metrics.tex     ← NEW（4-26 早些时候）
+results/vsr_extra/baseline_sweeps.json   ← 60 行（cg+repaint sweep）
+results/vsr_extra/full_metrics.json      ← 24 行（full-design HPWL + overlap area）
+scripts/run_baseline_sweeps.py            ← NEW
+scripts/run_full_metrics.py               ← NEW（已 run）
+scripts/analyze_baseline_sweeps.py        ← NEW
+scripts/analyze_full_metrics.py           ← NEW
+```
 
 ---
 

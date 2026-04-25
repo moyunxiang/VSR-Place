@@ -150,6 +150,89 @@ Raw data: \texttt{results/vsr\_extra/failure\_cases.csv}.}
 \label{tab:supp-failures}
 \end{table}
 
+\section{Tuned baselines: sweeps of cg legality weight and RePaint $t_\text{start}$}
+\label{sec:supp-tuned-baselines}
+
+A natural concern is that the cg-strong and RePaint baselines used in the main
+paper might be undertuned.  We address this with a per-circuit hyperparameter
+sweep: cg legality weight $w \in \{0.5, 1, 2, 4, 8\}$ (with HPWL
+guidance set to zero, the strongest legality regime) and RePaint
+$t_\text{start} \in \{0.1, 0.2, 0.3, 0.5, 0.7\}$ on a binary mask of
+violating macros.  All 6 circuits at seed $42$, same backbone, $T=100$
+denoising steps; this is exactly the setup of main paper Table~1.
+For each (family, circuit) we pick the hp that minimises post-method
+violation count and report it against the corresponding VSR-post
+($\lambda{=}2$) result.  Table~\ref{tab:supp-tuned-baselines}.
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_baseline_sweeps}
+\caption{Best-tuned cg and RePaint vs. VSR-post per circuit.  $w^\star$ and
+$t^\star$ are the legality weight / $t_\text{start}$ that minimise
+violation count for that family on that circuit.  Across all 6 circuits,
+VSR-post produces a strictly larger (more negative) $\Delta v\,\%$ than
+either tuned baseline.  Cross-circuit median:
+cg-tuned reduces violations by only $7\%$ at the cost of $+14\%$ HPWL;
+RePaint-tuned \emph{increases} violations by $109\%$ (because the small
+$t_\text{start}$ that best preserves wirelength produces collapsed,
+heavily-overlapping placements);
+VSR-post simultaneously reduces violations by $55\%$ and HPWL by $11\%$.
+Raw rows: \texttt{results/vsr\_extra/baseline\_sweeps.json}.}
+\label{tab:supp-tuned-baselines}
+\end{table}
+
+This is the strongest guarantee we can offer that the comparison in
+Table~1 is not a tuning artifact: even at \emph{per-circuit best}
+settings, neither cg nor RePaint dominates VSR-post on the violation
+axis.  The asymmetry is intuitive --- cg pushes against pairwise overlap
+gradients without acknowledging severity, and RePaint with a binary mask
+re-noises the violating macros without preserving their context, so the
+re-sampled draft frequently lands in a worse basin than the original.
+
+\section{Full-design HPWL with cells fixed at \texttt{.pl} positions}
+\label{sec:supp-full-hpwl}
+
+The main paper reports HPWL on the macro subgraph (macro-to-macro nets
+only), as is standard in macro-placement literature.  A reviewer
+correctly pointed out that this excludes any wirelength change between
+macros and standard cells.  We re-run all 24 (circuit, seed) trials and
+record the full-design HPWL: each macro is placed by the indicated
+method, all standard cells are held fixed at their industrial
+\texttt{.pl} positions, and HPWL is computed on the full netlist.
+Table~\ref{tab:supp-full-hpwl}.
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_full_metrics}
+\caption{Full per-trial metrics across 24 (circuit, seed) trials,
+$\lambda{=}2$ post-VSR.  $\Delta\text{oa}\,\%$ is the change in total
+overlap area $\sum_{ij} A_{ij}/2$ (a continuous quantity sensitive to
+near-misses, in addition to the integer violation count).
+$\Delta h_\text{macro}\,\%$ is the macros-only HPWL (matches main-paper
+Table~1).  $\Delta h_\text{full}\,\%$ is the full-design HPWL with cells
+held at \texttt{.pl} positions.  Two findings: (i) the full-design
+HPWL median ($+10.7\%$) is comparable to the macros-only median
+($+8.7\%$), so the macro-axis HPWL trend generalises to the full design
+on most circuits; (ii) on adaptec2 the full-design HPWL is $-31\%$
+(macros-only is $+9\%$), suggesting that VSR's repair on adaptec2 moves
+macros into positions that better match the cell distribution; (iii) on
+adaptec3 the full-design HPWL inflates more sharply than macros-only
+(consistent with adaptec3 having dense local cell-macro coupling that
+VSR does not reason about).  VSR-intra-soft is HPWL-neutral on the full
+design (median $-1.6\%$).  Raw rows:
+\texttt{results/vsr\_extra/full\_metrics.json}.}
+\label{tab:supp-full-hpwl}
+\end{table}
+
+We treat this as honest evidence rather than uniformly-good news: VSR's
+HPWL-preservation property does extend to the full netlist on most
+circuits, but not on adaptec3, where dense local cell-macro coupling
+penalises any macro displacement.  A future version of the operator
+that reads the cell distribution as additional context would address
+this.
+
 \section{Toy cross-domain experiment}
 \label{sec:supp-toy2d}
 
@@ -289,6 +372,17 @@ ablation; they confirm $T{=}100$ and $\eta{=}0.3$ as robust defaults.
 \includegraphics[width=0.85\linewidth]{figures/fig6_step_size.pdf}
 \caption{Step size ablation.}
 \label{fig:supp-stepsize}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/fig8_timestep_sweep.pdf}
+\caption{Intra-sampling HPWL change as a function of
+$t_{\text{start}}$, across 6 circuits and 3 seeds.  Bigblue3 (the
+largest tractable circuit) shows a striking monotonic improvement,
+peaking at $-34.5\%$ HPWL.  Smaller circuits show small effects,
+suggesting backbone-prior leverage scales with circuit size.}
+\label{fig:supp-timestep}
 \end{figure}
 
 \section{Reproducibility and released artifacts}

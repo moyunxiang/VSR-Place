@@ -1,5 +1,62 @@
 # VSR-Place Development Log
 
+#### 2026-04-26 05:20 JST — Phase 5 cont'd: tuned-baseline sweep + full-design HPWL wired into paper
+**Context**: GPU sweep `run_baseline_sweeps.py` 完成 60 行（6 circuits × (5 cg + 5 repaint)），`run_full_metrics.py` 完成 24 行。本地 SSH 因 password policy 无法重连 AutoDL，但 60 行 sweep 数据全部从 Monitor 事件流捕获。
+**Actions**:
+- 重建 `results/vsr_extra/baseline_sweeps.json`（60 rows, 来自 Monitor 流，与远端 JSON 一致）
+- 写 `scripts/analyze_baseline_sweeps.py`：选每电路最优 hp，对照 VSR-post (λ=2)。生成 `paper/figures/table_baseline_sweeps.tex` + md/csv summary
+- 写 `scripts/analyze_full_metrics.py`（已存在，本次只跑）：聚合 overlap_area、max_overlap、full-design HPWL → `paper/figures/table_full_metrics.tex`
+- 加 supplement 两节: §"Tuned baselines (sweeps)" 和 §"Full-design HPWL with cells fixed at .pl"
+- Main paper §4.4 加 \paragraph{Robustness checks}：单段引用两个 supplement 表，给跨电路中位数
+- Limitations 删去过期的 "full-design HPWL is future work" 句子
+- 移 fig8 timestep_sweep 到 supplement (label `fig:supp-timestep`)，main 用 prose pointer 替代
+- 重新编译：main.pdf 14 页，body 9 页（refs 从 page 9 第 46 行开始，appendix 从 page 11 起，符合 NeurIPS）；supplement.pdf 7 页
+
+**Headlines from new data**:
+- cg-tuned median: Δv=−7.1%, Δh=+14.2%（5个 hp 设置都不行）
+- RePaint-tuned median: Δv=**+109%** (worse!), Δh=−52.8%（"HPWL win" 来自 macros 塌缩重叠）
+- VSR-post (λ=2) median: Δv=−55.0%, Δh=−10.9%
+- 6/6 电路上 VSR-post 在 Δv 上严格胜过 best-tuned cg 和 best-tuned RePaint → reviewer W2 fully addressed
+- Full-design HPWL median: VSR-post +10.7% (vs +8.7% macros-only); VSR-intra-soft −1.6% → 主结论延展到 cell-aware 设计，例外是 adaptec3 的 +73%（dense cell-macro coupling）→ reviewer W5/E4 addressed transparently
+
+**Decisions / Assumptions**:
+- 重建 JSON 用 Monitor 事件流而非 SSH 拉取：所有 60 行均在事件流里，与脚本写的 JSON schema 一致。Assumption: Monitor 事件没有遗漏。Verification: row count = 60 (6 × 10) ✓; per-circuit baseline_v 数值与 Monitor 流首行一致 ✓。
+- 没有 SSH 访问 → 无法触发 `shutdown -h now`。GPU 仍在 AutoDL 上空跑。**待用户唤醒后手动关机**。
+
+**Results**: review 中 17 条 fix items 中 F1–F12 (Tier 1 文本) + F4 (circuit Wilcoxon) + F11 (overlap-area in bigblue3 via full_metrics 表) + W2 (tuned baselines) + W5/E4 (full-design HPWL) 全部完成。剩 GPU 关机。
+
+**Next**: 
+1. Commit + push 当前所有变更
+2. 提醒用户起床后 SSH 关 AutoDL（`ssh autodl_main 'shutdown -h now'`，或 web 控制台）
+3. Plan/log 标记 review round 1 完成
+
+#### 2026-04-26 16:00 HKT — Phase 5: address NeurIPS reviewer round 1
+**Context**: 用户喂入 `paper/neurips_review.md`（reviewer 给 4/10）。要求逐条回应 + 修复。GPU 重新开机（54595），用户去睡觉，授权我跑到所有问题解决再关 GPU。
+**Actions** (Tier 1, 本地文本):
+- 写 `paper/review_response_plan.md`：把 reviewer 的 weaknesses/questions 拆 17 条 (F1-F17)，每条标注 fix 方案 + 成本
+- 修 abstract：把 "p<0.001 vs cg-strong" 误报修正（实际 HPWL p=0.08）；加 "no method achieves full legality" 警句；reposition 为 repair layer
+- 加 circuit-level Wilcoxon (n=6, conservative) — 替换 main 表的 seed-level n=24 为更保守版本，n=24 留 supplement 当 paired bootstrap
+- 加 fully-legal stats: 24 trials × 7 methods 全部 v=0 = 0/168（**没一个 method 让任何 trial fully legal**）
+- 修 strict-Pareto caption (Table 2): 12/24 strict + 2 weak-cut = Appendix D 的 14
+- 加 Limitations 段落：lead with "VSR is a repair layer, not a legalizer"
+- Tone down "structured verifier feedback" 新颖性 — reframe 为 "package three classical ingredients into Pareto-controlled framework"
+- 加 §B "Force update precise specification" 到 appendix（reviewer 说欠规范）
+- 加 §4.5 段落解释为啥 main paper 用 λ=2 不用 λ=8 (transparency)
+- Compress Discussion + Conclusion + Limitations 让 body 回到 9 页
+
+**Actions** (Tier 2, GPU):
+- `run_full_metrics.py`: 24 trials 重跑，记录 baseline+post+intra 的 violation count、macros-only HPWL、**total overlap area**、**max overlap**、**full-design HPWL (with cells)**。地址 reviewer W5 + E4。预估 ~12 min A800。
+- `run_baseline_sweeps.py`: classifier-guidance hyperparameter sweep (legality_weight ∈ {0.5, 1, 2, 4, 8}) + RePaint t_start sweep ∈ {0.1, 0.2, 0.3, 0.5, 0.7}。地址 reviewer W2 + E6。预估 ~10 min A800。
+- 暂时按串行 (避免 VRAM 竞争)，full_metrics 先跑。
+
+**Decisions**:
+- DREAMPlace baseline 太高风险（编译复杂，输入格式不匹配 macros-only），明确写在 Limitations
+- λ=2 不切到 λ=8 主表：诚实保留，在 §4.5 transparency note 解释
+- "non-differentiable" 用语保留——但加 "with vanishing gradients in inactive regions" 限定
+
+**Cost**: GPU running, ~22 min估计 + 现有 ¥130 → 总 ¥150 量级
+**Next**: full_metrics 完成 → 重生成 main 表的 absolute legality 列 → run baseline_sweeps → 用 best baseline 数字更新 main 表 → 收尾。
+
 #### 2026-04-26 13:30 HKT — Phase 4 G1 component ablation (AutoDL #2) + supplement 重写
 **Context**: 用户开第二台 AutoDL（connect.nma1, port 54595），跑 G1 component ablation。同时把 main.tex 的旧 §"Component ablation" 真实化、supplement 全面填实。
 **Actions**:

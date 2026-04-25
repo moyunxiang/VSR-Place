@@ -394,6 +394,21 @@ draws, not iid samples.}
 \label{tab:wilcoxon}
 \end{table}
 
+\paragraph{Robustness checks.} Two reviewer-prompted controls in the
+supplement: (i) full-design HPWL with cells held at industrial
+\texttt{.pl} (\S\ref{sec:supp-full-hpwl}), median
+$\Delta h{=}{+}10.7\%$ for VSR-post and $-1.6\%$ for VSR-intra-soft
+--- the macros-only trend generalises, with adaptec3 the lone
+exception ($+73\%$ full-HPWL, due to dense cell-macro coupling that the
+macro-only operator does not see); (ii) per-circuit tuning of cg
+($w\in\{0.5,1,2,4,8\}$) and RePaint ($t_\text{start}\in\{0.1,...,0.7\}$),
+\S\ref{sec:supp-tuned-baselines}: at the best hp per circuit, cg-tuned
+medians $\Delta v{=}{-}7\%/\Delta h{=}{+}14\%$ and RePaint-tuned
+$\Delta v{=}{+}109\%/\Delta h{=}{-}53\%$ (RePaint's HPWL ``win'' comes
+from collapsing macros into overlap), versus VSR-post
+$\Delta v{=}{-}55\%/\Delta h{=}{-}11\%$.  VSR-post strictly dominates
+both tuned baselines on $\Delta v$ for every circuit.
+
 \subsection{Pareto control: the $\lambda$ knob}
 \label{sec:lambda_sweep}
 
@@ -524,26 +539,15 @@ schedule: low-severity macros stay close to their forward-diffused original
 backbone in the context of the soft-clamped neighbours.  This re-invokes the
 backbone's implicit wirelength prior.
 
-Figure~\ref{fig:timestep_sweep} shows the timestep sweep
-$t_{\text{start}} \in \{0.1, 0.2, 0.3, 0.5, 0.7\}$ on all 6 circuits, 3 seeds.
-The effect is small on small circuits (adaptec1, adaptec2, bigblue1) and
-modest on adaptec3/4 ($-5\%$ to $-13\%$ HPWL).  But on the largest circuit
-(bigblue3, 1298 macros), the effect is dramatic: \textbf{$-34.5\%$ HPWL at
-$t_{\text{start}}=0.5$}, with violations essentially unchanged.  The
-monotonic increase with $t_{\text{start}}$ on bigblue3 is consistent with our
-hypothesis: more re-noising means the backbone's prior is more strongly
-re-invoked.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.95\linewidth]{figures/fig8_timestep_sweep.pdf}
-\caption{Intra-sampling HPWL change as a function of $t_{\text{start}}$,
-across 6 circuits and 3 seeds.  Bigblue3 (the largest tractable circuit) shows
-a striking monotonic improvement, peaking at $-34.5\%$ HPWL.  Smaller
-circuits show small effects, suggesting backbone-prior leverage scales with
-circuit size.}
-\label{fig:timestep_sweep}
-\end{figure}
+A timestep sweep
+$t_{\text{start}} \in \{0.1, 0.2, 0.3, 0.5, 0.7\}$ on all 6 circuits / 3
+seeds (Fig.~\ref{fig:supp-timestep}, supplement) shows: small effect on
+small circuits, modest ($-5\%$ to $-13\%$ HPWL) on adaptec3/4, but
+dramatic on the largest circuit (bigblue3, 1298 macros):
+\textbf{$-34.5\%$ HPWL at $t_{\text{start}}=0.5$} with violations
+essentially unchanged.  The monotonic trend on bigblue3 is consistent
+with the hypothesis that more re-noising more strongly re-invokes the
+backbone prior.
 
 \subsection{Memory profile and limitations}
 \label{sec:limitations}
@@ -592,15 +596,16 @@ A downstream classical legalizer is still required for a usable layout.
 optimization graphs that ChipDiffusion's released sampler accumulates
 across the denoising rollout (\texttt{guidance\_mode='opt'}); pure
 \texttt{no\_grad} inference would not exhibit this.
-\textbf{Single backbone, single domain, macros-only HPWL:}
-ChipDiffusion is the only backbone.  A toy 2D non-overlap experiment
-(supplement) gives preliminary cross-domain evidence.  HPWL is the
-macros-only edge subset; full-design HPWL with cells is future work.
-\textbf{Comparison scope:} we benchmark against ChipDiffusion's released
-legalizer + classifier-guidance and RePaint variants; DREAMPlace and
-RePLACE target post-detailed-place legalization on macro+cell inputs that
-are not directly applicable to ChipDiffusion's macros-only output without
-additional glue.
+\textbf{Single backbone, single domain:}
+ChipDiffusion is the only backbone; a toy 2D non-overlap experiment
+(supplement) gives preliminary cross-domain evidence.  Full-design
+HPWL is reported (\S\ref{sec:supp-full-hpwl}); adaptec3 inflates more
+sharply on the full design than on macros-only, indicating residual
+cell-coupling sensitivity.
+\textbf{Comparison scope:} we benchmark against ChipDiffusion's
+legalizer, classifier-guidance, and RePaint variants; DREAMPlace and
+RePLACE target post-detailed-place legalization on macro+cell inputs
+that are not directly applicable to macros-only output.
 
 \section{Discussion and Conclusion}
 
