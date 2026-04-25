@@ -1,11 +1,4 @@
-\begin{thebibliography}{10}
-
-\bibitem{placeto}
-Ravichandra Addanki, Shaileshh~Bojja Venkatakrishnan, Shreyan Gupta, Hongzi
-  Mao, and Mohammad Alizadeh.
-\newblock Placeto: Learning generalizable device placement algorithms for
-  distributed machine learning.
-\newblock In {\em NeurIPS}, 2019.
+\begin{thebibliography}{1}
 
 \bibitem{ntuplace}
 Tung-Chieh Chen et~al.
@@ -35,11 +28,6 @@ Andreas Lugmayr, Martin Danelljan, Andres Romero, Fisher Yu, Radu Timofte, and
   Luc Van~Gool.
 \newblock Repaint: Inpainting using denoising diffusion probabilistic models.
 \newblock In {\em CVPR}, 2022.
-
-\bibitem{deepplace}
-Placeholder.
-\newblock {DeepPlace}: Learning to place applications in multi-tenant clusters.
-\newblock In {\em Placeholder}, 2021.
 
 \bibitem{constraint-guidance}
 Placeholder.

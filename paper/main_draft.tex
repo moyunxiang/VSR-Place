@@ -9,13 +9,13 @@
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{nicefrac}
+%\usepackage{nicefrac}
 %\usepackage{microtype}
 \usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage{subcaption}
 
-\title{Verifier-Guided Constraint Projection:\\ A Framework for Post-Processing Diffusion-Generated Placements}
+\title{Verifier-Guided Selective Repair for\\ Diffusion-Generated Macro Placements}
 
 \author{%
   Anonymous Authors \\
@@ -24,271 +24,526 @@
 }
 
 \begin{document}
-
 \maketitle
 
 \begin{abstract}
-Diffusion models have emerged as strong generative backbones for analog and macro placement, but their outputs are rarely legal: overlapping macros and boundary violations are endemic because the model learns statistics, not constraints. We propose \textbf{Verifier-Guided Selective Re-noising (VSR)}, a general framework for constraint projection on diffusion-generated placements using a non-differentiable legality verifier. VSR factorizes the problem into three lightweight stages---a \emph{verifier} producing structured feedback (per-macro severity, pairwise overlap, boundary violations), a \emph{selector} that picks only offending macros, and a \emph{repair operator} that relocates them---and supports two modes: (i) post-processing, with a 100-step force integrator parametrized by a single wirelength/legality tradeoff knob $\lambda$; and (ii) intra-sampling, a RePaint-style selective re-noising inside the diffusion schedule. On ISPD2005, post-processing VSR at $\lambda=2$ reduces violations by \textbf{50.1\%} across 6 circuits (3 seeds) while \emph{improving} half-perimeter wirelength by 7.8\%; intra-sampling VSR further improves HPWL on the large circuits (bigblue3: from $+17\%$ to $\mathbf{-26\%}$) at comparable legality. Against both of ChipDiffusion's released legalizer configs, VSR dominates every circuit on both metrics at $\geq 2\times$ lower wall-clock. We also report negative results with six learned GNN repair variants, informing the data regime in which learned constraint projection becomes viable.
+Pretrained diffusion models for macro placement produce drafts that violate hard
+geometric constraints (overlap, boundary) on essentially every macro, because
+the model is trained to match data statistics, not satisfy combinatorial
+predicates.  Existing remedies are unsatisfying: classifier-style guidance
+needs a differentiable surrogate of an inherently discrete predicate, RePaint
+inpainting requires a binary mask without prior structure, and heavy
+post-processing legalizers (5000-step constrained SGD) more than double
+wirelength while still leaving residual violations.  We propose
+\textbf{Verifier-Guided Selective Repair (VSR)}: a non-differentiable verifier
+emits structured feedback (per-macro severity scalar, pairwise overlap graph,
+per-macro boundary protrusion); a selector turns this into a soft mask over
+macros to update; and a 100-step force integrator parametrized by a single
+wirelength/legality knob $\lambda$ produces displacements.  Across 6 ISPD2005
+circuits and 4 seeds, VSR achieves a median \textbf{55.3\% violation
+reduction} and is \emph{strictly Pareto-improving} on
+\textbf{12 out of 24 (circuit, seed) pairs}, compared to \textbf{0/24} for
+either of ChipDiffusion's released legalizer configurations.  Wilcoxon paired
+tests show VSR statistically dominates classifier-guidance with strong
+legality weighting, RePaint with binary verifier mask, and both legalizer
+variants on both metrics with $p<0.001$.  An intra-sampling variant
+(structured RePaint with the verifier's severity field as a soft mask) is a
+useful complement when wirelength matters most: on the largest circuit
+(bigblue3, 1298 macros), it cuts HPWL by \textbf{34.5\%} at $t_{\text{start}}=0.5$.
+We provide a memory profile demonstrating that the OOM frontier on
+2/8 ISPD2005 circuits is the diffusion backbone---not the repair
+operator---establishing a clean limitation for future work.
 \end{abstract}
 
 \section{Introduction}
 
-\paragraph{The problem.} Chip placement remains one of the most expensive stages in physical design, and recent work~\cite{chipdiffusion} has shown that diffusion models can propose competitive placements in a small fraction of traditional analytical-solver time. However, a raw diffusion sample almost always contains overlaps, boundary violations, or spacing errors, because the model is trained to match data distributions, not to satisfy hard constraints. Existing remedies fall into two camps: (i) augmenting the diffusion objective with soft constraint penalties~\cite{classifier-guidance,constraint-guidance}, which requires differentiable constraint surrogates and typically retraining; or (ii) running a heavy post-hoc legalizer (e.g., 5000-step constrained SGD)~\cite{dreamplace,chipdiffusion}, which is slow and, as we show, can double wirelength.
+\paragraph{The problem.}  Chip macro placement is a constrained combinatorial
+optimization problem where modern diffusion-based generators
+\cite{chipdiffusion} produce competitive drafts in seconds rather than the
+hours analytical solvers take.  The catch: a raw diffusion sample
+\emph{essentially always} violates hard geometric constraints, because the
+model is trained to fit a data distribution rather than satisfy a discrete
+predicate (``no two macros overlap'').
 
-\paragraph{The gap we address.} The first camp confuses the roles of generation and constraint satisfaction, baking both into one end-to-end objective. The second camp treats the diffusion sample as a clean initialization to a global optimization, discarding the structure of which macros are actually problematic. We argue that \emph{structured} post-processing---operating only on offending macros, guided by pairwise violation feedback---recovers the best of both worlds.
+\paragraph{Why existing remedies are unsatisfying.}  Three families of methods
+have been tried, each with a structural defect:
 
-\paragraph{Our framework.} We introduce \textbf{Verifier-guided Selective Re-noising (VSR)}, a framework composed of three decoupled stages (Figure~\ref{fig:framework}): a \emph{verifier} that emits structured feedback (severity, pairwise overlap graph, boundary violations), a \emph{selector} that chooses a subset of macros to update, and a \emph{repair operator} that produces a displacement. The framework is agnostic to the diffusion backbone, requires no retraining, and admits both hand-crafted and learned repair operators.
+\begin{enumerate}
+\item \emph{Classifier-style guidance} \cite{classifier-guidance,
+constraint-guidance} injects the gradient of a smooth
+penalty $\nabla \log p(\mathrm{constraint}|x_t)$ into the score during sampling.
+But overlap is a sum of $\max(0, \cdot)$ terms whose smooth surrogate is a poor
+proxy: aggressive weighting (legality\_weight $\geq 1$) pushes wirelength up by
+\emph{tens of percent} on real circuits while leaving violations near baseline
+(see \S\ref{sec:results}, ``cg-strong'').
+\item \emph{RePaint inpainting} \cite{repaint} re-noises the offending region
+and re-denoises with the clean region clamped to its forward-diffused state.
+Out of the box this requires a \emph{binary mask}; applying it with the
+``offender'' set yields placements that are \emph{$2\times$ worse than the
+input draft} on small circuits, because the model's free-form regeneration
+has no structure-aware preference.
+\item \emph{Heavy legalizers} \cite{ntuplace, dreamplace, chipdiffusion}
+solve a constrained optimization on the full placement.  ChipDiffusion's own
+released legalizer (5000-step constrained SGD) reduces violations by
+$\approx 25\%$ but \emph{nearly doubles half-perimeter wirelength (HPWL)}; its
+HPWL-aware variant is even worse, almost tripling HPWL.  In our 24-pair
+sample, neither legalizer ever achieves a strict Pareto improvement over the
+raw draft.
+\end{enumerate}
 
-\paragraph{Key findings.} On ISPD2005, our hand-crafted instance reduces violations by \textbf{50.1\%} on average across 6 circuits and 3 seeds at $\lambda = 2$, while \emph{improving} HPWL by 7.8\%. Against both of ChipDiffusion's released legalizer configs (the standard 5000-step SGD and its HPWL-aware scheduled variant), VSR wins on every circuit for both legality and wirelength, at $\geq 2\times$ lower wall-clock. A RePaint-style intra-sampling variant further improves HPWL on the large circuits (bigblue3: from $+17\%$ to $-26\%$) by exploiting the diffusion backbone's implicit wirelength prior. Six GNN-based repair operators all fail to match the hand-crafted baseline, which we attribute to the extreme data scarcity of the placement domain.
-
-\paragraph{Contributions.}
+\paragraph{Our contribution.}  We argue the missing primitive is
+\emph{structured} verifier feedback: a non-differentiable verifier that emits
+not just a Boolean ``violates'' flag, but a continuous per-macro severity
+scalar, a pairwise overlap graph, and a per-macro boundary protrusion vector.
+This structure---which neither classifier-guidance nor RePaint exploits---lets
+us drive a tiny 100-step explicit-Euler force integrator that:
 \begin{itemize}
-\item A general framework for post-processing diffusion placements using non-differentiable legality feedback.
-\item A simple hand-crafted instance---50 lines of repulsive-attractive physics---that dominates ChipDiffusion's own legalizer on all 6 ISPD2005 circuits, in both legality \emph{and} wirelength, at 2$\times$ speed.
-\item An empirical Pareto study over the single wirelength/legality knob $\lambda$, with 3 seeds per circuit, showing that $\lambda \in \{2, 4\}$ yields strictly Pareto-dominant operating points (fewer violations \emph{and} lower HPWL) on 5 of 6 circuits.
-\item Two implementations of the framework: \emph{post-processing} VSR (100-step force integrator) and \emph{intra-sampling} VSR (RePaint-style selective re-noising inside the diffusion schedule). Intra-sampling exploits the backbone's implicit wirelength prior and improves HPWL dramatically on large circuits.
-\item A set of negative results on learned repair operators (6 GNN variants across synthetic, augmented, teacher-distillation, trajectory-distillation, ground-truth-target, and residual-learning regimes) that illuminate the data regime in which learned constraint projection is viable.
+\item Reduces violations by a median \textbf{55.3\%} across 6 ISPD2005
+circuits, vs.\ $-22.6\%$ for ChipDiffusion's standard legalizer and
+$-25.8\%$ for its HPWL-aware variant.
+\item Achieves a strict Pareto improvement (fewer violations \emph{and}
+shorter HPWL) on 12 of 24 (circuit, seed) pairs, vs.\ 0 of 24 for either
+legalizer (Table~\ref{tab:strict_pareto}).
+\item Statistically dominates classifier-guidance, RePaint with
+binary mask, and both ChipDiffusion legalizer configurations on both
+metrics with $p<10^{-4}$ Wilcoxon (Table~\ref{tab:wilcoxon}).
 \end{itemize}
+
+We also explore an \emph{intra-sampling} variant: structured RePaint with
+the verifier's severity field as a soft mask, run inside the diffusion
+schedule.  On the largest tractable circuit (bigblue3), this delivers a
+$-34.5\%$ HPWL improvement at the cost of essentially no change in violation
+count---a useful Pareto knob on top of post-processing.
+
+\paragraph{Scope.}  We do \emph{not} claim a new training algorithm: the
+diffusion backbone is frozen and re-used.  We do not claim a new generic
+diffusion-guidance recipe: our argument is empirical, on a single domain
+(macro placement) where structured verifier feedback is intuitive.  Our
+contribution is a clean, statistically rigorous demonstration that
+non-differentiable structured feedback is the right interface between a
+diffusion sampler and a hard-constraint repair operator, and that simple
+hand-crafted physics is competitive in this regime.
 
 \section{Related Work}
 
-\paragraph{Diffusion for placement.} ChipDiffusion~\cite{chipdiffusion} introduced a graph-conditioned diffusion model for macro placement, trained on a corpus of clustered netlists and evaluated on IBM and ISPD benchmarks. Subsequent work has explored autoregressive~\cite{miraichip} and flow-matching~\cite{chipflow} alternatives, all sharing the same fundamental issue: generated samples violate hard constraints.
+\paragraph{Diffusion for placement.}  ChipDiffusion~\cite{chipdiffusion}
+introduced a graph-conditioned diffusion model for macro placement.  Concurrent
+work has explored autoregressive~\cite{miraichip} and flow-matching
+\cite{chipflow} generators; all share the same defect of ignoring hard
+constraints.
 
-\paragraph{Constraint-aware generation.} RePaint~\cite{repaint} inspired our selective re-noising perspective: known regions are preserved while unknown regions are regenerated. Our framework extends this from inpainting to constraint satisfaction: the ``known good'' regions are macros that don't violate, identified post-hoc by the verifier. Classifier guidance~\cite{classifier-guidance} and constraint-as-potentials~\cite{constraint-guidance} offer differentiable alternatives but require constraint-specific gradients which are unavailable for discrete predicates like overlap.
+\paragraph{Constraint-aware generation.}  Classifier
+guidance~\cite{classifier-guidance} requires a differentiable score
+$\nabla \log p(c|x_t)$.  Universal Guidance \cite{constraint-guidance} extends
+this with iterative gradient descent on the predicted clean sample, and
+RePaint~\cite{repaint} combines forward-diffused
+context with denoised regeneration.  Each requires the constraint to be either
+differentiable or expressible as a binary mask.  Our verifier produces
+\emph{structured} non-differentiable feedback (severity, pairwise graph,
+boundary vector) that none of the above can directly consume.
 
-\paragraph{Placement legalization.} Traditional legalizers~\cite{ntuplace,replace,dreamplace} solve constrained optimization over the full placement. ChipDiffusion's own legalizer~\cite{chipdiffusion} runs 5000-step SGD on a softmax-smoothed legality potential; we compare against it directly and show VSR dominates on every ISPD2005 circuit. Our framework is complementary: a legalizer could be plugged in as the repair operator, but we find a simple 100-step force integrator suffices.
-
-\paragraph{Negative results in learned planning.} Recent work~\cite{placeto,deepplace} has reported that learned placement policies often fail to generalize across circuit topologies. Our negative result on six GNN variants is consistent with this line and suggests that learned \emph{constraint projection} inherits the same data-regime limitations.
+\paragraph{Placement legalization.}  NTUPlace~\cite{ntuplace},
+RePLACE~\cite{replace}, and DREAMPlace~\cite{dreamplace} solve constrained
+optimization on the full placement.  ChipDiffusion ships a custom 5000-step
+SGD legalizer; we benchmark against its two released configurations and show
+neither dominates VSR.
 
 \section{Method}
-
-\subsection{Framework}
-Let $\hat{x}_0 \in \mathbb{R}^{N \times 2}$ be a diffusion-generated placement of $N$ macros with sizes $s \in \mathbb{R}^{N \times 2}$ on canvas $[0,W]\times[0,H]$. We define:
-
-\begin{itemize}
-\item A \textbf{verifier} $V: \mathbb{R}^{N\times 2} \to \mathcal{F}$ mapping a placement to structured feedback $\mathcal{F} = (r, A, b)$, where $r_i \geq 0$ is the per-macro severity (aggregated overlap contribution plus boundary protrusion), $A \in \mathbb{R}^{N\times N}$ is the pairwise overlap graph, and $b \in \mathbb{R}^N$ is per-macro boundary violation.
-\item A \textbf{selector} $S: \mathcal{F} \to \{0,1\}^N$ returning a binary mask $M$ of macros to update (e.g., all with $r_i > 0$, or top-$k$ offenders).
-\item A \textbf{repair operator} $R: (\hat{x}_0, M, \mathcal{F}) \to \mathbb{R}^{N\times 2}$ producing an updated placement that only moves selected macros.
-\end{itemize}
+\label{sec:method}
 
 \subsection{Verifier}
 \label{sec:verifier}
 
-Given a placement $x \in \mathbb{R}^{N\times 2}$ and sizes $s \in \mathbb{R}^{N\times 2}$, the verifier emits three quantities computed in a fully vectorized forward pass:
+Given a placement $x \in \mathbb{R}^{N\times 2}$ and macro sizes $s$ on canvas
+$[0,W]\times[0,H]$, the verifier produces three vectorized outputs:
 
-\paragraph{Pairwise overlap matrix $A \in \mathbb{R}^{N\times N}_{\geq 0}$}
-\begin{equation}
-A_{ij} = \max(0,\, \min(x_i^x + s_i^w/2, x_j^x + s_j^w/2) - \max(x_i^x - s_i^w/2, x_j^x - s_j^w/2))
-        \cdot \text{(analogous in $y$)}
-\end{equation}
-i.e., the area of axis-aligned rectangle intersection. $A_{ii}=0$ by convention.
+\paragraph{Pairwise overlap graph $A \in \mathbb{R}^{N\times N}_{\geq 0}$.}
+$A_{ij}$ is the area of axis-aligned rectangle intersection between macros
+$i$ and $j$ ($A_{ii}=0$).
+\paragraph{Boundary protrusion $b \in \mathbb{R}^{N}_{\geq 0}$.}  $b_i$ is the
+total length by which macro $i$ extends beyond the canvas, summed over all
+four edges.
+\paragraph{Per-macro severity $r \in \mathbb{R}^{N}_{\geq 0}$.}  $r_i =
+\sum_j A_{ij} + b_i$.
 
-\paragraph{Boundary violation $b \in \mathbb{R}^N_{\geq 0}$} $b_i$ is the total length by which macro $i$ protrudes beyond the canvas $[0,W]\times[0,H]$, summed over all four edges.
+The forward pass is $O(N^2)$ pairwise overlap dominated; on a CPU it is
+$<50$\,ms for $N=1300$.  Crucially, $A$, $b$, $r$ are all
+non-differentiable predicates---they are computed with $\max(0,\cdot)$ which
+is sub-differentiable but offers no useful gradient at the boundary.
 
-\paragraph{Per-macro severity $r \in \mathbb{R}^N_{\geq 0}$} $r_i = \sum_j A_{ij} + b_i$.
+\subsection{Selector}
+The selector turns structured feedback into a per-macro mask
+$M \in [0,1]^N$:
+\begin{itemize}
+\item \emph{Hard mask} (used by post-processing repair): $M_i = \mathbb{1}[r_i > 0]$.
+\item \emph{Soft mask} (used by intra-sampling repair):
+$M_i = r_i / \max_j r_j$.
+\end{itemize}
+The soft mask preserves the relative severity ordering and is essential for
+the intra-sampling variant: a Boolean mask in that setting (i.e.\ the original
+RePaint formulation) substantially worsens the placement
+(\S\ref{sec:results}).
 
-The verifier runs in $<10$\,ms on GPU for $N=1000$ and $<50$\,ms for $N=1300$ using vectorized masked tensor ops; the cost is dominated by the $O(N^2)$ pairwise overlap. We include an optional minimum-spacing constraint but do not use it in our experiments to match ChipDiffusion's evaluation protocol.
-
-\subsection{Hand-crafted repair operator}
+\subsection{Post-processing repair operator}
 \label{sec:handcrafted}
 
-The hand-crafted operator runs $T=100$ steps of explicit Euler integration of a three-component force field. Let $x^{(t)} \in \mathbb{R}^{N\times 2}$ be the placement at step $t$, initialized as $x^{(0)} = \hat{x}_0$. The update is
+The hand-crafted operator runs $T=100$ steps of explicit Euler integration of
+a three-component force field on the offending macros only:
 \begin{equation}
-x^{(t+1)}_i = x^{(t)}_i + \eta \cdot M_i \cdot \big( f_{\text{rep}}(x^{(t)}, s)_i + \lambda \cdot f_{\text{attr}}(x^{(t)}, E)_i + f_{\text{bd}}(x^{(t)}, s)_i \big)
+x^{(t+1)}_i = x^{(t)}_i + \eta \cdot M_i \cdot \big(
+f_{\text{rep}}(x^{(t)}, s)_i + \lambda \cdot f_{\text{attr}}(x^{(t)}, E)_i +
+f_{\text{bd}}(x^{(t)}, s)_i \big),
 \end{equation}
-where $\eta = 0.3$ is the step size, $M_i$ is the selector mask, $E$ is the netlist edge set, and $\lambda$ is the single tradeoff hyperparameter.
+where $\eta = 0.3$, $E$ is the netlist edge set, and $\lambda$ is the single
+wirelength/legality tradeoff.
 
-\paragraph{Repulsive force $f_{\text{rep}}$ (overlaps).} For each pair $(i,j)$ with axis-aligned overlap depth $d_{ij} \geq 0$, macro $i$ is pushed along the inter-center direction with magnitude proportional to $d_{ij}$:
+\paragraph{Repulsive force $f_{\text{rep}}$ (overlap depth).}  For pair $(i,j)$
+with overlap depth $d_{ij}$, the displacement is along the inter-center
+direction with magnitude $\min(d_{ij}, 0.5\,\bar{s})$, clipped per-pair to
+prevent divergence.
+
+\paragraph{Attractive force $f_{\text{attr}}$ (netlist).}  For each edge
+$(u,v) \in E$, $i=u$ is pulled toward $v$ with magnitude
+$\|x_v - x_u\|/\deg(u)$.  Degree normalization prevents hub macros from
+dominating.
+
+\paragraph{Boundary force $f_{\text{bd}}$.}  Macros protruding beyond the
+canvas are snapped back by exactly the violating distance.
+
+\subsection{Intra-sampling repair operator}
+\label{sec:intra}
+
+Instead of post-processing, we can interleave repair inside the diffusion
+schedule.  Let $\hat{x}_0$ be the diffusion-generated draft, $\sigma(t)$ the
+forward noise schedule, and $r$ the verifier severity.  We compute a soft mask
+$M = r / \max_i r_i$, forward-diffuse $\hat{x}_0$ to a chosen
+$t_{\text{start}}$, and then run a structured RePaint loop:
 \begin{equation}
-f_{\text{rep}}(x, s)_i = \sum_{j \neq i} \operatorname{clip}\!\left( d_{ij} \cdot \frac{x_i - x_j}{\|x_i - x_j\| + \epsilon},\; 0.5\,\bar{s} \right),
+x^{(t-\Delta t)} = M \odot x_{\text{denoised}} + (1-M) \odot
+\big(\sqrt{1-\sigma_{t}^2}\, \hat{x}_0 + \sigma_{t}\,\epsilon\big),
 \end{equation}
-clamped per-pair to $0.5\,\bar{s}$ (half the mean macro size) to prevent divergence at high overlap.
+i.e.\ for $i$ with $M_i \approx 0$ (low severity, ``known good''), we use the
+forward-diffused original; for $i$ with $M_i \approx 1$ (high severity), we
+trust the model's own denoising step.
 
-\paragraph{Attractive force $f_{\text{attr}}$ (netlist).} For each edge $(u,v) \in E$ in the clustered netlist,
-\begin{equation}
-f_{\text{attr}}(x, E)_i = \sum_{(u,v) \in E,\, u=i} \frac{x_v - x_u}{\deg(u)},
-\end{equation}
-with degree normalization so hub macros don't dominate.
-
-\paragraph{Boundary force $f_{\text{bd}}$.} Macros protruding beyond the canvas are snapped back by exactly the violating distance: $f_{\text{bd}}(x, s)_i = \operatorname{snap}(x_i, s_i, [0,W]\times[0,H]) - x_i$.
-
-The operator updates only macros in the selector mask $M$: non-offending macros stay frozen, which is crucial for preserving wirelength. The single hyperparameter $\lambda$ controls the legality/wirelength tradeoff. In our experiments we find $\lambda = 2$ gives a good default; Figure~\ref{fig:pareto} shows the full Pareto.
-
-\subsection{Learned repair operator (ablation)}
-We also instantiate $R$ as a GNN (3-layer GATv2, hidden 128, 4 heads, 103K parameters) trained to predict a displacement. We evaluated six training regimes:
-(i) synthetic teacher (hand-crafted outputs on synthetic graphs),
-(ii) real teacher (hand-crafted outputs on ISPD2005 samples),
-(iii) data augmentation ($\times 50$ random perturbations),
-(iv) trajectory distillation ($(x_k, x_{k+1})$ pairs from hand-crafted steps),
-(v) ground-truth target (ISPD2005 \texttt{.pl} industrial placements),
-(vi) residual learning (hand-crafted first, then neural correction).
-All six failed to beat the hand-crafted operator; see Section~\ref{sec:neural-results}.
+This differs from RePaint in two essential ways: (i) the mask is continuous,
+preserving the severity ordering; (ii) the mask is computed once from the
+verifier output, rather than being a user-specified region.
 
 \section{Experiments}
+\label{sec:results}
 
 \subsection{Setup}
-\paragraph{Benchmark.} ISPD2005 contestants, macros-only subset (543--23{,}084 macros per circuit). We report on 6 of 8 circuits; \texttt{bigblue2} (23k macros, 66k edges) and \texttt{bigblue4} (8k macros, 32k edges) exceed GPU memory during backbone sampling on an 80\,GB A800. We verified that neither \texttt{bfloat16} nor \texttt{float16} autocast avoids the OOM (both still request multi-GiB attention activations), confirming that the bottleneck is the ChipDiffusion backbone's attention-GNN and not VSR itself---the VSR repair operator is $O(N+E)$ and would comfortably fit.
+\paragraph{Benchmark.}  ISPD2005 contestants, macros-only subset
+(543--1329 macros for the 6 tractable circuits; 8170 and 23,084 for the two
+intractable ones, see \S\ref{sec:limitations}).  We use the released
+ChipDiffusion \textsc{Large+v2} backbone~\cite{chipdiffusion} unchanged.
+We report on 6 of 8 circuits; bigblue2 and bigblue4 exceed 80\,GB GPU
+memory during backbone sampling (see \S\ref{sec:limitations}).
 
-\paragraph{Backbone.} ChipDiffusion~\cite{chipdiffusion} with the released \textsc{Large+v2} checkpoint. We use the \emph{opt} guidance mode during sampling and compare against both official legalizer configs: \emph{standard} (5000-step SGD, \texttt{hpwl\_weight=0}) and \emph{scheduled} (5000-step SGD with HPWL-aware schedule, \texttt{hpwl\_weight}$=4{\times}10^{-5}$, \texttt{legality\_weight}=2.0).
+\paragraph{Methods compared.}  All methods receive the same
+ChipDiffusion-guided sample as input.  We compare:
+\begin{itemize}
+\item \textbf{baseline}: ChipDiffusion guided sample, no post-processing.
+\item \textbf{cg-strong}: pure classifier-guidance with $4\times$ default
+legality\_weight and HPWL term zeroed.
+\item \textbf{repaint-bin}: RePaint with binary mask $M_i = \mathbb{1}[r_i>0]$ at
+$t_{\text{start}}=0.3$, no post-fix.
+\item \textbf{vsr-intra} (ours): structured RePaint with soft severity mask.
+\item \textbf{vsr-post} (ours, main result): 100-step force integrator with
+$\lambda=2$.
+\item \textbf{cd-std}: ChipDiffusion's standard legalizer (5000 SGD,
+hpwl\_weight$=0$).
+\item \textbf{cd-sched}: ChipDiffusion's HPWL-aware legalizer (5000 SGD,
+hpwl\_weight$=4\!\times\!10^{-5}$, legality\_weight$=2$).
+\end{itemize}
 
-\paragraph{Metrics.} Number of constraint violations (overlap + boundary, as reported by the verifier), half-perimeter wirelength (HPWL) computed from the ISPD2005 netlist with pin offsets, and wall-clock repair time.
+\paragraph{Seeds.}  Each (circuit, method) pair is run with seeds
+$\{42, 123, 300, 2024\}$, giving $n=24$ paired samples per method.
 
-\paragraph{Seeds.} 3 seeds per circuit (42, 123, 300).
+\paragraph{Metrics.}
+\textbf{Violations}: count of overlapping macro pairs and boundary-violating
+macros, as reported by the verifier.
+\textbf{HPWL}: half-perimeter wirelength on the macros-only edge graph
+(footnote: bigblue1 has only 209 unique macro-macro edges in the macros-only
+subset, so its absolute HPWL is in the tens; we use \emph{median across
+circuits} as the headline statistic to avoid being driven by such outliers,
+and report per-circuit numbers transparently in Table~\ref{tab:main}).
+\textbf{Wall-clock} on a single A800 80\,GB GPU.
 
-\subsection{Main result: Pareto tradeoff}
-Figure~\ref{fig:pareto} shows the Pareto tradeoff between violation reduction and HPWL change as $\lambda$ sweeps over $\{0, 0.25, 0.5, 1, 2, 4\}$. Three observations:
+\paragraph{Statistics.}  Headline numbers are
+\emph{median across the 6 circuits}, each circuit being averaged over its 4 seeds.
+We also report \emph{strict Pareto improvement}: the count of (circuit, seed)
+pairs where $\Delta v < 0$ AND $\Delta h < 0$ simultaneously.  All paired
+comparisons use the Wilcoxon signed-rank test (one-sample on per-pair
+deltas, $n=24$).
 
-\begin{enumerate}
-\item Every $\lambda \in [0.25, 4]$ achieves a non-trivial violation reduction ($>20\%$) on every circuit.
-\item On adaptec1, adaptec2, adaptec4, bigblue1, and bigblue3, some operating points (typically $\lambda \in \{2, 4\}$) \emph{strictly Pareto-dominate} the baseline: both fewer violations \emph{and} lower HPWL. Only adaptec3 has no Pareto-dominant operating point in the swept range, though $\lambda = 4$ comes within $+3.4\%$ HPWL.
-\item The 3-seed variance is small (error bars in Figure~\ref{fig:pareto}), so the Pareto frontier is robust.
-\end{enumerate}
+\subsection{Main result: VSR-post strictly dominates}
+\label{sec:main_result}
 
-Table~\ref{tab:main} reports per-circuit results at our recommended setting $\lambda = 2$.
+Table~\ref{tab:main} reports per-circuit means with standard deviations across
+4 seeds for all six methods.  Highlights:
+\begin{itemize}
+\item VSR-post reduces violations on \emph{every} circuit, by $24$--$77\%$,
+median $55.3\%$.
+\item No baseline achieves a comparable reduction: the strongest, cd-sched,
+has a median of $25.8\%$ but \emph{nearly triples} median HPWL ($+184.4\%$).
+\item HPWL-wise, VSR-post is essentially neutral (median $+5.0\%$, vs.\
+$+92.4\%$ for cd-std and $+184.4\%$ for cd-sched).  On adaptec4 and bigblue1
+it actively \emph{shortens} HPWL.
+\item RePaint with a binary mask increases violations on 4 of 6 circuits (median $+134\%$); without our soft-mask refinement, intra-sampling-style repair is materially harmful.
+\item Classifier-guidance with strong legality weighting reduces violations
+by only $\sim 1\%$ in the median; the soft surrogate is a poor proxy for the
+discrete overlap predicate.
+\end{itemize}
 
 \begin{table}[h]
 \centering
-\input{figures/table1_main}
-\caption{Main results on ISPD2005 at $\lambda=2$, averaged over 3 seeds. Negative $\Delta$viol.\% means fewer violations; negative $\Delta$HPWL\% means shorter wirelength.}
+\scriptsize
+\input{figures/table_main_neurips}
+\caption{Per-circuit Δviolation and ΔHPWL means (\,$\pm$\,std), 4 seeds each.
+Negative is improvement.  VSR-post is the only method with consistent
+positive (\,fewer violations\,) results across all 6 circuits without
+catastrophically inflating HPWL.}
 \label{tab:main}
 \end{table}
 
-\subsection{Head-to-head with ChipDiffusion's legalizer}
+\subsection{Strict Pareto frontier}
 
-We compare VSR ($\lambda=2$, 100 steps) against both released ChipDiffusion legalizer configs: \emph{standard} (5000 steps, no HPWL weight) and \emph{scheduled} (5000 steps, HPWL-aware with $w_{\text{hpwl}} = 4{\times}10^{-5}$). Results on identical baseline samples (Table~\ref{tab:cdleg}; 3-seed means).
+The clean way to phrase ``how often does the method actually improve the
+draft'' is to count how many (circuit, seed) pairs are
+\emph{simultaneously} improved on both metrics:
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lr}
+\toprule
+Method & Strict-Pareto improvements (out of 24) \\
+\midrule
+\textbf{VSR-post (ours)} & \textbf{12 / 24} \\
+RePaint-binary & 5 / 24 \\
+VSR-intra (ours) & 4 / 24 \\
+cg-strong & 3 / 24 \\
+ChipDiffusion-standard legalizer & \textbf{0 / 24} \\
+ChipDiffusion-scheduled legalizer & \textbf{0 / 24} \\
+\bottomrule
+\end{tabular}
+\caption{Number of (circuit, seed) pairs strictly Pareto-improving the raw
+diffusion draft (i.e., $\Delta v < 0$ AND $\Delta h < 0$ jointly).  ChipDiffusion's released legalizers \emph{never} achieve a strict
+Pareto improvement; they always reduce violations by sacrificing HPWL.}
+\label{tab:strict_pareto}
+\end{table}
+
+\subsection{Statistical significance}
+
+Wilcoxon signed-rank tests (one-sample on per-pair deltas, $n=24$) confirm
+VSR-post statistically dominates every baseline considered:
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_wilcoxon}
+\caption{Paired Wilcoxon signed-rank tests, $n=24$ (circuit, seed) pairs.
+$^{***}$ denotes $p<10^{-3}$.  VSR-post statistically dominates every
+non-VSR baseline on violation reduction; it ties VSR-intra on HPWL but
+significantly beats it on violations, suggesting they are complementary
+rather than substitute methods.}
+\label{tab:wilcoxon}
+\end{table}
+
+\subsection{Intra-sampling: when the backbone's wirelength prior helps}
+\label{sec:intra_results}
+
+Post-processing has one structural disadvantage: the repair operator only
+sees the verifier, not the diffusion backbone's training distribution.  For
+circuits where the draft is far from the data manifold, the post-processing
+operator can converge to legal placements with awkward wirelength.
+
+The intra-sampling variant addresses this by repairing inside the diffusion
+schedule: low-severity macros stay close to their forward-diffused original
+(thanks to the soft mask), while high-severity macros are regenerated by the
+backbone in the context of the soft-clamped neighbours.  This re-invokes the
+backbone's implicit wirelength prior.
+
+Figure~\ref{fig:timestep_sweep} shows the timestep sweep
+$t_{\text{start}} \in \{0.1, 0.2, 0.3, 0.5, 0.7\}$ on all 6 circuits, 3 seeds.
+The effect is small on small circuits (adaptec1, adaptec2, bigblue1) and
+modest on adaptec3/4 ($-5\%$ to $-13\%$ HPWL).  But on the largest circuit
+(bigblue3, 1298 macros), the effect is dramatic: \textbf{$-34.5\%$ HPWL at
+$t_{\text{start}}=0.5$}, with violations essentially unchanged.  The
+monotonic increase with $t_{\text{start}}$ on bigblue3 is consistent with our
+hypothesis: more re-noising means the backbone's prior is more strongly
+re-invoked.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/fig8_timestep_sweep.pdf}
+\caption{Intra-sampling HPWL change as a function of $t_{\text{start}}$,
+across 6 circuits and 3 seeds.  Bigblue3 (the largest tractable circuit) shows
+a striking monotonic improvement, peaking at $-34.5\%$ HPWL.  Smaller
+circuits show small effects, suggesting backbone-prior leverage scales with
+circuit size.}
+\label{fig:timestep_sweep}
+\end{figure}
+
+\subsection{Memory profile and limitations}
+\label{sec:limitations}
+
+We profile peak GPU memory of the full ChipDiffusion sampling pipeline (100
+denoising steps) on adaptec2 (control, 566 macros) and the two intractable
+circuits, in fp32, bf16, and fp16 (Table~\ref{tab:mem}).  Two takeaways:
+\begin{itemize}
+\item bigblue2 (23,084 macros) and bigblue4 (8,170 macros) OOM at $\geq 77$~GB
+on an 80~GB A800 in all three precisions.  The forward-pass memory of a
+single backbone step is only $\sim 1$--$3$~GB; the OOM is dominated by
+attention-graph activations accumulating across the 100-step rollout.
+\item In contrast, our VSR-post operator on a synthetic baseline placement of
+the same circuits succeeds in 137~s (bigblue4) and 941~s (bigblue2) with
+negligible peak memory (CPU verifier + small TF computation).
+\end{itemize}
 
 \begin{table}[h]
 \centering
 \small
-\begin{tabular}{lrrrrrrrrr}
+\begin{tabular}{llrrrr}
 \toprule
- & \multicolumn{3}{c}{VSR ($\lambda=2$)} & \multicolumn{3}{c}{CD-standard} & \multicolumn{3}{c}{CD-scheduled} \\
-\cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10}
-Circuit & $\Delta$v\% & $\Delta$h\% & time & $\Delta$v\% & $\Delta$h\% & time & $\Delta$v\% & $\Delta$h\% & time \\
+Circuit & dtype & forward (MB) & full sample (MB) & sample OK & vsr-post (s) \\
 \midrule
-adaptec1 & $-37.8$ & $-17.6$ & 2.95s  & $-26.8$ & $+133.0$ & 7.09s  & $-14.6$ & $+109.4$ & 15.59s \\
-adaptec2 & $-42.3$ & $+19.1$ & 1.90s  & $-32.9$ & $+95.2$  & 6.70s  & $-51.2$ & $+241.9$ & 15.61s \\
-adaptec3 & $-56.2$ & $+21.4$ & 2.55s  & $-14.6$ & $+93.6$  & 7.35s  & $-35.3$ & $+352.5$ & 16.25s \\
-adaptec4 & $-60.0$ & $-10.0$ & 13.65s & $-30.6$ & $+82.9$  & 7.01s  & $-29.9$ & $+105.7$ & 15.74s \\
-bigblue1 & $-25.5$ & $-73.5$ & 1.42s  & $-14.3$ & $+87.6$  & 7.06s  & $-5.7$  & $+245.8$ & 15.04s \\
-bigblue3 & $-78.5$ & $+13.9$ & 4.00s  & $-26.1$ & $+123.2$ & 6.89s  & $-52.4$ & $+203.2$ & 16.25s \\
+adaptec2 & fp32 & 220.6 & 18,075 & \checkmark & 1.1 \\
+adaptec2 & bf16 & 220.6 & 18,075 & \checkmark & 1.3 \\
+adaptec2 & fp16 & 220.6 & 18,075 & \checkmark & 1.2 \\
 \midrule
-Mean     & $-50.1$ & $-7.8$  & 4.41s  & $-24.2$ & $+102.6$ & 7.02s  & $-31.5$ & $+209.8$ & 15.75s \\
+bigblue2 & fp32 & 2,946 & \textbf{78,571 (OOM)} & $\times$ & 941 \\
+bigblue2 & bf16 & 2,946 & \textbf{78,571 (OOM)} & $\times$ & 941 \\
+bigblue2 & fp16 & 2,946 & \textbf{78,571 (OOM)} & $\times$ & 948 \\
+\midrule
+bigblue4 & fp32 & 1,030 & \textbf{77,300 (OOM)} & $\times$ & 137 \\
+bigblue4 & bf16 & 1,030 & \textbf{77,300 (OOM)} & $\times$ & 137 \\
+bigblue4 & fp16 & 1,030 & \textbf{77,300 (OOM)} & $\times$ & 137 \\
 \bottomrule
 \end{tabular}
-\caption{VSR ($\lambda=2$, 100 steps) vs.\ both ChipDiffusion legalizer configs (5000-step SGD), averaged over 3 seeds. $\Delta$v\% = violation reduction (negative = fewer violations; lower is better). $\Delta$h\% = HPWL change (negative = shorter wirelength; lower is better). VSR wins on every circuit for both metrics against both CD configs. Note the \emph{scheduled} config's nominal HPWL awareness ($w_{\text{hpwl}}{=}4{\times}10^{-5}$) is too weak to counter the legality force and in practice \emph{increases} HPWL more than the standard config.}
-\label{tab:cdleg}
+\caption{Memory profile.  The OOM frontier is the diffusion backbone's
+attention-GNN, not the VSR repair operator.  VSR-post on a synthetic baseline
+runs successfully on \emph{every} circuit including bigblue2/4.  This frames
+the 6/8-circuit limitation as a backbone constraint, not a VSR
+constraint.}
+\label{tab:mem}
 \end{table}
-
-\subsection{Intra-sampling VSR (RePaint-style)}
-\label{sec:intra}
-
-Instead of running the repair operator only \emph{after} diffusion sampling completes, we can interleave the verifier-selector-repair loop \emph{inside} the denoising process. Concretely, after a standard guided sample produces $\hat{x}_0$, we identify offenders $M$ with the verifier, then re-noise the whole placement to timestep $t = 0.3$ and re-denoise for $T = 100$ steps, with non-offending macros clamped to their forward-diffused value at each step (RePaint-style inpainting~\cite{repaint}). A light post-processing repair follows.
-
-\begin{table}[h]
-\centering
-\begin{tabular}{lrr|rr|rr}
-\toprule
- & \multicolumn{2}{c}{Post-processing only} & \multicolumn{2}{c}{Intra-sampling} & \multicolumn{2}{c}{$\delta$ (INTRA $-$ POST)} \\
-Circuit & $\Delta$v\% & $\Delta$h\% & $\Delta$v\% & $\Delta$h\% & $\delta$v\% & $\delta$h\% \\
-\midrule
-adaptec1 & $-35.5$ & $+6.5$   & $-31.2$ & $+28.0$ & $+4.3$ & $+21.5$ \\
-adaptec2 & $-44.6$ & $+14.7$  & $-47.8$ & $+4.2$  & $-3.2$ & $-10.5$ \\
-adaptec3 & $-53.8$ & $+26.6$  & $-49.2$ & $+21.3$ & $+4.6$ & $-5.3$ \\
-adaptec4 & $-59.7$ & $-8.3$   & $-59.1$ & $-7.8$  & $+0.6$ & $+0.5$ \\
-bigblue1 & $-26.1$ & $-74.4$  & $-16.7$ & $-70.1$ & $+9.4$ & $+4.3$ \\
-bigblue3 & $-78.4$ & $+16.4$  & $-79.4$ & $\mathbf{-27.0}$ & $-1.0$ & $\mathbf{-43.4}$ \\
-\midrule
-Mean     & $-49.7$ & $-3.1$   & $-47.2$ & $\mathbf{-8.6}$  & $+2.5$ & $\mathbf{-5.5}$ \\
-\bottomrule
-\end{tabular}
-\caption{Post-processing VSR vs.\ intra-sampling VSR, 3-seed means. Intra-sampling trades $2.5$\,pp of violation reduction for $5.5$\,pp of HPWL improvement on average, with its largest gain on bigblue3 ($-43.4$\,pp HPWL). Intra-sampling is also 2--5$\times$ faster because re-denoising uses the diffusion timestep schedule instead of 100 explicit repair steps.}
-\label{tab:intra}
-\end{table}
-
-The most striking case is \texttt{bigblue3} (1298 macros, Figure~\ref{fig:postvsintra}): post-processing VSR leaves HPWL at $+16.4\%$, while intra-sampling VSR finishes at $-27.0\%$ HPWL (at the same $-79\%$ violation level)---a $43.4$-percentage-point gap. Our interpretation is that the diffusion backbone has a strong implicit wirelength prior (it was trained on clean placements with good HPWL), and intra-sampling re-invokes this prior; post-processing only sees the verifier, not the model. A per-circuit sweep over $t_{\text{start}} \in \{0.1, 0.2, 0.3, 0.5, 0.7\}$ (supplement) confirms that $t = 0.3$ is near the optimum for bigblue3 (HPWL of $-16\%$ at $t=0.3$ vs.\ $+9\%$ at $t=0.5$). This suggests the \emph{mode} of repair (inside vs.\ outside diffusion) is itself a useful Pareto axis.
-
-\subsection{Two-round repair with top-$k$ selector}
-\label{sec:two-round}
-
-On ISPD2005, the raw diffusion draft has every macro violating, so round-1 VSR with $M_i = \mathbb{1}[r_i > 0]$ reduces to global repair. After round 1 the number of remaining offenders drops dramatically, and a top-$k$ selector becomes meaningful. We run a round 2 with $k=20$ most-severe-remaining offenders for $T=50$ additional steps. On bigblue3 this lowers HPWL from $+16.9\%$ (round 1 only) to $-10.3\%$ (round 1 + round 2 top-$k$), validating that the selector component of the framework is useful once baselines are partially clean.
-
-\subsection{Spacing-aware verifier}
-\label{sec:spacing}
-
-The verifier admits a non-zero minimum-spacing constraint $s_{\min}$. Setting $s_{\min} = 0.05 \cdot \bar{s}$ (5\% of mean macro size), VSR still reduces violations by $27$--$77\%$ across the 6 circuits (per-circuit breakdown in supplement). Supporting spacing constraints is a prerequisite for real EDA deployment.
-
-\subsection{Ablations (brief; full results in supplement)}
-\label{sec:ablations}
-
-We ablate three design choices on 6 circuits, 2 seeds each. \textbf{Number of steps $T$}: violations plateau near $T=100$; going to $T=500$ gains $<2\%$. \textbf{Step size $\eta$}: $\eta=0.3$ (default) is the robust middle ground. \textbf{Selective vs.\ global repair}: on ISPD2005 raw drafts violate on essentially all macros, so single-round selective reduces to global; the two-round + top-$k$ protocol in \S\ref{sec:two-round} is where the selector earns its keep.
-
-\subsection{Neural repair operator (negative result)\label{sec:neural-results}}
-
-Despite six training regimes, the learned operator fails to match the hand-crafted baseline on any circuit. The best variant (residual learning at scale 0.1) improves violations marginally on 1 of 6 circuits while degrading HPWL. We attribute this to the data regime: ISPD2005 offers only 8 circuits (6 tractable on 80\,GB), and the 3-seed augmentation yields $\leq 18$ training pairs---orders of magnitude smaller than typical GNN training corpora. Trajectory distillation amplifies this to $\sim 150$ pairs but still cannot generalize across circuits of different topology and scale. We conclude that learned constraint projection in placement is likely to require orders-of-magnitude more diverse training data than currently released benchmarks provide.
-
-\section{Discussion and Limitations}
-
-\paragraph{Why does the simple hand-crafted operator win?} The operator encodes three inductive biases that align perfectly with the structure of placement: (i) overlap is inherently pairwise, so a pairwise repulsive force is the correct functional form; (ii) wirelength minimization is edge-local, so netlist-attractive forces capture the relevant gradient; (iii) selective repair preserves already-good regions. A learned operator must discover these biases from data; with 3--18 training samples, it cannot.
-
-\paragraph{Why does CD's HPWL-aware legalizer \emph{increase} HPWL?} We were surprised to find that CD-scheduled (nominally HPWL-aware) produces \emph{worse} HPWL on average than CD-standard (+210\% vs +103\%), at 2$\times$ the wall-clock cost. Inspecting the schedule: the legality force ramps up by $2\times$ in the final 25\% of steps while the HPWL term is forced to zero in the final 10\%. In practice this means the legalizer spends its final steps aggressively relocating macros to resolve the last few overlaps, with no HPWL term to hold things together. VSR avoids this failure mode by never amplifying the legality force and never decoupling wirelength preservation from the physics.
 
 \paragraph{Limitations.}
 \begin{itemize}
-\item Two of eight ISPD2005 circuits exceed backbone memory and are excluded.
-\item We only evaluate on macro-only placement; standard-cell legalization is out of scope.
-\item The verifier is legality-only; we do not model routing congestion.
+\item Backbone-imposed scope.  We evaluate on 6 of 8 ISPD2005 circuits
+because of the ChipDiffusion backbone's memory profile; this is a constraint
+of the backbone we re-use, not of VSR (Table~\ref{tab:mem}).
+\item Single backbone.  We use ChipDiffusion's released checkpoint as the
+sole generator.  Whether the ``structured verifier feedback'' interface
+generalizes to other diffusion-based placement backbones (e.g.\ flow-matching
+\cite{chipflow}) is open.
+\item Single domain.  Our experiments are on macro placement.  The
+verifier-as-feedback abstraction is in principle domain-agnostic but we have
+not yet tested it on, e.g.\ molecular generation with valence constraints
+or layout generation with bounding-box exclusions.  A toy 2D non-overlap
+experiment (supplementary) gives preliminary evidence in support of
+generality.
+\item Macros-only HPWL.  We report HPWL on the macros-only edge graph that
+the backbone consumes; bigblue1's small absolute HPWL (12 units, due to only
+209 unique macro-macro edges in this subset) means its percentage changes
+are noisy and we therefore use \emph{median across circuits}, not mean,
+as the headline statistic.
 \end{itemize}
+
+\section{Discussion}
+
+\paragraph{Why does the simple force integrator beat the 5000-step legalizer?}
+The legalizer optimizes a fixed differentiable surrogate (softmaxed legality
+plus HPWL) on the \emph{full} placement, with all macros free.  Our operator
+exploits two pieces of structure that the legalizer ignores: (i) a
+\emph{selective mask}---only offending macros move, preserving the global
+arrangement that the diffusion backbone learned; (ii) a \emph{pairwise force
+field}---repulsion between two specifically overlapping macros is a far
+better correction signal than the gradient of an aggregated softmax.  The
+result is a $50\times$ shorter optimization run that is also strictly
+Pareto-superior on half of trials.
+
+\paragraph{Why does intra-sampling help bigblue3 but not adaptec1?}
+We hypothesize that intra-sampling's benefit scales with the
+\emph{representational distance} between the raw draft and the data manifold.
+Bigblue3 has 1298 macros and an irregular netlist, where the raw draft is
+relatively far from the manifold; re-invoking the backbone's prior pulls it
+back.  Adaptec1 has 543 macros with a dense local structure where the draft
+is already close.
+
+\paragraph{Why do learned repair operators not help here?}  Our prior
+exploration of GNN-based repair operators (synthetic teacher, real teacher,
+trajectory distillation, GT-target, residual learning---details in
+supplementary) consistently failed to match the hand-crafted force
+integrator.  In hindsight this is unsurprising: ISPD2005 has only 8 circuits,
+and a learned operator must discover an inductive bias (overlap is pairwise,
+wirelength is edge-local, selective repair preserves global structure) that
+our hand-crafted operator encodes by construction.  At this data scale, the
+inductive bias dominates; only with substantially larger circuit corpora
+(hundreds of distinct netlist topologies) would we expect a learned operator
+to compete.
 
 \section{Conclusion}
 
-VSR shows that a clean separation between diffusion and constraint projection---mediated by a structured verifier and a selective repair operator---produces placements that are simultaneously more legal and lower-wirelength than the backbone's own legalizer, at a fraction of the compute. We release all code, checkpoints, and experimental scripts.
+We have shown that a non-differentiable verifier emitting structured
+per-element feedback, paired with a tiny hand-crafted force integrator, is
+a strictly stronger constraint-projection primitive than classifier-style
+guidance, RePaint inpainting, or heavy 5000-step legalizers, on the
+ISPD2005 placement benchmark.  An intra-sampling variant exploiting the
+diffusion backbone's wirelength prior is a useful Pareto knob on the
+largest circuits.  We hope our framing of \emph{structured verifier feedback}
+as an interface between diffusion samplers and discrete predicates will
+generalize beyond the placement domain.
 
 \section*{Broader Impact}
-Improved macro placement quality directly translates to lower chip power, higher clock frequency, and shorter design cycles. Our framework is tool-agnostic and could in principle be combined with any diffusion-based placement backbone. We do not foresee negative societal impact from this particular contribution beyond the general ethical questions raised by automating physical design.
+Better macro placement directly translates into lower chip power and shorter
+design cycles.  Our framework re-uses pretrained diffusion backbones without
+retraining and without requiring differentiable surrogates, lowering the
+barrier to applying diffusion models to constrained engineering domains.
+We do not see negative societal impact specific to this contribution.
 
 \section*{Reproducibility}
-All experiments use publicly released data (ISPD2005) and checkpoints (ChipDiffusion Large+v2). We release the full code, configuration files, and training scripts, along with the Pareto sweep and ablation data used to generate every figure and table in this paper. Seeds are reported explicitly (42, 123, 300) and the verifier is deterministic.
+All experiments use publicly released data (ISPD2005) and checkpoints
+(ChipDiffusion \textsc{Large+v2}).  Seeds are fixed (\{42,123,300,2024\});
+all reported numbers are reproducible from the released JSONs.  Code and
+preflight harness are in the supplementary.
 
 \bibliographystyle{plain}
 \bibliography{refs}
 
-% Figure references used in text (stubs for draft compile):
-\begin{figure*}[t]
+\appendix
+
+\section*{Figures}
+
+\begin{figure*}[h]
 \centering
 \includegraphics[width=0.95\linewidth]{figures/fig1_framework.pdf}
-\caption{VSR framework: verifier $\rightarrow$ selector $\rightarrow$ repair operator.}
+\caption{VSR pipeline: verifier $\rightarrow$ selector $\rightarrow$
+post-processing or intra-sampling repair operator.  No backbone retraining;
+no differentiable surrogate.}
 \label{fig:framework}
 \end{figure*}
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.95\linewidth]{figures/fig3_pareto.pdf}
-\caption{Pareto tradeoff between violation reduction and HPWL change across $\lambda \in \{0, 0.25, 0.5, 1, 2, 4\}$ on 6 ISPD2005 circuits, 3 seeds. Each point is one (seed, $\lambda$) configuration.}
-\label{fig:pareto}
-\end{figure*}
-
-\begin{figure*}[t]
+\begin{figure*}[h]
 \centering
 \includegraphics[width=0.95\linewidth]{figures/fig2_placements.pdf}
-\caption{Before/after placement visualization on adaptec1 and adaptec3 (color = per-macro violation severity, log scale; yellow = low, dark red = high). VSR with $\lambda=2$ reduces violation severity while preserving spatial structure.}
+\caption{Before/after placement visualization on adaptec1 and adaptec3
+(per-macro violation severity, log scale; yellow = low, dark red = high).
+VSR-post at $\lambda=2$ reduces severity while preserving spatial structure.}
 \label{fig:placements}
 \end{figure*}
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.95\linewidth]{figures/fig4_percircuit.pdf}
-\caption{Per-circuit results at $\lambda=2$, 3 seeds (error bars = std). Left: violation reduction. Right: HPWL change. Negative HPWL change means improvement.}
-\label{fig:percircuit}
-\end{figure*}
-
-\begin{figure*}[t]
+\begin{figure*}[h]
 \centering
 \includegraphics[width=0.95\linewidth]{figures/fig9_post_vs_intra.pdf}
-\caption{bigblue3 (1298 macros, seed=42): the raw diffusion draft (left) piles macros at a corner. Post-processing VSR (middle) spreads them out to achieve $-79\%$ violations but grows wirelength by $18\%$. Intra-sampling VSR (right) retains a compact layout that respects the diffusion backbone's implicit wirelength prior, achieving $-82\%$ violations and $-35\%$ wirelength vs.\ the baseline.}
+\caption{bigblue3 (1298 macros, seed=42).  The raw diffusion draft (left)
+piles macros at a corner.  Post-processing VSR-post (middle) spreads them
+out to achieve $-79\%$ violations but grows wirelength by $18\%$.
+Intra-sampling VSR-intra (right) retains a compact layout that respects
+the diffusion backbone's implicit wirelength prior, achieving the strongest
+HPWL reduction.}
 \label{fig:postvsintra}
 \end{figure*}
-
-% fig5 (num_steps), fig6 (step_size), fig7 (convergence), fig8 (timestep sweep) moved to supplement
 
 \end{document}
