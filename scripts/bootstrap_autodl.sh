@@ -16,6 +16,9 @@
 
 set -euo pipefail
 
+# AutoDL ships miniconda but doesn't put it on PATH for non-interactive shells.
+export PATH="/root/miniconda3/bin:$PATH"
+
 REPO=/root/autodl-tmp/VSR-Place
 cd "$REPO"
 
