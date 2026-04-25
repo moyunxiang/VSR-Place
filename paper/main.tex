@@ -602,4 +602,226 @@ existing concerns about automating physical design.
 \bibliographystyle{plain}
 \bibliography{refs}
 
+\clearpage
+\appendix
+
+\section{Implementation details of the verifier}
+\label{sec:supp-verifier}
+
+The pairwise overlap matrix $A \in \mathbb{R}^{N \times N}$ is computed in
+fully vectorized form:
+\begin{verbatim}
+  cx, cy = centers[:, 0], centers[:, 1]
+  sw, sh = sizes[:, 0], sizes[:, 1]
+  ovx = clamp_min(min(cx[:,None]+sw[:,None]/2, cx[None,:]+sw[None,:]/2)
+                - max(cx[:,None]-sw[:,None]/2, cx[None,:]-sw[None,:]/2), 0)
+  ovy = clamp_min(min(cy[:,None]+sh[:,None]/2, cy[None,:]+sh[None,:]/2)
+                - max(cy[:,None]-sh[:,None]/2, cy[None,:]-sh[None,:]/2), 0)
+  A = ovx * ovy;  A.fill_diagonal_(0)
+\end{verbatim}
+Boundary violation along axis $a \in \{x,y\}$ and edge $e \in \{-,+\}$:
+$b_i^{a,-} = \max(0,\, s_i^a/2 - c_i^a)$,
+$b_i^{a,+} = \max(0,\, c_i^a + s_i^a/2 - W_a)$, with
+$b_i = \sum_{a,e} b_i^{a,e}$.
+
+\section{Lambda sweep: per-circuit detail}
+\label{sec:supp-lambda}
+
+The cross-circuit summary appears in the main paper.  Table~\ref{tab:supp-lambda}
+gives the per-circuit, per-$\lambda$ Pareto numbers behind that summary
+($n=3$ seeds per cell, mean over seeds).  Note the strict-Pareto rate per
+operating point: from $0/18$ at $\lambda=0$ (pure repulsion, HPWL inflates
+$\sim 162\%$) to $16/18$ at $\lambda=4$.
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrr|rr|rr|rr|rr|rr}
+\toprule
+& \multicolumn{2}{c|}{$\lambda{=}0$} & \multicolumn{2}{c|}{$\lambda{=}0.25$} &
+\multicolumn{2}{c|}{$\lambda{=}0.5$} & \multicolumn{2}{c|}{$\lambda{=}1$} &
+\multicolumn{2}{c|}{$\lambda{=}2$} & \multicolumn{2}{c}{$\lambda{=}4$} \\
+Circuit & $\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ &
+$\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ &
+$\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ \\
+\midrule
+adaptec1 & $-41.7$ & $+226.2$ & $-39.5$ & $+87.1$ & $-40.1$ & $+47.5$ & $-36.4$ & $+31.1$ & $-37.0$ & $-7.3$ & $-34.5$ & $-3.7$ \\
+adaptec2 & $-55.5$ & $+251.0$ & $-48.2$ & $+128.1$ & $-45.8$ & $+85.4$ & $-44.6$ & $+50.3$ & $-46.6$ & $+16.7$ & $-39.9$ & $-19.1$ \\
+adaptec3 & $-51.0$ & $+124.0$ & $-50.6$ & $+75.9$ & $-50.9$ & $+56.4$ & $-51.0$ & $+34.5$ & $-52.9$ & $+17.5$ & $-55.2$ & $+3.4$ \\
+adaptec4 & $-62.1$ & $+104.3$ & $-60.9$ & $+62.7$ & $-60.6$ & $+36.3$ & $-60.8$ & $+6.9$ & $-58.4$ & $-11.4$ & $-56.8$ & $-25.5$ \\
+bigblue1 & $-20.0$ & $+142.1$ & $-18.7$ & $-22.3$ & $-22.9$ & $-61.2$ & $-23.4$ & $-77.0$ & $-25.5$ & $-73.5$ & $-22.6$ & $-75.9$ \\
+bigblue3 & $-78.6$ & $+122.0$ & $-78.4$ & $+72.3$ & $-79.0$ & $+54.5$ & $-79.2$ & $+37.4$ & $-79.3$ & $+19.5$ & $-78.5$ & $-3.9$ \\
+\midrule
+strict-P & \multicolumn{2}{c|}{$0/18$} & \multicolumn{2}{c|}{$2/18$} &
+\multicolumn{2}{c|}{$3/18$} & \multicolumn{2}{c|}{$4/18$} &
+\multicolumn{2}{c|}{$8/18$} & \multicolumn{2}{c}{$\mathbf{16/18}$} \\
+\bottomrule
+\end{tabular}
+\caption{Per-circuit $\Delta v\,\%$ and $\Delta h\,\%$ across the
+$\lambda$ sweep, mean over 3 seeds.  Strict-Pareto count rises
+monotonically with $\lambda$, peaking at $89\%$ ($16/18$) at
+$\lambda{=}4$.}
+\label{tab:supp-lambda}
+\end{table}
+
+\section{Component ablation: full table and notes}
+\label{sec:supp-component}
+
+Table~\ref{tab:supp-component} reproduces Table~6 from \S\ref{sec:component_ablation}
+with all 18 (circuit, seed) trials.  Two implementation notes:
+(i) ``$-$ overlap signal'' and ``$-$ repulsive force'' produce identical
+numbers because the repulsive force is the only consumer of the pairwise
+overlap matrix; (ii) the ``$-$ boundary signal'' variant is incidentally
+redundant on these saturated drafts because the repulsive force pushes
+boundary-violating macros incidentally back inside.
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_component_ablation}
+\caption{Component ablation, mean $\pm$ std over 18 (circuit, seed) pairs.
+Raw data: \texttt{results/vsr\_extra/component\_ablation.json}.}
+\label{tab:supp-component}
+\end{table}
+
+\section{Failure-mode analysis: full list}
+\label{sec:supp-failures}
+
+Of the 24 trials at $\lambda=2$, 14 are flagged as not strict-Pareto
+improving the raw draft (Table~\ref{tab:supp-failures}).  Failures cluster on
+adaptec3 and bigblue3, both of which have hub macros where moving any single
+macro drags long edge tails.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrrl}
+\toprule
+Circuit & seed & $\Delta v\,\%$ & $\Delta h\,\%$ & failure flags \\
+\midrule
+adaptec1 & 123  & $-37.5$ & $+42.2$ & HPWL$>+20\%$, non-Pareto \\
+adaptec2 & 123  & $-60.5$ &  $+6.4$ & non-Pareto \\
+adaptec2 & 300  & $-48.2$ & $+25.7$ & HPWL$>+20\%$, non-Pareto \\
+adaptec2 & 2024 & $-61.8$ &  $+5.0$ & non-Pareto \\
+adaptec3 & 42   & $-57.9$ & $+23.1$ & HPWL$>+20\%$, non-Pareto \\
+adaptec3 & 123  & $-52.9$ & $+26.9$ & HPWL$>+20\%$, non-Pareto \\
+adaptec3 & 300  & $-51.8$ & $+33.9$ & HPWL$>+20\%$, non-Pareto \\
+adaptec3 & 2024 & $-51.2$ & $+35.3$ & HPWL$>+20\%$, non-Pareto \\
+bigblue1 & 123  & $-13.9$ & $-80.8$ & weak-violation-cut \\
+bigblue1 & 2024 & $-20.0$ & $-47.8$ & weak-violation-cut \\
+bigblue3 & 42   & $-77.7$ & $+15.0$ & non-Pareto \\
+bigblue3 & 123  & $-81.5$ & $+17.8$ & non-Pareto \\
+bigblue3 & 300  & $-72.8$ & $+14.2$ & non-Pareto \\
+bigblue3 & 2024 & $-77.1$ & $+12.9$ & non-Pareto \\
+\bottomrule
+\end{tabular}
+\caption{All 14 trials flagged at $\lambda{=}2$.
+Raw data: \texttt{results/vsr\_extra/failure\_cases.csv}.}
+\label{tab:supp-failures}
+\end{table}
+
+\section{Toy cross-domain experiment}
+\label{sec:supp-toy2d}
+
+We trained a tiny ($\sim 200$\,K-parameter) attention-GNN-style denoiser on
+1000 synthetic legal $30$-disk layouts (canvas $[0,1]^2$, radii
+$\in [0.018, 0.035]$, sparse random graph with $60$ edges) for $30{,}000$
+training steps.  At inference, $50$ test prompts $\times$ $5$ seeds $=$ $250$
+runs per method (Table~\ref{tab:supp-toy}).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrr}
+\toprule
+Method & violation count & overlap area & wirelength \\
+\midrule
+baseline (raw)         & 11.2  & 0.246  & 42.4 \\
+classifier guidance    & 27.8  & \textbf{0.000} & 227.9 ($5.4\times$ baseline) \\
+RePaint, binary mask   & \textbf{3.4} & 0.064  & 38.6 \\
+\textbf{VSR-post} (ours) & 6.2 & \textbf{0.030} & 41.0 \\
+VSR-intra (soft)       & 8.3   & 0.149  & 42.3 \\
+\bottomrule
+\end{tabular}
+\caption{Toy 2D non-overlap, mean over $250$ runs/method.  Classifier
+guidance kills overlap but inflates wirelength $5.4\times$, mirroring the
+placement-domain finding; verifier-guided structured repair preserves both.
+Raw rows: \texttt{results/toy/toy\_results.json}.}
+\label{tab:supp-toy}
+\end{table}
+
+\section{Neural repair operator: full training details}
+\label{sec:supp-neural}
+
+The negative-result GNN repair operator referenced in \S5 spans six training
+regimes.  Architecture: 3-layer GATv2 (heads$=4$, hidden$=128$, $\sim 100$\,K
+parameters), scale-invariant input normalization (centers and severity
+divided by $\max(W, H)$).  Node features:
+$[\mathrm{severity}, \mathrm{boundary}, \mathrm{n\_overlappers}, s^w, s^h]$.
+Edge features: 4-dim pin offsets from \texttt{edge\_attr}.  L2 loss on
+predicted displacement.
+
+\textbf{Variants.}
+(1) \emph{Synthetic teacher}: hand-crafted operator outputs on synthetic
+graphs (2500 train, 200 val).
+(2) \emph{Real teacher}: hand-crafted on diffusion-sampled ISPD2005 placements
+(3 samples $\times$ up to 3 circuits = 3--9 samples).
+(3) \emph{Data augmentation}: per-sample $\times 50$ random perturbations.
+(4) \emph{Trajectory distillation}: $(x_k, x_{k+1})$ pairs from every
+hand-crafted step; 30 steps $\times$ 3 samples $=$ 90 pairs.
+(5) \emph{Ground-truth target}: ISPD2005 industrial \texttt{.pl} placements.
+(6) \emph{Residual learning}: predict $x_{GT} - x_{\text{hand}}$.
+
+\textbf{Findings.}  Best validation L2 was $0.0037$ (trajectory distillation),
+but at inference on ISPD2005 the best variant (residual $s{=}0.1$) improved
+violations on $1$ of $6$ circuits while degrading HPWL on every other circuit.
+We attribute this to extreme data scarcity (8 ISPD2005 circuits) and conjecture
+that a learned operator at this scale must already \emph{contain} the
+inductive biases (pairwise overlap-driven repulsion, edge-local wirelength
+attraction, selective preservation) that the hand-crafted operator encodes
+by construction.  Detailed per-circuit evaluations:
+\texttt{results/neural\_vsr/eval\_*.json}.
+
+\section{Convergence curves and step-size ablation}
+\label{sec:supp-convergence}
+
+Figure~\ref{fig:supp-convergence} shows per-iteration $(v_t, h_t)$
+trajectories for $T=300$ iterations on adaptec1 and bigblue1 at $\lambda=2$.
+Violations decrease near-monotonically; HPWL changes non-monotonically in
+the first $\sim 30$ iterations (repulsive force initially pushes connected
+macros apart) before the attractive term pulls them back.  Plateau is
+reached by $T \approx 100$, confirming the default budget.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/fig7_convergence.pdf}
+\caption{Per-iteration convergence on adaptec1 and bigblue1, 3 seeds.
+Top: violations.  Bottom: HPWL.  Shaded band: seed std.}
+\label{fig:supp-convergence}
+\end{figure}
+
+Step-size ablation: $\eta=0.3$ (default) is the robust middle ground;
+$\eta=1.0$ gains marginal violation reduction at higher HPWL variance.
+Step-budget ablation: violations plateau by $T=100$ on every circuit;
+$T=500$ adds $<2$\,pp at 5$\times$ wall-clock.
+
+\section{Reproducibility and released artifacts}
+\label{sec:supp-repro}
+
+All code, configs, and result JSONs are released.  The main-paper numbers
+reproduce on a single A800 80\,GB GPU (full sweep $\sim 70$\,min):
+\begin{verbatim}
+  python scripts/run_main_neurips.py        # main result, ~30 min
+  python scripts/run_timestep_sweep.py      # timestep sweep, ~12 min
+  python scripts/run_mem_profile.py         # memory profile, ~16 min
+  python scripts/run_component_ablation.py  # component ablation, ~12 min
+  python scripts/compute_neurips_stats.py
+  python scripts/analyze_extra_experiments.py
+  python scripts/analyze_component_ablation.py
+\end{verbatim}
+Seeds: \{42, 123, 300, 2024\} for 4-seed runs; \{42, 123, 300\} for
+3-seed sweeps.  Result JSONs: \texttt{results/ispd2005/} and
+\texttt{results/vsr\_extra/}.
+
 \end{document}

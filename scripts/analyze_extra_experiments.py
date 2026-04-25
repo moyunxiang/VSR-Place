@@ -162,7 +162,7 @@ def l1_lambda_sweep():
         xlo, xhi = ax.get_xlim(); ylo, yhi = ax.get_ylim()
         ax.fill_between([min(xlo, 0), 0], [min(ylo, 0), min(ylo, 0)], [0, 0],
                         color="#c8e6c9", alpha=0.3)
-    fig.suptitle(r"Lambda sweep: Pareto front per circuit, error bars = 3-seed std",
+    fig.suptitle("Lambda sweep: Pareto front per circuit, error bars = 3-seed std",
                  fontsize=12)
     fig.tight_layout()
     out = PAPER_FIG / "fig_lambda_sweep.pdf"
@@ -234,13 +234,13 @@ def l2_step_budget():
     ax_v.set_xscale("log")
     ax_v.axhline(0, color="gray", linewidth=0.5, linestyle=":")
     ax_v.legend(fontsize=8, ncol=2); ax_v.grid(alpha=0.3)
-    ax_v.set_title("Violation reduction vs.\\ step budget")
+    ax_v.set_title("Violation reduction vs. step budget")
 
     ax_t.set_xlabel("VSR repair steps (T)")
     ax_t.set_ylabel("Wall-clock (s)")
     ax_t.set_xscale("log")
     ax_t.legend(fontsize=8, ncol=2); ax_t.grid(alpha=0.3)
-    ax_t.set_title(r"Wall-clock vs.\\ step budget")
+    ax_t.set_title("Wall-clock vs. step budget")
     fig.tight_layout()
     out = PAPER_FIG / "fig_step_budget.pdf"
     fig.savefig(out, bbox_inches="tight", dpi=150)
