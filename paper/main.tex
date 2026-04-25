@@ -439,6 +439,39 @@ that failures are a \emph{tunable property of the operating point}, not a
 limitation of the operator.  The lambda sweep is the right way to
 characterize VSR; a single fixed $\lambda$ understates the family.
 
+\subsection{Component ablation: which signals matter?}
+\label{sec:component_ablation}
+
+We isolate each component of the verifier feedback and the repair operator
+over 6 circuits $\times$ 3 seeds $=$ 18 paired trials.  Variants:
+remove the overlap graph (\textit{$-$ overlap signal}, equivalent to disabling
+the repulsive force); remove the boundary protrusion (\textit{$-$ boundary
+signal}, removes the boundary force); use a severity-weighted soft mask
+instead of the binary $r_i{>}0$ mask; or replace the offender selector with a
+random subset of the same size, or move all macros uniformly.
+
+\begin{table}[h]
+\centering
+\scriptsize
+\input{figures/table_component_ablation}
+\caption{Component ablation, mean $\pm$ std over 18 (circuit, seed) pairs.
+Removing the pairwise overlap signal (and equivalently the repulsive force)
+\emph{inflates} violations by 79\%; removing the attractive force preserves
+violation reduction but inflates HPWL by 138\%; soft (severity-weighted)
+masking degrades both metrics by 28\,pp on $\Delta v$.  Random and uniform
+selectors match the full operator on these worst-case drafts (every macro
+violating); the difference is exposed in the 2-round protocol of
+\S\ref{sec:lambda_sweep}.  The boundary-only signal turns out to be
+incidental---repulsive and attractive forces handle in-bounds movement
+without it---a minor finding we leave to the supplement.}
+\label{tab:component_ablation}
+\end{table}
+
+\textbf{Conclusion.}  Both the pairwise overlap signal and the wirelength
+attractive force are load-bearing; the binary mask outperforms the obvious
+severity-weighted alternative; the selector is essential only when offenders
+are a strict subset (later iterative rounds, not first-pass repair).
+
 \subsection{Intra-sampling: when the backbone's wirelength prior helps}
 \label{sec:intra_results}
 
@@ -534,51 +567,33 @@ are noisy and we therefore use \emph{median across circuits}, not mean,
 as the headline statistic.
 \end{itemize}
 
-\section{Discussion}
+\section{Discussion and Conclusion}
 
-\paragraph{Why does the simple force integrator beat the 5000-step legalizer?}
-The legalizer optimizes a fixed differentiable surrogate on the \emph{full}
-placement, with all macros free.  Our operator exploits two pieces of
-structure: (i) a \emph{selective mask}---only offending macros
-move, preserving the global arrangement the backbone learned; (ii) a
-\emph{pairwise force field}---repulsion between two specifically overlapping
-macros is a far better correction signal than the gradient of an aggregated
-softmax.  The lambda sweep (\S\ref{sec:lambda_sweep}) shows the result
-empirically: at $\lambda{=}4$ a $50\times$ shorter run strictly
-Pareto-dominates the draft on $89\%$ of trials.
+\paragraph{Why does a 100-step force integrator beat a 5000-step legalizer?}
+The legalizer optimizes a fixed differentiable surrogate over the full
+placement.  Our operator instead exploits two structures: a selective mask
+(only offending macros move, preserving the backbone's global arrangement)
+and a pairwise force field (repulsion between two \emph{specifically}
+overlapping macros is a stronger gradient than an aggregated softmax).  At
+$\lambda{=}4$, a $50\times$ shorter run strictly Pareto-dominates on $89\%$
+of trials (\S\ref{sec:lambda_sweep}).  Learned GNN repair operators, in
+contrast, must discover this inductive bias from $\le 8$ circuits and
+consistently failed to match the hand-crafted version (supplement).
+Substantially larger circuit corpora would be needed to make learned repair
+competitive at this scale.
 
-\paragraph{Why do learned repair operators not help here?}  Our exploration
-of GNN-based repair (six training regimes, supplement) consistently failed to
-match the hand-crafted force integrator.  ISPD2005 has only 8 circuits;
-a learned operator must discover the same inductive bias (pairwise overlap,
-edge-local wirelength, selective preservation) that our operator encodes by
-construction.  At this data scale the bias dominates; substantially larger
-circuit corpora would be needed for a learned operator to compete.
-
-\section{Conclusion}
-
-We have shown that a non-differentiable verifier emitting structured
-per-element feedback, paired with a tiny hand-crafted force integrator, is
-a strictly stronger constraint-projection primitive than classifier-style
-guidance, RePaint inpainting, or heavy 5000-step legalizers, on the
-ISPD2005 placement benchmark.  An intra-sampling variant exploiting the
-diffusion backbone's wirelength prior is a useful Pareto knob on the
-largest circuits.  We hope our framing of \emph{structured verifier feedback}
-as an interface between diffusion samplers and discrete predicates will
-generalize beyond the placement domain.
-
-\section*{Broader Impact}
-Better macro placement directly translates into lower chip power and shorter
-design cycles.  Our framework re-uses pretrained diffusion backbones without
-retraining and without requiring differentiable surrogates, lowering the
-barrier to applying diffusion models to constrained engineering domains.
-We do not see negative societal impact specific to this contribution.
-
-\section*{Reproducibility}
-All experiments use publicly released data (ISPD2005) and checkpoints
-(ChipDiffusion \textsc{Large+v2}).  Seeds are fixed (\{42,123,300,2024\});
-all reported numbers are reproducible from the released JSONs.  Code and
-preflight harness are in the supplementary.
+\paragraph{Conclusion.}
+A non-differentiable verifier emitting structured per-element feedback,
+paired with a 50-line force integrator, is a strictly stronger constraint
+primitive than classifier guidance, RePaint inpainting, or heavy 5000-step
+legalizers on ISPD2005.  An intra-sampling variant gives a useful Pareto
+knob on the largest circuits.  We hope our framing of structured verifier
+feedback as an interface between diffusion samplers and discrete predicates
+will generalize beyond placement.  All experiments use publicly released
+data and checkpoints; seeds (\{42,123,300,2024\}) and code are in the
+supplementary, with all reported numbers reproducible from released JSONs.
+We see no negative societal impact specific to this contribution beyond
+existing concerns about automating physical design.
 
 \bibliographystyle{plain}
 \bibliography{refs}

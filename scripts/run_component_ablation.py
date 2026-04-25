@@ -74,10 +74,10 @@ def _force_step(
     step: float = STEP_SIZE,
     lam: float = LAMBDA_DEFAULT,
 ):
-    """One-shot ablation-aware repair loop.
-
-    All variants share the explicit-Euler structure of local_repair_loop;
-    only the forces and the per-macro multiplier differ.
+    """Ablation-aware repair loop.  Mirrors src/vsr_place/renoising/local_repair.py
+    exactly when called with use_repulsive=use_attract=use_boundary=True,
+    weight_mode="binary", selector_mode="violators".  Other settings toggle
+    components or replace the selector/weight.
     """
     import torch
 
@@ -85,7 +85,10 @@ def _force_step(
     rng.manual_seed(rng_seed)
 
     N = centers.shape[0]
+    half = sizes / 2.0
     sev = severity.to(centers.device)
+
+    # Selector: who can move?
     if selector_mode == "violators":
         mask_pos = sev > 0
     elif selector_mode == "random":
@@ -98,6 +101,7 @@ def _force_step(
     else:
         raise ValueError(selector_mode)
 
+    # Per-macro weight inside the selected set
     if weight_mode == "severity":
         w = sev / sev.max().clamp(min=1e-9)
     elif weight_mode == "binary":
@@ -106,59 +110,75 @@ def _force_step(
         w = torch.ones(N, device=centers.device)
     else:
         raise ValueError(weight_mode)
-    w = w * mask_pos.float()  # gate by selector
-    w = w.unsqueeze(-1)        # (N, 1) for broadcasting
+    w = w * mask_pos.float()
+    w_col = w.unsqueeze(-1)
 
+    # Edges (deduplicated to undirected)
     src = edge_index[0].to(centers.device)
     dst = edge_index[1].to(centers.device)
-    sw = sizes[:, 0]
-    sh = sizes[:, 1]
-    s_bar = float(sizes.mean().item())
-    canvas = torch.tensor([cw, ch], device=centers.device, dtype=centers.dtype)
+    uniq = src < dst
+    u = src[uniq]; v = dst[uniq]
+    deg = torch.zeros(N, device=centers.device)
+    deg.index_add_(0, u, torch.ones_like(u, dtype=torch.float32))
+    deg.index_add_(0, v, torch.ones_like(v, dtype=torch.float32))
+    deg = deg.clamp(min=1.0).unsqueeze(-1)
+
+    # Maximum per-step displacement (matches local_repair_step clamp)
+    max_move = 0.5 * min(sizes[:, 0].mean().item(), sizes[:, 1].mean().item())
 
     x = centers.clone()
     for _ in range(n_iters):
-        diff = x.unsqueeze(0) - x.unsqueeze(1)        # (N, N, 2)
-        d = diff.norm(dim=-1).clamp(min=1e-6)
-        sum_w = sw.unsqueeze(0) + sw.unsqueeze(1)
-        sum_h = sh.unsqueeze(0) + sh.unsqueeze(1)
-        depth_x = torch.clamp(sum_w / 2 - diff[..., 0].abs(), min=0.0)
-        depth_y = torch.clamp(sum_h / 2 - diff[..., 1].abs(), min=0.0)
-        depth = torch.minimum(depth_x, depth_y)
-        eye = torch.eye(N, dtype=torch.bool, device=centers.device)
-        depth = depth.masked_fill(eye, 0.0)
-        unit = diff / d.unsqueeze(-1)
-        repulsive = (depth.unsqueeze(-1) * unit).sum(dim=1)  # push i away from j
-        repulsive = torch.clamp(repulsive, min=-0.5 * s_bar, max=0.5 * s_bar)
+        # Pairwise AABB overlap (mirrors local_repair_step lines 47-66)
+        mins = x - half
+        maxs = x + half
+        inter_min = torch.maximum(mins.unsqueeze(1), mins.unsqueeze(0))  # (N,N,2)
+        inter_max = torch.minimum(maxs.unsqueeze(1), maxs.unsqueeze(0))
+        inter_dims = torch.clamp(inter_max - inter_min, min=0.0)
+        overlap_area = inter_dims[..., 0] * inter_dims[..., 1]
+        eye = torch.eye(N, dtype=torch.bool, device=x.device)
+        overlap_area = overlap_area.masked_fill(eye, 0.0)
+        has_overlap = overlap_area > 0
+        overlap_mag = torch.minimum(inter_dims[..., 0], inter_dims[..., 1])
+
+        # Push direction: c[i] - c[j] (push i AWAY from j) -- this is
+        # the inverse of `delta = c[j] - c[i]` from broadcasting.
+        delta = x.unsqueeze(0) - x.unsqueeze(1)  # delta[i,j] = c[j] - c[i]
+        push_dir = -delta
+        norm = torch.norm(push_dir, dim=-1, keepdim=True).clamp(min=1e-6)
+        push_unit = push_dir / norm
+
+        repulsive = (push_unit * (has_overlap.float() * overlap_mag).unsqueeze(-1)).sum(dim=1)
 
         # Boundary
         bd = torch.zeros_like(x)
-        bd[:, 0] = (torch.clamp(sw / 2 - x[:, 0], min=0.0) -
-                    torch.clamp(x[:, 0] + sw / 2 - cw, min=0.0))
-        bd[:, 1] = (torch.clamp(sh / 2 - x[:, 1], min=0.0) -
-                    torch.clamp(x[:, 1] + sh / 2 - ch, min=0.0))
+        bd[:, 0] = (torch.clamp(half[:, 0] - x[:, 0], min=0.0) -
+                    torch.clamp(x[:, 0] + half[:, 0] - cw, min=0.0))
+        bd[:, 1] = (torch.clamp(half[:, 1] - x[:, 1], min=0.0) -
+                    torch.clamp(x[:, 1] + half[:, 1] - ch, min=0.0))
 
-        # Attract along edges
+        # Attract along undirected edges
         attr = torch.zeros_like(x)
         if use_attract:
-            src_pos = x.index_select(0, src)
-            dst_pos = x.index_select(0, dst)
-            direction = dst_pos - src_pos
-            attr.index_add_(0, src, direction)
-            attr.index_add_(0, dst, -direction)
-            deg = torch.zeros(N, device=x.device)
-            deg.index_add_(0, src, torch.ones_like(src, dtype=torch.float32))
-            deg.index_add_(0, dst, torch.ones_like(dst, dtype=torch.float32))
-            attr = attr / deg.clamp(min=1.0).unsqueeze(-1)
+            edge_delta = x[v] - x[u]
+            attr.index_add_(0, u, edge_delta)
+            attr.index_add_(0, v, -edge_delta)
+            attr = attr / deg
 
+        # Compose
         force = torch.zeros_like(x)
         if use_repulsive:
             force = force + repulsive
         if use_boundary:
             force = force + bd
         if use_attract:
-            force = force + lam * attr * (s_bar / 4)
-        x = x + step * w * force
+            force = force + lam * attr
+
+        # Per-step clamp to half macro size (instability guard)
+        f_norm = force.norm(dim=-1, keepdim=True).clamp(min=1e-8)
+        clamp_factor = (max_move / f_norm).clamp(max=1.0)
+        force = force * clamp_factor
+
+        x = x + step * w_col * force
 
     return x
 
@@ -168,23 +188,27 @@ def _run_variant(name, *, ad, cond, x_in, sz, cw, ch, ei, ea, fb, pl_base, seed)
     from vsr_place.metrics.hpwl import compute_hpwl_from_edges
     from vsr_place.verifier.verifier import Verifier
 
+    # Re. weight_mode:
+    #   binary    -> mirrors current VSR-post (severity > 0 mask, uniform force)
+    #   severity  -> NEW: scale force by sev / max(sev) (test soft-mask post-process)
+    #   uniform   -> 1.0 on every macro (no mask at all)
     variants = {
-        "full":           dict(use_repulsive=True, use_attract=True, use_boundary=True,
-                               weight_mode="severity", selector_mode="violators"),
-        "binary_mask":    dict(use_repulsive=True, use_attract=True, use_boundary=True,
-                               weight_mode="binary", selector_mode="violators"),
-        "no_overlap":     dict(use_repulsive=False, use_attract=True, use_boundary=True,
-                               weight_mode="severity", selector_mode="violators"),
-        "no_boundary":    dict(use_repulsive=True, use_attract=True, use_boundary=False,
-                               weight_mode="severity", selector_mode="violators"),
-        "no_attract":     dict(use_repulsive=True, use_attract=False, use_boundary=True,
-                               weight_mode="severity", selector_mode="violators"),
-        "no_repulsive":   dict(use_repulsive=False, use_attract=True, use_boundary=True,
-                               weight_mode="severity", selector_mode="violators"),
-        "random_select":  dict(use_repulsive=True, use_attract=True, use_boundary=True,
-                               weight_mode="severity", selector_mode="random"),
-        "uniform_select": dict(use_repulsive=True, use_attract=True, use_boundary=True,
-                               weight_mode="uniform", selector_mode="all"),
+        "full":              dict(use_repulsive=True, use_attract=True, use_boundary=True,
+                                  weight_mode="binary",   selector_mode="violators"),
+        "severity_weighted": dict(use_repulsive=True, use_attract=True, use_boundary=True,
+                                  weight_mode="severity", selector_mode="violators"),
+        "no_overlap":        dict(use_repulsive=False, use_attract=True, use_boundary=True,
+                                  weight_mode="binary",   selector_mode="violators"),
+        "no_boundary":       dict(use_repulsive=True, use_attract=True, use_boundary=False,
+                                  weight_mode="binary",   selector_mode="violators"),
+        "no_attract":        dict(use_repulsive=True, use_attract=False, use_boundary=True,
+                                  weight_mode="binary",   selector_mode="violators"),
+        "no_repulsive":      dict(use_repulsive=False, use_attract=True, use_boundary=True,
+                                  weight_mode="binary",   selector_mode="violators"),
+        "random_select":     dict(use_repulsive=True, use_attract=True, use_boundary=True,
+                                  weight_mode="binary",   selector_mode="random"),
+        "uniform_select":    dict(use_repulsive=True, use_attract=True, use_boundary=True,
+                                  weight_mode="uniform",  selector_mode="all"),
     }
     cfg = variants[name]
     cent_in, _ = ad.decode_placement(pl_base, cond)
@@ -258,29 +282,29 @@ def run_preflight():
     ])
     severity = torch.rand(N)
     severity[N // 2:] = 0.0  # half are non-violators
-    for vname in ["full", "binary_mask", "no_overlap", "no_boundary",
+    for vname in ["full", "severity_weighted", "no_overlap", "no_boundary",
                   "no_attract", "no_repulsive",
                   "random_select", "uniform_select"]:
         out = _force_step(
             centers, sizes, cw, ch, ei,
             severity=severity, rng_seed=42, n_iters=5,
             **{
-                "full":           dict(use_repulsive=True, use_attract=True, use_boundary=True,
-                                       weight_mode="severity", selector_mode="violators"),
-                "binary_mask":    dict(use_repulsive=True, use_attract=True, use_boundary=True,
-                                       weight_mode="binary", selector_mode="violators"),
-                "no_overlap":     dict(use_repulsive=False, use_attract=True, use_boundary=True,
-                                       weight_mode="severity", selector_mode="violators"),
-                "no_boundary":    dict(use_repulsive=True, use_attract=True, use_boundary=False,
-                                       weight_mode="severity", selector_mode="violators"),
-                "no_attract":     dict(use_repulsive=True, use_attract=False, use_boundary=True,
-                                       weight_mode="severity", selector_mode="violators"),
-                "no_repulsive":   dict(use_repulsive=False, use_attract=True, use_boundary=True,
-                                       weight_mode="severity", selector_mode="violators"),
-                "random_select":  dict(use_repulsive=True, use_attract=True, use_boundary=True,
-                                       weight_mode="severity", selector_mode="random"),
-                "uniform_select": dict(use_repulsive=True, use_attract=True, use_boundary=True,
-                                       weight_mode="uniform", selector_mode="all"),
+                "full":              dict(use_repulsive=True, use_attract=True, use_boundary=True,
+                                          weight_mode="binary",   selector_mode="violators"),
+                "severity_weighted": dict(use_repulsive=True, use_attract=True, use_boundary=True,
+                                          weight_mode="severity", selector_mode="violators"),
+                "no_overlap":        dict(use_repulsive=False, use_attract=True, use_boundary=True,
+                                          weight_mode="binary",   selector_mode="violators"),
+                "no_boundary":       dict(use_repulsive=True, use_attract=True, use_boundary=False,
+                                          weight_mode="binary",   selector_mode="violators"),
+                "no_attract":        dict(use_repulsive=True, use_attract=False, use_boundary=True,
+                                          weight_mode="binary",   selector_mode="violators"),
+                "no_repulsive":      dict(use_repulsive=False, use_attract=True, use_boundary=True,
+                                          weight_mode="binary",   selector_mode="violators"),
+                "random_select":     dict(use_repulsive=True, use_attract=True, use_boundary=True,
+                                          weight_mode="binary",   selector_mode="random"),
+                "uniform_select":    dict(use_repulsive=True, use_attract=True, use_boundary=True,
+                                          weight_mode="uniform",  selector_mode="all"),
             }[vname]
         )
         assert out.shape == (N, 2)
@@ -294,7 +318,7 @@ def main():
     p.add_argument("--circuits", type=int, nargs="+", default=CIRCUITS_DEFAULT)
     p.add_argument("--seeds", type=int, nargs="+", default=SEEDS_DEFAULT)
     p.add_argument("--variants", nargs="+",
-                   default=["full", "binary_mask", "no_overlap", "no_boundary",
+                   default=["full", "severity_weighted", "no_overlap", "no_boundary",
                             "no_attract", "no_repulsive",
                             "random_select", "uniform_select"])
     p.add_argument("--out", default="results/vsr_extra/component_ablation.json")

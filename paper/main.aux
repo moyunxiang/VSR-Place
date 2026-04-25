@@ -73,28 +73,31 @@
 \newlabel{fig:step_budget}{{4}{7}{Step budget sweep. Left: $\Delta v$ plateau by $T=100$ on all circuits. Right: linear wall-clock; CD-std ($5000$ steps) marked as dashed reference. VSR's $1.6$--$3.6\times $ speedup over CD legalizers holds at every $T$ we tested}{figure.caption.26}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Failure-mode analysis}{7}{subsection.4.7}\protected@file@percent }
 \newlabel{sec:failures}{{4.7}{7}{Failure-mode analysis}{subsection.4.7}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Intra-sampling: when the backbone's wirelength prior helps}{7}{subsection.4.8}\protected@file@percent }
-\newlabel{sec:intra_results}{{4.8}{7}{Intra-sampling: when the backbone's wirelength prior helps}{subsection.4.8}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.9}Memory profile and limitations}{7}{subsection.4.9}\protected@file@percent }
-\newlabel{sec:limitations}{{4.9}{7}{Memory profile and limitations}{subsection.4.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Component ablation: which signals matter?}{7}{subsection.4.8}\protected@file@percent }
+\newlabel{sec:component_ablation}{{4.8}{7}{Component ablation: which signals matter?}{subsection.4.8}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Component ablation, mean $\pm $ std over 18 (circuit, seed) pairs. Removing the pairwise overlap signal (and equivalently the repulsive force) \emph  {inflates} violations by 79\%; removing the attractive force preserves violation reduction but inflates HPWL by 138\%; soft (severity-weighted) masking degrades both metrics by 28\,pp on $\Delta v$. Random and uniform selectors match the full operator on these worst-case drafts (every macro violating); the difference is exposed in the 2-round protocol of \S  \ref {sec:lambda_sweep}. The boundary-only signal turns out to be incidental---repulsive and attractive forces handle in-bounds movement without it---a minor finding we leave to the supplement.}}{7}{table.caption.27}\protected@file@percent }
+\newlabel{tab:component_ablation}{{4}{7}{Component ablation, mean $\pm $ std over 18 (circuit, seed) pairs. Removing the pairwise overlap signal (and equivalently the repulsive force) \emph {inflates} violations by 79\%; removing the attractive force preserves violation reduction but inflates HPWL by 138\%; soft (severity-weighted) masking degrades both metrics by 28\,pp on $\Delta v$. Random and uniform selectors match the full operator on these worst-case drafts (every macro violating); the difference is exposed in the 2-round protocol of \S \ref {sec:lambda_sweep}. The boundary-only signal turns out to be incidental---repulsive and attractive forces handle in-bounds movement without it---a minor finding we leave to the supplement}{table.caption.27}{}}
 \citation{chipformer}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Intra-sampling HPWL change as a function of $t_{\text  {start}}$, across 6 circuits and 3 seeds. Bigblue3 (the largest tractable circuit) shows a striking monotonic improvement, peaking at $-34.5\%$ HPWL. Smaller circuits show small effects, suggesting backbone-prior leverage scales with circuit size.}}{8}{figure.caption.27}\protected@file@percent }
-\newlabel{fig:timestep_sweep}{{5}{8}{Intra-sampling HPWL change as a function of $t_{\text {start}}$, across 6 circuits and 3 seeds. Bigblue3 (the largest tractable circuit) shows a striking monotonic improvement, peaking at $-34.5\%$ HPWL. Smaller circuits show small effects, suggesting backbone-prior leverage scales with circuit size}{figure.caption.27}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Memory profile (peak GPU memory, 100-step ChipDiffusion sampling). Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each circuit, so we report a single column. The OOM frontier is the diffusion backbone, not the repair operator: VSR-post on synthetic baselines succeeds on \emph  {every} circuit including bigblue2/4 (last column, wall-clock). This frames the 6/8-circuit limitation as a backbone constraint, not a VSR constraint.}}{8}{table.caption.28}\protected@file@percent }
-\newlabel{tab:mem}{{4}{8}{Memory profile (peak GPU memory, 100-step ChipDiffusion sampling). Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each circuit, so we report a single column. The OOM frontier is the diffusion backbone, not the repair operator: VSR-post on synthetic baselines succeeds on \emph {every} circuit including bigblue2/4 (last column, wall-clock). This frames the 6/8-circuit limitation as a backbone constraint, not a VSR constraint}{table.caption.28}{}}
-\@writefile{toc}{\contentsline {paragraph}{Limitations.}{8}{section*.29}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion}{8}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Why does the simple force integrator beat the 5000-step legalizer?}{8}{section*.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.9}Intra-sampling: when the backbone's wirelength prior helps}{8}{subsection.4.9}\protected@file@percent }
+\newlabel{sec:intra_results}{{4.9}{8}{Intra-sampling: when the backbone's wirelength prior helps}{subsection.4.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Intra-sampling HPWL change as a function of $t_{\text  {start}}$, across 6 circuits and 3 seeds. Bigblue3 (the largest tractable circuit) shows a striking monotonic improvement, peaking at $-34.5\%$ HPWL. Smaller circuits show small effects, suggesting backbone-prior leverage scales with circuit size.}}{8}{figure.caption.28}\protected@file@percent }
+\newlabel{fig:timestep_sweep}{{5}{8}{Intra-sampling HPWL change as a function of $t_{\text {start}}$, across 6 circuits and 3 seeds. Bigblue3 (the largest tractable circuit) shows a striking monotonic improvement, peaking at $-34.5\%$ HPWL. Smaller circuits show small effects, suggesting backbone-prior leverage scales with circuit size}{figure.caption.28}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.10}Memory profile and limitations}{8}{subsection.4.10}\protected@file@percent }
+\newlabel{sec:limitations}{{4.10}{8}{Memory profile and limitations}{subsection.4.10}{}}
+\@writefile{toc}{\contentsline {paragraph}{Limitations.}{8}{section*.30}\protected@file@percent }
 \bibstyle{plain}
 \bibdata{refs}
 \bibcite{constraint-guidance}{{1}{}{{}}{{}}}
 \bibcite{ntuplace}{{2}{}{{}}{{}}}
 \bibcite{replace}{{3}{}{{}}{{}}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Memory profile (peak GPU memory, 100-step ChipDiffusion sampling). Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each circuit, so we report a single column. The OOM frontier is the diffusion backbone, not the repair operator: VSR-post on synthetic baselines succeeds on \emph  {every} circuit including bigblue2/4 (last column, wall-clock). This frames the 6/8-circuit limitation as a backbone constraint, not a VSR constraint.}}{9}{table.caption.29}\protected@file@percent }
+\newlabel{tab:mem}{{5}{9}{Memory profile (peak GPU memory, 100-step ChipDiffusion sampling). Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each circuit, so we report a single column. The OOM frontier is the diffusion backbone, not the repair operator: VSR-post on synthetic baselines succeeds on \emph {every} circuit including bigblue2/4 (last column, wall-clock). This frames the 6/8-circuit limitation as a backbone constraint, not a VSR constraint}{table.caption.29}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion and Conclusion}{9}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why does a 100-step force integrator beat a 5000-step legalizer?}{9}{section*.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Conclusion.}{9}{section*.32}\protected@file@percent }
 \bibcite{classifier-guidance}{{4}{}{{}}{{}}}
 \bibcite{chipformer}{{5}{}{{}}{{}}}
 \bibcite{chipdiffusion}{{6}{}{{}}{{}}}
-\@writefile{toc}{\contentsline {paragraph}{Why do learned repair operators not help here?}{9}{section*.31}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{9}{section.6}\protected@file@percent }
 \bibcite{dreamplace}{{7}{}{{}}{{}}}
 \bibcite{repaint}{{8}{}{{}}{{}}}
 \providecommand\NAT@force@numbers{}\NAT@force@numbers
