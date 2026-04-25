@@ -9,8 +9,8 @@
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{nicefrac}
-\usepackage{microtype}
+% \usepackage{nicefrac}     % unused; pkg missing on local TeX install
+% \usepackage{microtype}    % unused; pkg missing on local TeX install
 \usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage{subcaption}
@@ -115,6 +115,17 @@ schedule.  On the largest tractable circuit (bigblue3), this delivers a
 $-34.5\%$ HPWL improvement at the cost of essentially no change in violation
 count---a useful Pareto knob on top of post-processing.
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/fig1_framework.pdf}
+\caption{VSR pipeline: a non-differentiable verifier produces structured
+feedback (per-macro severity scalar, pairwise overlap graph, boundary vector);
+a selector turns it into a soft mask; a 100-step force integrator (post-mode)
+or structured RePaint (intra-mode) updates only offending macros.  No
+backbone retraining; no differentiable surrogate.}
+\label{fig:framework}
+\end{figure}
+
 \paragraph{Scope.}  We do \emph{not} claim a new training algorithm: the
 diffusion backbone is frozen and re-used.  We do not claim a new generic
 diffusion-guidance recipe: our argument is empirical, on a single domain
@@ -126,11 +137,12 @@ hand-crafted physics is competitive in this regime.
 
 \section{Related Work}
 
-\paragraph{Diffusion for placement.}  ChipDiffusion~\cite{chipdiffusion}
-introduced a graph-conditioned diffusion model for macro placement.  Concurrent
-work has explored autoregressive~\cite{miraichip} and flow-matching
-\cite{chipflow} generators; all share the same defect of ignoring hard
-constraints.
+\paragraph{Generative models for placement.}  ChipDiffusion~\cite{chipdiffusion}
+introduced a graph-conditioned diffusion model for macro placement, and prior
+work has explored offline-RL transformers~\cite{chipformer} and various other
+deep generative architectures.  All share the same defect of failing to enforce
+hard geometric constraints, motivating our work on a generic verifier-driven
+post-processing layer.
 
 \paragraph{Constraint-aware generation.}  Classifier
 guidance~\cite{classifier-guidance} requires a differentiable score
@@ -301,12 +313,22 @@ discrete overlap predicate.
 \centering
 \scriptsize
 \input{figures/table_main_neurips}
-\caption{Per-circuit Δviolation and ΔHPWL means (\,$\pm$\,std), 4 seeds each.
+\caption{Per-circuit $\Delta$-violation and $\Delta$-HPWL means ($\pm$std), 4 seeds each.
 Negative is improvement.  VSR-post is the only method with consistent
 positive (\,fewer violations\,) results across all 6 circuits without
 catastrophically inflating HPWL.}
 \label{tab:main}
 \end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/fig4_percircuit.pdf}
+\caption{Per-circuit, per-method comparison (4 seeds each).  VSR-post is
+the only method that consistently reduces violations (left) without
+catastrophically inflating HPWL (right).  CD-std and CD-sched reduce
+violations less and balloon HPWL by 70--400\%.}
+\label{fig:percircuit}
+\end{figure}
 
 \subsection{Strict Pareto frontier}
 
@@ -385,6 +407,17 @@ circuit size.}
 \label{fig:timestep_sweep}
 \end{figure}
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/fig9_post_vs_intra.pdf}
+\caption{Bigblue3 (1298 macros, seed=42) hero.  The raw diffusion draft
+(left) piles macros at one corner.  Post-processing VSR-post (middle)
+spreads them out, fixing $79\%$ of violations but inflating HPWL by $18\%$.
+Intra-sampling VSR-intra (right) yields a compact layout with the strongest
+HPWL reduction by re-invoking the diffusion backbone's wirelength prior.}
+\label{fig:postvsintra}
+\end{figure}
+
 \subsection{Memory profile and limitations}
 \label{sec:limitations}
 
@@ -436,8 +469,8 @@ because of the ChipDiffusion backbone's memory profile; this is a constraint
 of the backbone we re-use, not of VSR (Table~\ref{tab:mem}).
 \item Single backbone.  We use ChipDiffusion's released checkpoint as the
 sole generator.  Whether the ``structured verifier feedback'' interface
-generalizes to other diffusion-based placement backbones (e.g.\ flow-matching
-\cite{chipflow}) is open.
+generalizes to other diffusion-based or autoregressive placement
+backbones~\cite{chipformer} is open and a clear direction for future work.
 \item Single domain.  Our experiments are on macro placement.  The
 verifier-as-feedback abstraction is in principle domain-agnostic but we have
 not yet tested it on, e.g.\ molecular generation with valence constraints
@@ -511,39 +544,5 @@ preflight harness are in the supplementary.
 
 \bibliographystyle{plain}
 \bibliography{refs}
-
-\appendix
-
-\section*{Figures}
-
-\begin{figure*}[h]
-\centering
-\includegraphics[width=0.95\linewidth]{figures/fig1_framework.pdf}
-\caption{VSR pipeline: verifier $\rightarrow$ selector $\rightarrow$
-post-processing or intra-sampling repair operator.  No backbone retraining;
-no differentiable surrogate.}
-\label{fig:framework}
-\end{figure*}
-
-\begin{figure*}[h]
-\centering
-\includegraphics[width=0.95\linewidth]{figures/fig2_placements.pdf}
-\caption{Before/after placement visualization on adaptec1 and adaptec3
-(per-macro violation severity, log scale; yellow = low, dark red = high).
-VSR-post at $\lambda=2$ reduces severity while preserving spatial structure.}
-\label{fig:placements}
-\end{figure*}
-
-\begin{figure*}[h]
-\centering
-\includegraphics[width=0.95\linewidth]{figures/fig9_post_vs_intra.pdf}
-\caption{bigblue3 (1298 macros, seed=42).  The raw diffusion draft (left)
-piles macros at a corner.  Post-processing VSR-post (middle) spreads them
-out to achieve $-79\%$ violations but grows wirelength by $18\%$.
-Intra-sampling VSR-intra (right) retains a compact layout that respects
-the diffusion backbone's implicit wirelength prior, achieving the strongest
-HPWL reduction.}
-\label{fig:postvsintra}
-\end{figure*}
 
 \end{document}

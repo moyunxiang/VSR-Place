@@ -10,20 +10,32 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-IN = ROOT / "results/ispd2005/intra_timestep_sweep.json"
+# Use the new full sweep (6 circuits x 5 t x 3 seeds) over the old 2-circuit one.
+IN = ROOT / "results/ispd2005/timestep_sweep_full.json"
 OUT = ROOT / "paper/figures/fig8_timestep_sweep.pdf"
 OUT.parent.mkdir(parents=True, exist_ok=True)
 
 d = json.load(open(IN))
+# new schema uses key "t_start"; older key was "start_timestep"
+TKEY = "t_start" if d and "t_start" in d[0] else "start_timestep"
 by = defaultdict(list)
 for r in d:
-    by[(r["circuit"], r["start_timestep"])].append(r)
+    if r.get("v") is None:  # skip error rows
+        continue
+    by[(r["circuit"], r[TKEY])].append(r)
 
-circuits = sorted({r["circuit"] for r in d})
-ts = sorted({r["start_timestep"] for r in d})
+circuits = sorted({r["circuit"] for r in d if r.get("v") is not None})
+ts = sorted({r[TKEY] for r in d if r.get("v") is not None})
 
 fig, (ax_v, ax_h) = plt.subplots(1, 2, figsize=(11, 4))
-colors = {"adaptec3": "#2a9d8f", "bigblue3": "#e76f51"}
+colors = {
+    "adaptec1": "#264653",
+    "adaptec2": "#2a9d8f",
+    "adaptec3": "#e9c46a",
+    "adaptec4": "#f4a261",
+    "bigblue1": "#9d4edd",
+    "bigblue3": "#e76f51",
+}
 
 for c in circuits:
     xs, ys_v, ys_h, ys_v_std, ys_h_std = [], [], [], [], []

@@ -1,0 +1,60 @@
+\begin{thebibliography}{1}
+
+\bibitem{constraint-guidance}
+Arpit Bansal, Hong-Min Chu, Avi Schwarzschild, Soumyadip Sengupta, Micah
+  Goldblum, Jonas Geiping, and Tom Goldstein.
+\newblock Universal guidance for diffusion models.
+\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition Workshops (CVPRW)}, 2023.
+\newblock arXiv:2302.07121.
+
+\bibitem{ntuplace}
+Tung-Chieh Chen, Zhe-Wei Jiang, Tien-Chang Hsu, Hsin-Chen Chen, and Yao-Wen
+  Chang.
+\newblock {NTUplace3}: An analytical placer for large-scale mixed-size designs
+  with preplaced blocks and density constraints.
+\newblock {\em IEEE Transactions on Computer-Aided Design of Integrated
+  Circuits and Systems (TCAD)}, 27(7):1228--1240, 2008.
+
+\bibitem{replace}
+Chung-Kuan Cheng, Andrew~B. Kahng, Ilgweon Kang, and Lutong Wang.
+\newblock {RePlAce}: Advancing solution quality and routability validation in
+  global placement.
+\newblock {\em IEEE Transactions on Computer-Aided Design of Integrated
+  Circuits and Systems (TCAD)}, 38(9):1717--1730, 2019.
+
+\bibitem{classifier-guidance}
+Prafulla Dhariwal and Alex Nichol.
+\newblock Diffusion models beat {GAN}s on image synthesis.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)},
+  2021.
+
+\bibitem{chipformer}
+Yao Lai, Jinxin Liu, Zhentao Tang, Bin Wang, Jianye Hao, and Ping Luo.
+\newblock {ChiPFormer}: Transferable chip placement via offline decision
+  transformer.
+\newblock In {\em International Conference on Machine Learning (ICML)}, 2023.
+\newblock arXiv:2306.14744.
+
+\bibitem{chipdiffusion}
+Vinit~Sunder Lee, Chung-Kuan Cheng, and Bo-Yuan Yang.
+\newblock Chip placement with diffusion models.
+\newblock In {\em International Conference on Machine Learning (ICML)}, 2025.
+\newblock arXiv:2407.12282.
+
+\bibitem{dreamplace}
+Yibo Lin, Shounak Dhar, Wuxi Li, Haoxing Ren, Brucek Khailany, and David~Z.
+  Pan.
+\newblock {DREAMPlace}: Deep learning toolkit-enabled gpu acceleration for
+  modern {VLSI} placement.
+\newblock In {\em Proceedings of the 56th Annual Design Automation Conference
+  (DAC)}, 2019.
+
+\bibitem{repaint}
+Andreas Lugmayr, Martin Danelljan, Andres Romero, Fisher Yu, Radu Timofte, and
+  Luc Van~Gool.
+\newblock {RePaint}: Inpainting using denoising diffusion probabilistic models.
+\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition (CVPR)}, 2022.
+
+\end{thebibliography}
