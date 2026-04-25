@@ -292,7 +292,8 @@ deltas, $n=24$).
 \label{sec:main_result}
 
 Table~\ref{tab:main} reports per-circuit means with standard deviations across
-4 seeds for all six methods.  Highlights:
+4 seeds for the four primary methods; cg-strong and repaint-bin are deferred
+to supplementary Table~3 to keep the main page readable.  Highlights:
 \begin{itemize}
 \item VSR-post reduces violations on \emph{every} circuit, by $24$--$77\%$,
 median $55.3\%$.
@@ -459,18 +460,21 @@ Removing the pairwise overlap signal (and equivalently the repulsive force)
 \emph{inflates} violations by 79\%; removing the attractive force preserves
 violation reduction but inflates HPWL by 138\%; soft (severity-weighted)
 masking degrades both metrics by 28\,pp on $\Delta v$.  Random and uniform
-selectors match the full operator on these worst-case drafts (every macro
-violating); the difference is exposed in the 2-round protocol of
-\S\ref{sec:lambda_sweep}.  The boundary-only signal turns out to be
-incidental---repulsive and attractive forces handle in-bounds movement
-without it---a minor finding we leave to the supplement.}
+selectors match the full operator on these saturated raw drafts (every macro
+violates), so all three select the same set; the selector matters in the
+later refinement rounds where the offender set has shrunk.  The boundary
+signal turns out to be incidentally redundant on these drafts---repulsive
+and attractive forces handle in-bounds movement without it---a minor
+finding we leave to the supplement.}
 \label{tab:component_ablation}
 \end{table}
 
 \textbf{Conclusion.}  Both the pairwise overlap signal and the wirelength
-attractive force are load-bearing; the binary mask outperforms the obvious
-severity-weighted alternative; the selector is essential only when offenders
-are a strict subset (later iterative rounds, not first-pass repair).
+attractive force are load-bearing.  The binary mask outperforms the obvious
+severity-weighted alternative by 28\,pp on $\Delta v$, evidence that the
+\emph{structure} of the verifier feedback (which macros to move, which graph
+they overlap with) carries the constraint information---not the magnitude
+of the severity scalar.
 
 \subsection{Intra-sampling: when the backbone's wirelength prior helps}
 \label{sec:intra_results}

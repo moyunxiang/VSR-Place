@@ -4,36 +4,40 @@
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \@writefile{toc}{\contentsline {section}{\numberline {A}Implementation details of the verifier}{1}{appendix.A}\protected@file@percent }
 \newlabel{sec:supp-verifier}{{A}{1}{Implementation details of the verifier}{appendix.A}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B}Neural repair operator: full training details}{1}{appendix.B}\protected@file@percent }
-\newlabel{sec:supp-neural}{{B}{1}{Neural repair operator: full training details}{appendix.B}{}}
-\@writefile{toc}{\contentsline {paragraph}{Architecture.}{1}{section*.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Loss.}{1}{section*.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Variants.}{1}{section*.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Training.}{2}{section*.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Findings.}{2}{section*.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {C}Extended Pareto results}{2}{appendix.C}\protected@file@percent }
-\newlabel{sec:supp-pareto}{{C}{2}{Extended Pareto results}{appendix.C}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {D}Convergence curves}{2}{appendix.D}\protected@file@percent }
-\newlabel{sec:supp-convergence}{{D}{2}{Convergence curves}{appendix.D}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Per-iteration convergence for VSR on adaptec1 and bigblue1, 3 seeds each. Top row: violations vs.\ iteration. Bottom row: HPWL vs.\ iteration. Shaded band = seed std.}}{2}{figure.1}\protected@file@percent }
-\newlabel{fig:supp-convergence}{{1}{2}{Per-iteration convergence for VSR on adaptec1 and bigblue1, 3 seeds each. Top row: violations vs.\ iteration. Bottom row: HPWL vs.\ iteration. Shaded band = seed std}{figure.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {E}Full ablations and extra figures}{3}{appendix.E}\protected@file@percent }
-\newlabel{sec:supp-ablations}{{E}{3}{Full ablations and extra figures}{appendix.E}{}}
-\@writefile{toc}{\contentsline {paragraph}{Number of steps $T$ (Fig.~\ref {fig:supp-numsteps}).}{3}{section*.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Step size $\eta $ (Fig.~\ref {fig:supp-stepsize}).}{3}{section*.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Selective vs.\ global (Tab.~\ref {tab:supp-selective}).}{3}{section*.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Intra-sampling start timestep (Fig.~\ref {fig:supp-timestep}).}{3}{section*.9}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Number of repair steps ablation.}}{3}{figure.2}\protected@file@percent }
-\newlabel{fig:supp-numsteps}{{2}{3}{Number of repair steps ablation}{figure.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Step size ablation.}}{3}{figure.3}\protected@file@percent }
-\newlabel{fig:supp-stepsize}{{3}{3}{Step size ablation}{figure.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {F}Memory profile of the diffusion backbone}{3}{appendix.F}\protected@file@percent }
-\newlabel{sec:supp-mem}{{F}{3}{Memory profile of the diffusion backbone}{appendix.F}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Selective vs.\ global repair.}}{4}{table.1}\protected@file@percent }
-\newlabel{tab:supp-selective}{{1}{4}{Selective vs.\ global repair}{table.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Intra-sampling start timestep sweep.}}{4}{figure.4}\protected@file@percent }
-\newlabel{fig:supp-timestep}{{4}{4}{Intra-sampling start timestep sweep}{figure.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {G}Toy cross-domain experiment}{4}{appendix.G}\protected@file@percent }
-\newlabel{sec:supp-toy2d}{{G}{4}{Toy cross-domain experiment}{appendix.G}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {H}Reproducibility}{4}{appendix.H}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {B}Lambda sweep: per-circuit detail}{1}{appendix.B}\protected@file@percent }
+\newlabel{sec:supp-lambda}{{B}{1}{Lambda sweep: per-circuit detail}{appendix.B}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Per-circuit $\Delta v\,\%$ and $\Delta h\,\%$ across the $\lambda $ sweep, mean over 3 seeds. Strict-Pareto count rises monotonically with $\lambda $, peaking at $89\%$ ($16/18$) at $\lambda {=}4$.}}{1}{table.1}\protected@file@percent }
+\newlabel{tab:supp-lambda}{{1}{1}{Per-circuit $\Delta v\,\%$ and $\Delta h\,\%$ across the $\lambda $ sweep, mean over 3 seeds. Strict-Pareto count rises monotonically with $\lambda $, peaking at $89\%$ ($16/18$) at $\lambda {=}4$}{table.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {C}Component ablation: full table}{2}{appendix.C}\protected@file@percent }
+\newlabel{sec:supp-component}{{C}{2}{Component ablation: full table}{appendix.C}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Component ablation, mean $\pm $ std over 18 (circuit, seed) pairs. Same as main paper Table~6. Raw data: \texttt  {results/vsr\_extra/component\_ablation.json}.}}{2}{table.2}\protected@file@percent }
+\newlabel{tab:supp-component}{{2}{2}{Component ablation, mean $\pm $ std over 18 (circuit, seed) pairs. Same as main paper Table~6. Raw data: \texttt {results/vsr\_extra/component\_ablation.json}}{table.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {D}Failure-mode analysis: full list}{2}{appendix.D}\protected@file@percent }
+\newlabel{sec:supp-failures}{{D}{2}{Failure-mode analysis: full list}{appendix.D}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces All 14 trials flagged at $\lambda {=}2$. ``HPWL$>+20\%$'' indicates HPWL inflation greater than $20$\,pp; ``non-Pareto'' indicates $\Delta v < 0$ but $\Delta h \geq 0$; ``weak-violation-cut'' indicates $\Delta v > -20\%$. Two bigblue1 trials are flagged purely on weak violation reduction (HPWL is actually strongly improved). Raw data: \texttt  {results/vsr\_extra/failure\_cases.csv}.}}{2}{table.3}\protected@file@percent }
+\newlabel{tab:supp-failures}{{3}{2}{All 14 trials flagged at $\lambda {=}2$. ``HPWL$>+20\%$'' indicates HPWL inflation greater than $20$\,pp; ``non-Pareto'' indicates $\Delta v < 0$ but $\Delta h \geq 0$; ``weak-violation-cut'' indicates $\Delta v > -20\%$. Two bigblue1 trials are flagged purely on weak violation reduction (HPWL is actually strongly improved). Raw data: \texttt {results/vsr\_extra/failure\_cases.csv}}{table.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {E}Toy cross-domain experiment}{3}{appendix.E}\protected@file@percent }
+\newlabel{sec:supp-toy2d}{{E}{3}{Toy cross-domain experiment}{appendix.E}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Toy 2D non-overlap, mean over $250$ runs/method. Two observations: (i) classifier guidance with strong constraint weighting kills overlap but inflates wirelength $5.4\times $, mirroring the placement-domain finding; (ii) RePaint with binary mask minimizes pair count but produces residual small overlaps; VSR-post minimizes the total overlap area while preserving wirelength. Raw rows: \texttt  {results/toy/toy\_results.json}.}}{3}{table.4}\protected@file@percent }
+\newlabel{tab:supp-toy}{{4}{3}{Toy 2D non-overlap, mean over $250$ runs/method. Two observations: (i) classifier guidance with strong constraint weighting kills overlap but inflates wirelength $5.4\times $, mirroring the placement-domain finding; (ii) RePaint with binary mask minimizes pair count but produces residual small overlaps; VSR-post minimizes the total overlap area while preserving wirelength. Raw rows: \texttt {results/toy/toy\_results.json}}{table.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F}Neural repair operator: full training details}{3}{appendix.F}\protected@file@percent }
+\newlabel{sec:supp-neural}{{F}{3}{Neural repair operator: full training details}{appendix.F}{}}
+\@writefile{toc}{\contentsline {paragraph}{Architecture.}{3}{section*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Loss.}{3}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Variants.}{3}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Findings.}{3}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {G}Convergence curves}{4}{appendix.G}\protected@file@percent }
+\newlabel{sec:supp-convergence}{{G}{4}{Convergence curves}{appendix.G}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Per-iteration convergence on adaptec1 and bigblue1, 3 seeds. Top row: violations. Bottom row: HPWL. Shaded band: seed std.}}{4}{figure.1}\protected@file@percent }
+\newlabel{fig:supp-convergence}{{1}{4}{Per-iteration convergence on adaptec1 and bigblue1, 3 seeds. Top row: violations. Bottom row: HPWL. Shaded band: seed std}{figure.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {H}Memory profile of the diffusion backbone}{4}{appendix.H}\protected@file@percent }
+\newlabel{sec:supp-mem}{{H}{4}{Memory profile of the diffusion backbone}{appendix.H}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Step-budget and step-size figures}{4}{appendix.I}\protected@file@percent }
+\newlabel{sec:supp-budget}{{I}{4}{Step-budget and step-size figures}{appendix.I}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Number of repair steps ablation.}}{5}{figure.2}\protected@file@percent }
+\newlabel{fig:supp-numsteps}{{2}{5}{Number of repair steps ablation}{figure.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Step size ablation.}}{5}{figure.3}\protected@file@percent }
+\newlabel{fig:supp-stepsize}{{3}{5}{Step size ablation}{figure.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {J}Reproducibility and released artifacts}{5}{appendix.J}\protected@file@percent }
+\newlabel{sec:supp-repro}{{J}{5}{Reproducibility and released artifacts}{appendix.J}{}}
 \gdef \@abspage@last{5}

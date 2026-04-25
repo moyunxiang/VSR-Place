@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  26 APR 2026 00:51
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  26 APR 2026 03:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -323,24 +323,24 @@ File: l3backend-pdftex.def 2024-05-08 L3 backend support: PDF output (pdfTeX)
 ) (./supplement.aux)
 \openout1 = `supplement.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -376,7 +376,7 @@ LaTeX Font Info:    ... okay on input line 16.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-Package hyperref Info: Link coloring OFF on input line 16.
+Package hyperref Info: Link coloring OFF on input line 17.
 (./supplement.out) (./supplement.out)
 \@outlinefile=\write3
 \openout3 = `supplement.out'.
@@ -406,112 +406,116 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-LaTeX Font Info:    Trying to load font information for U+msa on input line 19.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 20.
 
  (/usr/local/texlive/2025basic/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 19.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 20.
 
 
 (/usr/local/texlive/2025basic/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
+Overfull \hbox (15.1268pt too wide) in paragraph at lines 58--82
+ [][] 
+ []
+
+
 
 [1
 
 {/usr/local/texlive/2025basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-<figures/fig7_convergence.pdf, id=61, 715.0972pt x 424.61511pt>
+(./figures/table_component_ablation.tex)
+
+[2]
+Overfull \hbox (26.54678pt too wide) in paragraph at lines 197--202
+\T1/cmr/m/n/10 mal-iza-tion (cen-ters and sever-ity di-vided by $[]\OT1/cmr/m/n
+/10 (\OML/cmm/m/it/10 W; H\OT1/cmr/m/n/10 )$\T1/cmr/m/n/10 ). Node fea-tures: $
+\OT1/cmr/m/n/10 [[]\OML/cmm/m/it/10 ; []; []; s[]; s[]\OT1/cmr/m/n/10 ]$\T1/cmr
+/m/n/10 .
+ []
+
+
+
+[3]
+<figures/fig7_convergence.pdf, id=96, 715.0972pt x 424.61511pt>
 File: figures/fig7_convergence.pdf Graphic file (type pdf)
 <use figures/fig7_convergence.pdf>
-Package pdftex.def Info: figures/fig7_convergence.pdf  used on input line 86.
+Package pdftex.def Info: figures/fig7_convergence.pdf  used on input line 243.
 (pdftex.def)             Requested size: 399.29463pt x 237.09605pt.
-
-
-[2 <./figures/fig7_convergence.pdf>]
-<figures/fig5_num_steps.pdf, id=114, 787.36719pt x 278.08379pt>
+<figures/fig5_num_steps.pdf, id=99, 787.36719pt x 278.08379pt>
 File: figures/fig5_num_steps.pdf Graphic file (type pdf)
 <use figures/fig5_num_steps.pdf>
-Package pdftex.def Info: figures/fig5_num_steps.pdf  used on input line 114.
+Package pdftex.def Info: figures/fig5_num_steps.pdf  used on input line 282.
 (pdftex.def)             Requested size: 399.29463pt x 141.02736pt.
-<figures/fig6_step_size.pdf, id=115, 787.36719pt x 280.25577pt>
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<figures/fig6_step_size.pdf, id=100, 787.36719pt x 280.25577pt>
 File: figures/fig6_step_size.pdf Graphic file (type pdf)
 <use figures/fig6_step_size.pdf>
-Package pdftex.def Info: figures/fig6_step_size.pdf  used on input line 121.
+Package pdftex.def Info: figures/fig6_step_size.pdf  used on input line 289.
 (pdftex.def)             Requested size: 399.29463pt x 142.12886pt.
- (./figures/table_selective.tex)
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-<figures/fig8_timestep_sweep.pdf, id=116, 787.36223pt x 277.95029pt>
-File: figures/fig8_timestep_sweep.pdf Graphic file (type pdf)
-<use figures/fig8_timestep_sweep.pdf>
-Package pdftex.def Info: figures/fig8_timestep_sweep.pdf  used on input line 13
-5.
-(pdftex.def)             Requested size: 399.29463pt x 140.95966pt.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 
-Overfull \hbox (4.45332pt too wide) in paragraph at lines 148--153
-\T1/cmr/m/n/10 ($\OML/cmm/m/it/10 N[]\OT1/cmr/m/n/10 566$\T1/cmr/m/n/10 ), $\OT
-1/cmr/m/n/10 1030$\T1/cmr/m/n/10 MB on big-blue4 ($\OML/cmm/m/it/10 N[]\OT1/cmr
-/m/n/10 8170$\T1/cmr/m/n/10 ), $\OT1/cmr/m/n/10 2946$\T1/cmr/m/n/10 MB on big-b
-lue2 ($\OML/cmm/m/it/10 N[]\OT1/cmr/m/n/10 23084$\T1/cmr/m/n/10 ). This is orde
-r-of-magnitude
- []
 
+[4 <./figures/fig7_convergence.pdf>]
 
-
-[3 <./figures/fig5_num_steps.pdf> <./figures/fig6_step_size.pdf>]
-Overfull \hbox (5.0205pt too wide) in paragraph at lines 160--164
-[]\T1/cmr/m/n/10 A nat-u-ral fu-ture di-rec-tion: re-place the back-bone's quad
-ratic at-ten-tion with lin-ear at-ten-tion (e.g. Performer-
- []
-
-
-
-[4 <./figures/fig8_timestep_sweep.pdf>]
-
-[5] (./supplement.aux)
+[5 <./figures/fig5_num_steps.pdf> <./figures/fig6_step_size.pdf>]
+(./supplement.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
 Package rerunfilecheck Info: File `supplement.out' has not changed.
-(rerunfilecheck)             Checksum: 32DAC399AC2726179B10D97BC3A94B1A;1611.
+(rerunfilecheck)             Checksum: 1BC4CC3BA56AC8F9275781EDC2FAFCF9;2202.
  ) 
 Here is how much of TeX's memory you used:
- 10556 strings out of 474662
- 160557 string characters out of 5751109
- 561388 words of memory out of 5000000
- 33436 multiletter control sequences out of 15000+600000
- 571977 words of font info for 72 fonts, out of 8000000 for 9000
+ 10577 strings out of 474662
+ 160604 string characters out of 5751109
+ 577603 words of memory out of 5000000
+ 33447 multiletter control sequences out of 15000+600000
+ 577296 words of font info for 86 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 75i,9n,79p,492b,594s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,11n,79p,574b,478s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/moyunxiang/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknap
-pen/ec/ecrm0700.600pk> </Users/moyunxiang/Library/texlive/2025basic/texmf-var/f
-onts/pk/ljfour/jknappen/ec/tcrm1000.600pk> </Users/moyunxiang/Library/texlive/2
-025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1000.600pk> </Users/moyunxia
-ng/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1000.600
+pen/ec/ecti1000.600pk> </Users/moyunxiang/Library/texlive/2025basic/texmf-var/f
+onts/pk/ljfour/jknappen/ec/ecrm0700.600pk> </Users/moyunxiang/Library/texlive/2
+025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600pk> </Users/moyunxia
+ng/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1000.600
 pk> </Users/moyunxiang/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jkna
-ppen/ec/ecrm1000.600pk> </Users/moyunxiang/Library/texlive/2025basic/texmf-var/
-fonts/pk/ljfour/jknappen/ec/ecbx1440.600pk> </Users/moyunxiang/Library/texlive/
-2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1200.600pk> </Users/moyunxi
-ang/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1728.60
-0pk></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cme
-x10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmmi10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfont
-s/cm/cmmi7.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsf
-onts/cm/cmr10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmr7.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/pu
-blic/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1
+ppen/ec/ecbx0900.600pk> </Users/moyunxiang/Library/texlive/2025basic/texmf-var/
+fonts/pk/ljfour/jknappen/ec/ecrm0900.600pk> </Users/moyunxiang/Library/texlive/
+2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1000.600pk> </Users/moyunxi
+ang/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1000.60
+0pk> </Users/moyunxiang/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jkn
+appen/ec/ecbx1440.600pk> </Users/moyunxiang/Library/texlive/2025basic/texmf-var
+/fonts/pk/ljfour/jknappen/ec/ecrm1200.600pk> </Users/moyunxiang/Library/texlive
+/2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1728.600pk></usr/local/tex
+live/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/
+texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/lo
+cal/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></us
+r/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb><
+/usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pf
+b></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9
+.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cm
+r10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmr5.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmr7.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfont
+s/cm/cmr9.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmsy10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmsy5.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/pu
+blic/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1
 /public/amsfonts/symbols/msbm10.pfb>
-Output written on supplement.pdf (5 pages, 262810 bytes).
+Output written on supplement.pdf (5 pages, 330685 bytes).
 PDF statistics:
- 615 PDF objects out of 1000 (max. 8388607)
- 159 compressed objects within 2 object streams
- 29 named destinations out of 1000 (max. 500000)
- 85 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 679 PDF objects out of 1000 (max. 8388607)
+ 189 compressed objects within 2 object streams
+ 27 named destinations out of 1000 (max. 500000)
+ 96 words of extra memory for PDF output out of 10000 (max. 10000000)
 

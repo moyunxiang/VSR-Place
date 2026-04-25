@@ -56,53 +56,70 @@
 
 ---
 
-## 当前在做 — Phase 4（GPU #2）
+## Phase 4 — GPU #2 (done)
 
-**G1 component ablation**：6 circuits × 3 seeds × 8 variants ≈ 144 runs ≈ 30 min A800
+**G1 component ablation 完成**：6 circuits × 3 seeds × 8 variants = 144 runs
 
-8 variants：
-- `full` — VSR-post λ=2 (control)
-- `binary_mask` — boolean mask 替代 severity-soft
-- `no_overlap` / `no_boundary` — verifier 信号去其一
-- `no_attract` / `no_repulsive` — force 项去其一
-- `random_select` — 随机 K macros
-- `uniform_select` — 全 macros 同样 force
+关键发现（结果在 `results/vsr_extra/component_ablation.json`）：
 
-**目标**：reviewer 问 "structured feedback necessary?" 时 directly answer with table。
+| 变体 | Δviol | ΔHPWL | 严格 Pareto |
+|---|---|---|---|
+| **full (control)** | **−50.1%** | **−5.1%** | **9/18** |
+| − overlap signal | +79.2% (worse) | −85.0% | 0/18 |
+| − boundary signal | −82.9% | −8.9% | 9/18 |
+| − attractive force | −51.4% | +138.4% (catastrophic) | 0/18 |
+| severity soft-mask | −21.8% | +43.7% | 1/18 |
+| random_select / uniform_select | = full（饱和情况） | = full | 9/18 |
 
-预算：~¥15。脚本 `scripts/run_component_ablation.py` 已写 + 本地 mock preflight 通过。
+**结论**：
+1. 移除 overlap 信号 / repulsive 力 → 违规反增 79%（结构必需）
+2. 移除 attractive 力 → HPWL 翻倍 +138%（必需）
+3. severity-weighted soft mask 比 binary 差 28pp（**binary mask 才对**）
+4. boundary signal 在饱和 draft 上其实可省（次要发现）
+
+塞进 main.tex §4.7 + Table 6。
+
+成本：~¥25 × 50 min A800。
 
 ---
 
-## Phase 5 — Final（未做）
+## Phase 5 — Final（剩余人工事项）
 
-- [ ] 把 G1 component ablation 结果 import 进 §4.7
+- [x] G1 results import 进 §4.7 (commit `21d632d`)
+- [x] supplement.tex 用新 ablations 数据填实 (commit 待推)
+- [x] main.tex self-review 一轮
 - [ ] 内部 review 一轮（你 / 同事）
-- [ ] NeurIPS abstract registration（早于 paper deadline）
+- [ ] NeurIPS abstract registration（截止前）
 - [ ] 上传 OpenReview + 完整 supplement
+- [ ] author / affiliation block（投稿时填）
 
 ---
 
-## 仓库当前状态
+## 仓库当前状态（Phase 5 起点）
 
 ```
-paper/main.tex          ← 9 page content + 2 page refs (NeurIPS 2026 sty)
-paper/main.pdf          ← 编译输出，0 undefined refs
-paper/supplement.tex    ← 7 sections
-paper/figures/*.pdf     ← 9 figures
+paper/main.tex          ← 9 页正文 + 2 页 refs (NeurIPS 2026 sty)
+paper/main.pdf          ← 0 undefined refs
+paper/supplement.tex    ← 11 sections（含 G1 完整表 + failure-mode 列表 + toy 2D 数字）
+paper/supplement.pdf    ← 5 页
+paper/figures/*.pdf     ← 11 figures
 results/ispd2005/*.json ← 全部 GPU 实验数据
-results/vsr_extra/*     ← Phase 2 local analysis
-results/toy/*           ← toy 2D 全量
-scripts/                ← 18+ 脚本，含 preflight + bootstrap
+results/vsr_extra/*     ← lambda sweep / step / failure / G1 component ablation
+results/toy/*           ← toy 2D 全量 (1250 rows)
+scripts/                ← 20+ 脚本
 ```
 
-GitHub: https://github.com/moyunxiang/VSR-Place（当前 HEAD `9522efd`）
+GitHub: https://github.com/moyunxiang/VSR-Place（最新 HEAD `21d632d`，supp update 待推）
 
 ---
 
-## AutoDL 当前状态（Phase 4 GPU run）
+## 总成本
 
-- Host: connect.nma1.seetacloud.com:54595
-- A800 80GB confirmed
-- Bootstrap 流程同 `scripts/bootstrap_autodl.sh` + `push_to_autodl.sh`
-- 配置预算：~¥30（含 buffer）
+| 阶段 | 时长 | 费用 |
+|---|---|---|
+| AutoDL #1（E1/E4/E5） | 3.5h × A800 | ¥105 |
+| AutoDL #2（G1 component） | 50 min × A800 | ¥25 |
+| 本地 CPU | — | 0 |
+| **合计** | | **¥130** |
+
+两台 AutoDL 都已关机。预算上限 ¥200，实际 65%。

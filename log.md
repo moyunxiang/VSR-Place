@@ -1,5 +1,34 @@
 # VSR-Place Development Log
 
+#### 2026-04-26 13:30 HKT — Phase 4 G1 component ablation (AutoDL #2) + supplement 重写
+**Context**: 用户开第二台 AutoDL（connect.nma1, port 54595），跑 G1 component ablation。同时把 main.tex 的旧 §"Component ablation" 真实化、supplement 全面填实。
+**Actions**:
+- 杀 3 个老 AutoDL #1（端口 43333）残留 ssh shell
+- 切 ssh config alias 到 54595
+- 8-chunk 并行 scp 重新推 75M+108M（这次 ~10min 完成）
+- 修 G1 脚本 bug：原 _force_step 中 repulsive 方向反了 + attract 缩放错。重写以镜像 local_repair_step。8 variants 本地 mock + 远端真跑 18×8=144 runs ≈ 50 min。
+- 拉回结果 + analyze_component_ablation.py → table_component_ablation.tex + csv + md
+- main.tex §4.7 加入真实 G1 数据；Discussion + Broader Impact + Reproducibility 压成单 §
+- supplement.tex 全面重写：11 sections，加入 lambda 全表（per-circuit）、G1 完整表、failure-mode 14-trial 列表、toy 2D 数字、neural variants 详情
+- 关 AutoDL #2
+
+**Results — G1 component ablation (n=18)**:
+- full (control)         Δv=−50.1±17.1%  Δh=−5.1±34.8%   Pareto 9/18
+- − overlap signal       Δv=+79.2±57.4%  Δh=−85.0±7.2%   Pareto 0/18  ← repulsive 力必需
+- − boundary signal      Δv=−82.9±4.1%   Δh=−8.9±30.8%   Pareto 9/18  ← 实际可省
+- − attractive force     Δv=−51.4±18.5%  Δh=+138.4±53.6% Pareto 0/18  ← attract 必需
+- severity soft-mask     Δv=−21.8±16.9%  Δh=+43.7±23.5%  Pareto 1/18  ← binary 才对
+- random/uniform select  = full（饱和情况）
+
+**Decisions / Assumptions**:
+- 8-chunk 并行 scp 在新 AutoDL 上聚合 ~150 KB/s（vs 第一台 ~25 KB/s 单 stream）。比第一台节省 70 min。
+- G1 中 "severity_weighted" 是 NEW variant（之前没测过）；"binary mask + selective" 才是 main paper VSR-post。
+- "boundary force 可省" 是次要发现，没塞 main paper（supplement 一行带过）。
+
+**Cost**: AutoDL #2 50 min ≈ ¥25。两台累计 ¥130。
+
+**Next**: supplement 编译通过 5 页。剩余事项纯人工：内部 review、abstract reg、OpenReview 上传。
+
 #### 2026-04-26 07:00 HKT — NeurIPS 全套 GPU 实验完成 (E1/E4/E5 on AutoDL A800)
 **Context**: 用户开 AutoDL A800 80GB（connect.nma1, port 43333），授权我端到端跑 + 关机。
 **Actions**:

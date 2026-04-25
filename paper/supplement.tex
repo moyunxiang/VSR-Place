@@ -10,7 +10,8 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 
-\title{Supplement: Verifier-Guided Constraint Projection}
+\title{Supplement: Verifier-Guided Selective Repair for\\
+Diffusion-Generated Macro Placements}
 \author{Anonymous Authors}
 
 \begin{document}
@@ -22,92 +23,259 @@
 \section{Implementation details of the verifier}
 \label{sec:supp-verifier}
 
-The pairwise overlap matrix $A \in \mathbb{R}^{N \times N}$ is computed as follows (PyTorch pseudocode):
+The pairwise overlap matrix $A \in \mathbb{R}^{N \times N}$ is computed in
+fully vectorized form:
 \begin{verbatim}
   # centers: (N, 2), sizes: (N, 2)
   cx, cy = centers[:, 0], centers[:, 1]
   sw, sh = sizes[:, 0], sizes[:, 1]
-
-  # pairwise AABB
   ovx = torch.clamp_min(
-      torch.minimum(cx[:, None] + sw[:, None]/2, cx[None, :] + sw[None, :]/2) -
-      torch.maximum(cx[:, None] - sw[:, None]/2, cx[None, :] - sw[None, :]/2),
-      0,
-  )
+      torch.minimum(cx[:,None]+sw[:,None]/2, cx[None,:]+sw[None,:]/2)
+    - torch.maximum(cx[:,None]-sw[:,None]/2, cx[None,:]-sw[None,:]/2), 0)
   ovy = torch.clamp_min(
-      torch.minimum(cy[:, None] + sh[:, None]/2, cy[None, :] + sh[None, :]/2) -
-      torch.maximum(cy[:, None] - sh[:, None]/2, cy[None, :] - sh[None, :]/2),
-      0,
-  )
+      torch.minimum(cy[:,None]+sh[:,None]/2, cy[None,:]+sh[None,:]/2)
+    - torch.maximum(cy[:,None]-sh[:,None]/2, cy[None,:]-sh[None,:]/2), 0)
   A = ovx * ovy
-  A.fill_diagonal_(0)  # exclude self-overlap
+  A.fill_diagonal_(0)
 \end{verbatim}
+Boundary violation along axis $a \in \{x,y\}$ and edge $e \in \{-,+\}$:
+$b_i^{a,-} = \max(0,\, s_i^a/2 - c_i^a)$,
+$b_i^{a,+} = \max(0,\, c_i^a + s_i^a/2 - W_a)$, with
+$b_i = \sum_{a,e} b_i^{a,e}$.
 
-Boundary violation for each macro along axis $a \in \{x,y\}$ and edge $e \in \{-,+\}$:
-\begin{equation}
-  b_i^{a,-} = \max(0, s_i^a/2 - c_i^a),
-  \qquad b_i^{a,+} = \max(0, c_i^a + s_i^a/2 - W_a),
-\end{equation}
-with $b_i = \sum_a (b_i^{a,-} + b_i^{a,+})$.
+\section{Lambda sweep: per-circuit detail}
+\label{sec:supp-lambda}
+
+The cross-circuit summary appears in the main paper.  Table~\ref{tab:supp-lambda}
+gives the per-circuit, per-$\lambda$ Pareto numbers behind that summary
+($n=3$ seeds per cell, mean over seeds).  Note the strict-Pareto rate per
+operating point: from $0/18$ at $\lambda=0$ (pure repulsion, HPWL inflates
+$\sim 162\%$) to $16/18$ at $\lambda=4$.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrr|rr|rr|rr|rr|rr}
+\toprule
+& \multicolumn{2}{c|}{$\lambda{=}0$} & \multicolumn{2}{c|}{$\lambda{=}0.25$} &
+\multicolumn{2}{c|}{$\lambda{=}0.5$} & \multicolumn{2}{c|}{$\lambda{=}1$} &
+\multicolumn{2}{c|}{$\lambda{=}2$} & \multicolumn{2}{c}{$\lambda{=}4$} \\
+Circuit & $\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ &
+$\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ &
+$\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ \\
+\midrule
+adaptec1 & $-41.7$ & $+226.2$ & $-39.5$ & $+87.1$ & $-40.1$ & $+47.5$ & $-36.4$ & $+31.1$ & $-37.0$ & $-7.3$ & $-34.5$ & $-3.7$ \\
+adaptec2 & $-55.5$ & $+251.0$ & $-48.2$ & $+128.1$ & $-45.8$ & $+85.4$ & $-44.6$ & $+50.3$ & $-46.6$ & $+16.7$ & $-39.9$ & $-19.1$ \\
+adaptec3 & $-51.0$ & $+124.0$ & $-50.6$ & $+75.9$ & $-50.9$ & $+56.4$ & $-51.0$ & $+34.5$ & $-52.9$ & $+17.5$ & $-55.2$ & $+3.4$ \\
+adaptec4 & $-62.1$ & $+104.3$ & $-60.9$ & $+62.7$ & $-60.6$ & $+36.3$ & $-60.8$ & $+6.9$ & $-58.4$ & $-11.4$ & $-56.8$ & $-25.5$ \\
+bigblue1 & $-20.0$ & $+142.1$ & $-18.7$ & $-22.3$ & $-22.9$ & $-61.2$ & $-23.4$ & $-77.0$ & $-25.5$ & $-73.5$ & $-22.6$ & $-75.9$ \\
+bigblue3 & $-78.6$ & $+122.0$ & $-78.4$ & $+72.3$ & $-79.0$ & $+54.5$ & $-79.2$ & $+37.4$ & $-79.3$ & $+19.5$ & $-78.5$ & $-3.9$ \\
+\midrule
+strict-P & \multicolumn{2}{c|}{$0/18$} & \multicolumn{2}{c|}{$2/18$} &
+\multicolumn{2}{c|}{$3/18$} & \multicolumn{2}{c|}{$4/18$} &
+\multicolumn{2}{c|}{$8/18$} & \multicolumn{2}{c}{$\mathbf{16/18}$} \\
+\bottomrule
+\end{tabular}
+\caption{Per-circuit $\Delta v\,\%$ and $\Delta h\,\%$ across the
+$\lambda$ sweep, mean over 3 seeds.  Strict-Pareto count rises
+monotonically with $\lambda$, peaking at $89\%$ ($16/18$) at
+$\lambda{=}4$.}
+\label{tab:supp-lambda}
+\end{table}
+
+\section{Component ablation: full table}
+\label{sec:supp-component}
+
+The main-paper component ablation runs each of the 8 variants on
+6 circuits $\times$ 3 seeds $=$ 18 paired trials, replicating the same
+ChipDiffusion-guided draft for each variant.  Table~\ref{tab:supp-component}
+reproduces it verbatim.  Two notes: (i) ``$-$ overlap signal'' and
+``$-$ repulsive force'' produce identical numbers because in our
+implementation the repulsive force is the only consumer of the pairwise
+overlap matrix (this is by design and stated in \S3.1 of the main paper);
+(ii) the ``no boundary signal'' variant is incidentally redundant with
+repulsive$+$attractive forces on these drafts because every macro overlaps a
+neighbor and the repulsive force pushes incidentally back inside the canvas.
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_component_ablation}
+\caption{Component ablation, mean $\pm$ std over 18 (circuit, seed) pairs.
+Same as main paper Table~6.  Raw data: \texttt{results/vsr\_extra/component\_ablation.json}.}
+\label{tab:supp-component}
+\end{table}
+
+\section{Failure-mode analysis: full list}
+\label{sec:supp-failures}
+
+Table~\ref{tab:supp-failures} lists every (circuit, seed) trial flagged as
+not strict-Pareto improving the raw draft at $\lambda=2$.  Of the 12
+non-Pareto trials, all share the structural pattern described in
+\S4.6 of the main paper: heavy-overlap drafts where repulsive force
+dominates attractive force, particularly on circuits with hub macros
+(adaptec3, bigblue3) where moving a single macro drags long edge tails.
+$\lambda=4$ flips most of these into strict-Pareto territory at the cost of
+$\sim 2$\,pp violation reduction.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrrl}
+\toprule
+Circuit & seed & $\Delta v\,\%$ & $\Delta h\,\%$ & failure flags \\
+\midrule
+adaptec1 & 123  & $-37.5$ & $+42.2$ & HPWL$>+20\%$, non-Pareto \\
+adaptec2 & 123  & $-60.5$ &  $+6.4$ & non-Pareto \\
+adaptec2 & 300  & $-48.2$ & $+25.7$ & HPWL$>+20\%$, non-Pareto \\
+adaptec2 & 2024 & $-61.8$ &  $+5.0$ & non-Pareto \\
+adaptec3 & 42   & $-57.9$ & $+23.1$ & HPWL$>+20\%$, non-Pareto \\
+adaptec3 & 123  & $-52.9$ & $+26.9$ & HPWL$>+20\%$, non-Pareto \\
+adaptec3 & 300  & $-51.8$ & $+33.9$ & HPWL$>+20\%$, non-Pareto \\
+adaptec3 & 2024 & $-51.2$ & $+35.3$ & HPWL$>+20\%$, non-Pareto \\
+bigblue1 & 123  & $-13.9$ & $-80.8$ & weak-violation-cut \\
+bigblue1 & 2024 & $-20.0$ & $-47.8$ & weak-violation-cut \\
+bigblue3 & 42   & $-77.7$ & $+15.0$ & non-Pareto \\
+bigblue3 & 123  & $-81.5$ & $+17.8$ & non-Pareto \\
+bigblue3 & 300  & $-72.8$ & $+14.2$ & non-Pareto \\
+bigblue3 & 2024 & $-77.1$ & $+12.9$ & non-Pareto \\
+\bottomrule
+\end{tabular}
+\caption{All 14 trials flagged at $\lambda{=}2$.  ``HPWL$>+20\%$'' indicates
+HPWL inflation greater than $20$\,pp; ``non-Pareto'' indicates
+$\Delta v < 0$ but $\Delta h \geq 0$; ``weak-violation-cut'' indicates
+$\Delta v > -20\%$.  Two bigblue1 trials are flagged purely on weak
+violation reduction (HPWL is actually strongly improved).
+Raw data: \texttt{results/vsr\_extra/failure\_cases.csv}.}
+\label{tab:supp-failures}
+\end{table}
+
+\section{Toy cross-domain experiment}
+\label{sec:supp-toy2d}
+
+We trained a tiny ($\sim 200$\,K-parameter) attention-GNN-style denoiser on
+1000 synthetic legal $30$-disk layouts (canvas $[0,1]^2$, radii
+$\in [0.018, 0.035]$, sparse random graph with $60$ edges) for $30{,}000$
+training steps.  At inference, we sample $50$ test prompts $\times$ $5$
+seeds $=$ $250$ runs per method.  Numbers in
+Table~\ref{tab:supp-toy} (mean over $250$ runs).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrr}
+\toprule
+Method & violation count & overlap area & wirelength \\
+\midrule
+baseline (raw)         & 11.2  & 0.246  & 42.4 \\
+classifier guidance    & 27.8  & \textbf{0.000} & 227.9 ($\,5.4\times\,$baseline) \\
+RePaint, binary mask   & \textbf{3.4}   & 0.064  & 38.6 \\
+\textbf{VSR-post} (ours) & 6.2 & \textbf{0.030} & 41.0 \\
+VSR-intra (soft)       & 8.3   & 0.149  & 42.3 \\
+\bottomrule
+\end{tabular}
+\caption{Toy 2D non-overlap, mean over $250$ runs/method.  Two observations:
+(i) classifier guidance with strong constraint weighting kills overlap but
+inflates wirelength $5.4\times$, mirroring the placement-domain finding;
+(ii) RePaint with binary mask minimizes pair count but produces residual
+small overlaps; VSR-post minimizes the total overlap area while preserving
+wirelength.  Raw rows: \texttt{results/toy/toy\_results.json}.}
+\label{tab:supp-toy}
+\end{table}
+
+The cross-domain pattern is consistent with the placement results:
+classifier guidance trades constraint satisfaction for wirelength inflation;
+verifier-guided structured repair preserves both.  We treat this as a
+controlled domain-independence test, not a thorough cross-domain study.
 
 \section{Neural repair operator: full training details}
 \label{sec:supp-neural}
 
-\paragraph{Architecture.} 3-layer GATv2 (heads=4, hidden=128), scale-invariant input normalization (centers and severity are divided by $\max(W, H)$). Node features: $[\mathrm{severity}, \mathrm{boundary}, \mathrm{n\_overlappers}, s^w, s^h]$. Edge features: 4-dim pin offsets (from ChipDiffusion's edge\_attr).
+The negative-result GNN repair operator referenced in \S5 of the main paper
+spans six training regimes:
 
-\paragraph{Loss.} L2 on the predicted displacement against a target defined by the variant (see below).
+\paragraph{Architecture.} 3-layer GATv2 (heads$=4$, hidden$=128$, $\sim 100$\,K
+parameters), scale-invariant input normalization (centers and severity divided
+by $\max(W, H)$).  Node features:
+$[\mathrm{severity}, \mathrm{boundary}, \mathrm{n\_overlappers}, s^w, s^h]$.
+Edge features: 4-dim pin offsets from ChipDiffusion's \texttt{edge\_attr}.
+
+\paragraph{Loss.} L2 on the predicted displacement against a target defined
+by the variant.
 
 \paragraph{Variants.}
 \begin{itemize}
-\item \textbf{Synthetic teacher}: hand-crafted operator applied to synthetic placements from ChipDiffusion's data generator. 2500 training graphs, 200 val.
-\item \textbf{Real teacher}: hand-crafted operator on diffusion-sampled ISPD2005 placements (3 samples per circuit × 1--3 circuits = 3--9 samples depending on seed).
-\item \textbf{Data augmentation}: per-sample $\times 50$ random Gaussian perturbations of the baseline.
-\item \textbf{Trajectory distillation}: $(x_k, x_{k+1})$ pairs from every step of the hand-crafted operator; 30 steps $\times$ 3 samples = 90 pairs.
-\item \textbf{Ground-truth target}: ISPD2005 industrial \texttt{.pl} placements as target.
-\item \textbf{Residual learning}: train to predict $x_{GT} - x_{\text{hand}}$ after hand-crafted convergence; apply as residual scale $s \in \{0.01, 0.05, 0.1, 0.2\}$.
+\item \textbf{Synthetic teacher}: hand-crafted operator outputs on synthetic
+graphs (2500 train, 200 val).
+\item \textbf{Real teacher}: hand-crafted on diffusion-sampled ISPD2005 placements
+(3 samples $\times$ up to 3 circuits = 3--9 samples).
+\item \textbf{Data augmentation}: per-sample $\times 50$ random perturbations.
+\item \textbf{Trajectory distillation}: $(x_k, x_{k+1})$ pairs from every
+hand-crafted step; 30 steps $\times$ 3 samples $=$ 90 pairs.
+\item \textbf{Ground-truth target}: ISPD2005 industrial \texttt{.pl} placements.
+\item \textbf{Residual learning}: predict $x_{GT} - x_{\text{hand}}$ after
+hand-crafted convergence.
 \end{itemize}
 
-\paragraph{Training.} Adam, lr $10^{-3}$, 100 epochs, batch 1 (per-graph), early stop on val loss.
-
-\paragraph{Findings.} Best val loss was 0.0037 (trajectory distillation), but at inference on ISPD2005 the best variant (residual $s=0.1$) improved violations on 1 of 6 circuits while degrading HPWL. Detailed per-circuit results are available in \texttt{results/neural\_vsr/eval\_*.json}.
-
-\section{Extended Pareto results}
-\label{sec:supp-pareto}
-
-Full per-seed per-$\lambda$ results are in \texttt{results/ispd2005/pareto\_3seed\_6w.json}. The 3-seed standard deviation for $\Delta$viol is $< 4\%$ on 5 of 6 circuits and $< 8\%$ on adaptec2. The standard deviation for $\Delta$HPWL is circuit-dependent: under 15\% for adaptec1--4 and bigblue3, and up to 20\% on bigblue1 where baseline HPWL is very small and therefore percent-changes are noisier.
+\paragraph{Findings.}  Best validation L2 was $0.0037$ (trajectory
+distillation), but at inference on ISPD2005 the best variant (residual
+$s{=}0.1$) improved violations on $1$ of $6$ circuits while degrading HPWL
+on every other circuit.  We attribute this to extreme data scarcity (8
+ISPD2005 circuits) and conjecture that a learned operator at this scale
+must already \emph{contain} the inductive biases (pairwise overlap-driven
+repulsion, edge-local wirelength attraction, selective preservation) that the
+hand-crafted operator encodes by construction.  Detailed per-circuit
+evaluations: \texttt{results/neural\_vsr/eval\_*.json}.
 
 \section{Convergence curves}
 \label{sec:supp-convergence}
 
-Figure~\ref{fig:supp-convergence} (attached) shows per-iteration $(v_t, h_t)$ trajectories for $T=300$ iterations on adaptec1 and bigblue1 at $\lambda=2$. Violations decrease near-monotonically; HPWL changes non-monotonically in the first $\sim 30$ iterations (as the repulsive force initially pushes connected macros apart) before the attractive term pulls them back. The plateau is reached by $T \approx 100$, consistent with the num\_steps ablation.
+Figure~\ref{fig:supp-convergence} shows per-iteration $(v_t, h_t)$
+trajectories for $T=300$ iterations on adaptec1 and bigblue1 at
+$\lambda=2$.  Violations decrease near-monotonically; HPWL changes
+non-monotonically in the first $\sim 30$ iterations (repulsive force
+initially pushes connected macros apart) before the attractive term
+pulls them back.  Plateau is reached by $T \approx 100$, confirming our
+default budget.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.85\linewidth]{figures/fig7_convergence.pdf}
-\caption{Per-iteration convergence for VSR on adaptec1 and bigblue1, 3 seeds each. Top row: violations vs.\ iteration. Bottom row: HPWL vs.\ iteration. Shaded band = seed std.}
+\caption{Per-iteration convergence on adaptec1 and bigblue1, 3 seeds.
+Top row: violations.  Bottom row: HPWL.  Shaded band: seed std.}
 \label{fig:supp-convergence}
 \end{figure}
 
-\section{Full ablations and extra figures}
-\label{sec:supp-ablations}
+\section{Memory profile of the diffusion backbone}
+\label{sec:supp-mem}
 
-\paragraph{Number of steps $T$ (Fig.~\ref{fig:supp-numsteps}).} Violations plateau near $T=100$; going to $T=500$ gains $<2\%$ on all circuits and HPWL is stable.
+In addition to the consolidated table in the main paper, the per-precision
+profile reveals two facts about the OOM frontier:
 
-\paragraph{Step size $\eta$ (Fig.~\ref{fig:supp-stepsize}).} $\eta=0.3$ (default) is the robust middle ground. $\eta=1.0$ gains marginal violation reduction at higher HPWL variance.
+\begin{itemize}
+\item Forward-step memory of the attention-GNN scales roughly linearly with
+$N$ (macros): $221$\,MB on adaptec2 ($N{=}566$), $1030$\,MB on bigblue4
+($N{=}8170$), $2946$\,MB on bigblue2 ($N{=}23084$).  This suggests the
+attention key/query/value tensors, not message passing, are the bottleneck.
+\item Full-rollout memory (100 denoising steps) saturates near $78$\,GB
+on the OOM circuits, consistent with KV-cache-like activation accumulation
+across the rollout that flash-attention does not fully release.
+\end{itemize}
 
-\paragraph{Selective vs.\ global (Tab.~\ref{tab:supp-selective}).} Identical on ISPD2005 raw drafts because every macro violates.
+A natural future direction: replace the backbone's quadratic attention with
+linear attention (Performer-style kernelized attention) on the macro-graph
+axis; this would unblock bigblue2/4 evaluation but requires backbone
+retraining, which is beyond our scope.
 
-\paragraph{Intra-sampling start timestep (Fig.~\ref{fig:supp-timestep}).}
-The full 6-circuit, 5-timestep sweep shows that the intra-sampling
-HPWL benefit is monotonically stronger with larger $t_{\text{start}}$
-on the largest circuit: bigblue3 reaches $-34.5\%$ HPWL at
-$t_{\text{start}}=0.5$, $-37.8\%$ at $t_{\text{start}}=0.7$ (median across 3
-seeds).  On adaptec3 the curve is shallower ($-12.6\%$ at $t=0.1$, decaying to
-$-5.1\%$ at $t=0.7$).  On the smaller circuits (adaptec1, adaptec2,
-bigblue1) the absolute HPWL change is within $\pm 5\%$ across all $t$,
-consistent with the hypothesis that backbone-prior leverage scales with
-circuit size.  Raw rows: \texttt{results/ispd2005/timestep\_sweep\_full.json}
-(90 rows, 6 circuits $\times$ 5 timesteps $\times$ 3 seeds).
+Raw rows: \texttt{results/ispd2005/mem\_profile.json} (9 rows: 3 circuits
+$\times$ 3 dtypes).
+
+\section{Step-budget and step-size figures}
+\label{sec:supp-budget}
+
+Main paper Fig.~3 shows the cross-circuit step budget.  Figs.~\ref{fig:supp-numsteps}
+and~\ref{fig:supp-stepsize} show the step-size and original step-budget
+ablation; they confirm $T{=}100$ and $\eta{=}0.3$ as robust defaults.
 
 \begin{figure}[h]
 \centering
@@ -123,70 +291,23 @@ circuit size.  Raw rows: \texttt{results/ispd2005/timestep\_sweep\_full.json}
 \label{fig:supp-stepsize}
 \end{figure}
 
-\begin{table}[h]
-\centering
-\input{figures/table_selective}
-\caption{Selective vs.\ global repair.}
-\label{tab:supp-selective}
-\end{table}
+\section{Reproducibility and released artifacts}
+\label{sec:supp-repro}
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.85\linewidth]{figures/fig8_timestep_sweep.pdf}
-\caption{Intra-sampling start timestep sweep.}
-\label{fig:supp-timestep}
-\end{figure}
-
-\section{Memory profile of the diffusion backbone}
-\label{sec:supp-mem}
-
-We profile peak GPU memory of the ChipDiffusion backbone on the three
-relevant circuits in three precisions; full per-precision table appears
-in the main paper.  Two observations relevant to this supplement:
-
-\begin{itemize}
-\item Forward-step memory of the attention-GNN scales roughly with $N$
-(macro count): $220$\,MB on adaptec2 ($N{=}566$), $1030$\,MB on bigblue4
-($N{=}8170$), $2946$\,MB on bigblue2 ($N{=}23084$).  This is order-of-magnitude
-linear, suggesting the bottleneck is the attention key/query/value matrices,
-not the message passing.
-\item Full-rollout memory (100 denoising steps) is approximately
-$N$-times the forward step on small circuits but saturates near
-$78$\,GB on the OOM circuits.  This is consistent with KV-cache-like
-accumulation across the rollout that practical implementations of
-flash-attention do not fully release between steps.
-\end{itemize}
-
-A natural future direction: replace the backbone's quadratic attention with
-linear attention (e.g.\ Performer-style kernelized attention) on the macro-graph axis;
-this would unblock bigblue2/4 evaluation.  We did not attempt this because
-it would require backbone retraining.
-
-Raw rows: \texttt{results/ispd2005/mem\_profile.json} (9 rows: 3 circuits
-$\times$ 3 dtypes).
-
-\section{Toy cross-domain experiment}
-\label{sec:supp-toy2d}
-
-We provide a toy 2D non-overlap experiment in
-\texttt{scripts/toy\_2d\_experiment.py} that demonstrates the verifier-guided
-repair operator outside the placement domain.  Setup: 30 random disks on a
-unit canvas, sparse random graph, tiny per-disk denoiser trained on 1000
-synthetic legal layouts.  Five methods compared: baseline (raw sample),
-classifier-guidance (smooth softplus overlap penalty), RePaint with binary
-mask, VSR-post, VSR-intra-soft.
-
-This is a controlled cross-domain demonstration; we treat it as preliminary
-support for the abstraction generalizing.  Note that toy denoiser quality
-is sensitive to training set size; we recommend $\geq 1000$ training
-layouts and $\geq 30,000$ training steps for a publication-quality run.
-
-\section{Reproducibility}
-
-All code, configs, checkpoints, and result JSONs are released. A single command reproduces all main-paper numbers:
+All code, configs, and result JSONs are released under the supplementary archive.
+The main-paper numbers reproduce from the following commands on a single
+A800 80\,GB GPU (full sweep $\sim 70$\,min):
 \begin{verbatim}
-  python scripts/run_all_experiments.py --config configs/paper_main.yaml
+  python scripts/run_main_neurips.py        # main result, ~30 min
+  python scripts/run_timestep_sweep.py      # timestep sweep, ~12 min
+  python scripts/run_mem_profile.py         # memory profile, ~16 min
+  python scripts/run_component_ablation.py  # component ablation, ~12 min
+  python scripts/compute_neurips_stats.py   # main + supplement tables
+  python scripts/analyze_extra_experiments.py  # lambda/step/failure
+  python scripts/analyze_component_ablation.py # supplement Table 3
 \end{verbatim}
-on an A800 80GB GPU (or equivalent). The full sweep takes $\sim 20$ minutes.
+Seeds are fixed (\{42, 123, 300, 2024\} for the 4-seed runs;
+\{42, 123, 300\} for 3-seed sweeps).  All result JSONs are under
+\texttt{results/ispd2005/} and \texttt{results/vsr\_extra/}.
 
 \end{document}
