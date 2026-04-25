@@ -18,6 +18,7 @@ env/
 .vscode/
 *.swp
 *.swo
+.claude/
 
 # Experiment outputs (raw per-run data, too large for git)
 results/runs/

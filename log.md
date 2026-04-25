@@ -1,5 +1,63 @@
 # VSR-Place Development Log
 
+#### 2026-04-25 19:35 HKT — NeurIPS pivot: 6 轮迭代 → 5 个脚本 preflight 通过
+**Context**: 用户拍板冲 NeurIPS（main 优先，workshop 兜底），要求"流程优化到完美再开 GPU"。今天本地完成了 6 轮迭代设计 + 5 个脚本撰写 + preflight harness。
+**Actions**:
+- **Iter 1（数据审计）**: 诊断 bigblue1 baseline_h=12 / adaptec1=108。结论：filter_macros_only 把这两个电路的 macro-macro 边切到只剩 41/<10 条，HPWL 自然只有 O(10^2) 量级；当前 paper "mean ΔHPWL=-7.8%" 被 bigblue1 -74% 拉低（去掉它后 5 电路均值反而 +5.3%）。修复方向：median + per-circuit + Wilcoxon。
+- **Iter 2-3（narrative）**: 重新定位为 *"Verifier-Guided Inpainting: Structured-Feedback Constraint Satisfaction in Pretrained Diffusion Models"*。R1/R2/R3 reviewer-sim 后命中清单 H1-H8 全部转为 NeurIPS 格式实验需求。
+- **Iter 4（实验设计）**: 把 7 个独立脚本压缩到 5 个：L2 (robust stats CPU)、L1 (toy 2D CPU)、E1 (unified main GPU)、E4 (timestep sweep GPU)、E5 (mem profile GPU)。E2/E3 折叠为 E1 method module。
+- **Iter 5（NeurIPS rigor）**: 用户补 directive "NeurIPS main 实验格式"。升级：4 seeds × 6 circuits × 7 methods，bootstrap CI + Wilcoxon paired test，VRAM/wall-clock/forward-pass 全报，每图 error bar。
+- **Iter 6（脚本+preflight）**: 写出全部脚本，逐个 mock-mode + 真跑预飞通过。
+
+**Results**:
+- `scripts/compute_robust_stats.py`: 跑出真实 headline 数字
+  - VSR-post: median Δv=−49.2%, median Δh=+1.9%（mean Δh=−7.8 是 bigblue1 拉的）
+  - **VSR-post 8/18 严格 Pareto 改善 baseline，CD-std 0/18，CD-sched 1/18**
+  - **Wilcoxon: VSR-post vs CD-std 在 Δv 和 Δh 上都 p<0.001 ***
+- `scripts/run_main_neurips.py`: 7 method × 6 circuit × 4 seed unified driver，per-pair resume，OOM 隔离
+- `scripts/run_timestep_sweep.py`: 6 电路 × 5 t × 3 seed = 90 runs（之前只有 a3+bb3）
+- `scripts/run_mem_profile.py`: bigblue2/4 OOM 详细 VRAM 曲线，证明 attention bottleneck 而不是 VSR
+- `scripts/toy_2d_experiment.py`: 30 disks tiny DDPM + 5 method 跨域 demo（CPU 本地，full quality 需 ~30 min）
+- `scripts/preflight_all.py`: 5/5 检查全部通过
+
+**Decisions / Assumptions**:
+- 把 cg_strong（classifier-guidance baseline）实现成 monkey-patch 后的 guided_sample（legality_weight=1.0, hpwl_weight=0）。Verification: 真 GPU run 时核 baseline_v vs cg_strong_v 是否真有差。
+- 抛弃 full-pin HPWL 重算（scope creep）：用 median + Wilcoxon 已够 sidestep bigblue1 scale 问题。
+- Toy 2D 在 quick mode（1500 train steps）数字尚未 sane：vsr_post 在欠训 prior 下塌缩。脚本结构 OK，全量训练（30K 步 × 1000 layouts）才能给可发表数字。
+
+**Cost estimate (GPU)**:
+- E1 main: 6 circuits × 4 seeds × 7 methods ≈ 30-40 min A800
+- E4 timestep sweep: 90 runs ≈ 1.5-2 h A800
+- E5 mem profile: 3 circuits × 3 dtypes ≈ 30 min A800
+- Toy 2D 全量: 30 min CPU (nice-to-have，本地能跑)
+- 总计 ~3-4 h A800 ≈ ¥120-150
+- Buffer 30% → 上限 ¥200
+
+**Next**:
+- 用户改回路：废弃 kevindev，只用 **本地 mac + AutoDL**。下一步：用户在 AutoDL 开 A800 80GB 实例 → scp 本地 `local_artifacts/{large-v2.ckpt, ispd2005dp.tar.xz}` 与 `scripts/{run_main_neurips, run_timestep_sweep, run_mem_profile, preflight_all}.py` 上去（其余仓库内容 git clone）→ 在 AutoDL 上 `python3 scripts/preflight_all.py` 复跑 → E1 → E4 → E5 → rsync 回本地。
+- 启动后顺序：preflight_all 在 GPU 上再跑一次 → E1 main（最关键）→ E4 sweep → E5 profile → 回写 paper
+
+#### 2026-04-25 18:25 HKT — 全量 rsync remote vsr_place → local VSR-Place（最终收尾）
+**Context**: 把 `kevindev:/home/dev/workspace/vsr_place/`（远程命名是下划线）整体镜像到本地 `/Users/moyunxiang/kevinelw/study/coding/VSR-Place/`，用户要求所有文件都拿下来包括缓存与 `.claude/` 配置。
+**Actions**（按顺序）:
+1. 探测远程：`du -sh` = 326M；大头 `local_artifacts/` (176M) + `third_party/` (99M, submodule)。
+2. 第 1 轮 rsync 带排除 `__pycache__/ .pytest_cache/ *.pyc .DS_Store`：传 967 文件 / 261 MB。
+3. 第 2 轮 rsync 去掉所有 `--exclude`：补传 41 文件 / 217 KB（缓存）。
+4. 两轮均报 exit 23：`local_artifacts/{config.yaml, large-v2.ckpt}` 因 `-rw-------` 且 owner=root 不可读。
+5. 用户在终端执行 `! ssh -t kevindev "sudo chmod 644 ..."` 放权限（验证后变 `-rw-r--r--`）。
+6. 第 3 轮 rsync 收尾：传 3 文件 / 75 MB（含 `large-v2.ckpt` 75M、`config.yaml` 1.7K，以及又一次被覆盖的 `log.md`）。**exit 0**。
+**Results**:
+- 本地总大小 346M（远程 326M，差异是 macOS APFS 与 Linux ext4 的 `du` 计块差，文件内容一致）。
+- `local_artifacts/` 三个文件齐全（`ispd2005dp.tar.xz` 108M、`large-v2.ckpt` 75M、`config.yaml` 1.7K）。
+- `git status` 干净，HEAD = bb10896 transfer。
+- `.claude/settings.local.json` 已同步（项目级权限白名单）。
+**Decisions / Assumptions**:
+- **副作用**：远程→本地全量 rsync 会覆盖任何本地新增内容，包括 `log.md` 自身。本会话期间该文件已被覆盖 3 次，每轮同步后都需要手动重写本次同步的记录。本条记录是第 3 轮同步后补回。
+- **`.claude/` 安全确认**（用户疑问）：项目级 `.claude/` 仅含 `settings.local.json`（权限白名单，无凭证）；登录凭证位于用户家目录 `~/.claude/`，rsync 目标只是项目目录，不会触碰家目录。
+**Next**:
+- 同步任务已完成，无后续动作。
+- 提示：以后再做远程→本地 rsync 前，先把本地新增的 `log.md` 等内容用 `git commit` 或人工备份保护起来，否则会被覆盖。
+
 #### 2026-04-22 18:50 HKT — bigblue3 placement viz + paper restructured
 **Context**: Saved bigblue3 baseline/post/intra placements for visualization. Trimmed paper: moved fig5/6/7/8 + selective table to supplement.
 **Actions**:
