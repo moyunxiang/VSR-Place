@@ -97,7 +97,17 @@ Figure~\ref{fig:supp-convergence} (attached) shows per-iteration $(v_t, h_t)$ tr
 
 \paragraph{Selective vs.\ global (Tab.~\ref{tab:supp-selective}).} Identical on ISPD2005 raw drafts because every macro violates.
 
-\paragraph{Intra-sampling start timestep (Fig.~\ref{fig:supp-timestep}).} For bigblue3, $t=0.3$ achieves the best HPWL ($-16\%$); $t=0.5$ gives $+9\%$. For adaptec3 the curve is flatter, confirming intra's circuit-dependence.
+\paragraph{Intra-sampling start timestep (Fig.~\ref{fig:supp-timestep}).}
+The full 6-circuit, 5-timestep sweep shows that the intra-sampling
+HPWL benefit is monotonically stronger with larger $t_{\text{start}}$
+on the largest circuit: bigblue3 reaches $-34.5\%$ HPWL at
+$t_{\text{start}}=0.5$, $-37.8\%$ at $t_{\text{start}}=0.7$ (median across 3
+seeds).  On adaptec3 the curve is shallower ($-12.6\%$ at $t=0.1$, decaying to
+$-5.1\%$ at $t=0.7$).  On the smaller circuits (adaptec1, adaptec2,
+bigblue1) the absolute HPWL change is within $\pm 5\%$ across all $t$,
+consistent with the hypothesis that backbone-prior leverage scales with
+circuit size.  Raw rows: \texttt{results/ispd2005/timestep\_sweep\_full.json}
+(90 rows, 6 circuits $\times$ 5 timesteps $\times$ 3 seeds).
 
 \begin{figure}[h]
 \centering
@@ -126,6 +136,50 @@ Figure~\ref{fig:supp-convergence} (attached) shows per-iteration $(v_t, h_t)$ tr
 \caption{Intra-sampling start timestep sweep.}
 \label{fig:supp-timestep}
 \end{figure}
+
+\section{Memory profile of the diffusion backbone}
+\label{sec:supp-mem}
+
+We profile peak GPU memory of the ChipDiffusion backbone on the three
+relevant circuits in three precisions; full per-precision table appears
+in the main paper.  Two observations relevant to this supplement:
+
+\begin{itemize}
+\item Forward-step memory of the attention-GNN scales roughly with $N$
+(macro count): $220$\,MB on adaptec2 ($N{=}566$), $1030$\,MB on bigblue4
+($N{=}8170$), $2946$\,MB on bigblue2 ($N{=}23084$).  This is order-of-magnitude
+linear, suggesting the bottleneck is the attention key/query/value matrices,
+not the message passing.
+\item Full-rollout memory (100 denoising steps) is approximately
+$N$-times the forward step on small circuits but saturates near
+$78$\,GB on the OOM circuits.  This is consistent with KV-cache-like
+accumulation across the rollout that practical implementations of
+flash-attention do not fully release between steps.
+\end{itemize}
+
+A natural future direction: replace the backbone's quadratic attention with
+linear attention (e.g.\ Performer-style kernelized attention) on the macro-graph axis;
+this would unblock bigblue2/4 evaluation.  We did not attempt this because
+it would require backbone retraining.
+
+Raw rows: \texttt{results/ispd2005/mem\_profile.json} (9 rows: 3 circuits
+$\times$ 3 dtypes).
+
+\section{Toy cross-domain experiment}
+\label{sec:supp-toy2d}
+
+We provide a toy 2D non-overlap experiment in
+\texttt{scripts/toy\_2d\_experiment.py} that demonstrates the verifier-guided
+repair operator outside the placement domain.  Setup: 30 random disks on a
+unit canvas, sparse random graph, tiny per-disk denoiser trained on 1000
+synthetic legal layouts.  Five methods compared: baseline (raw sample),
+classifier-guidance (smooth softplus overlap penalty), RePaint with binary
+mask, VSR-post, VSR-intra-soft.
+
+This is a controlled cross-domain demonstration; we treat it as preliminary
+support for the abstraction generalizing.  Note that toy denoiser quality
+is sensitive to training set size; we recommend $\geq 1000$ training
+layouts and $\geq 30,000$ training steps for a publication-quality run.
 
 \section{Reproducibility}
 
