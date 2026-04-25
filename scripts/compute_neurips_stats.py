@@ -216,14 +216,31 @@ def fmt_pct(stat, mean_key, std_key):
     return f"${stat[mean_key]:+.1f}{{\\scriptscriptstyle\\pm{stat[std_key]:.1f}}}$"
 
 
-def emit_main_table(summary, path):
-    show_methods = ["vsr_post", "vsr_intra", "cd_std", "cd_sched", "cg_strong", "repaint_bin"]
+_LBL = {
+    "vsr_post": "VSR-post",
+    "vsr_intra": "VSR-intra",
+    "cd_std": "CD-std",
+    "cd_sched": "CD-sched",
+    "cg_strong": "cg-strong",
+    "repaint_bin": "RePaint-bin",
+}
+
+
+def _emit_table(summary, path, show_methods, fontsize=None):
+    n = len(show_methods)
+    head_cols = " & ".join(
+        rf"\multicolumn{{2}}{{c}}{{{_LBL[m]}}}" for m in show_methods
+    )
+    cmid = " ".join(
+        rf"\cmidrule(lr){{{i*2+3}-{i*2+4}}}" for i in range(n)
+    )
+    sub = " & ".join(r"$\Delta v$ & $\Delta h$" for _ in show_methods)
     lines = [
-        r"\begin{tabular}{lr" + "rr" * len(show_methods) + r"}",
+        r"\begin{tabular}{lr" + "rr" * n + r"}",
         r"\toprule",
-        r" & & " + " & ".join(rf"\multicolumn{{2}}{{c}}{{{m.replace('_',' ')}}}" for m in show_methods) + r" \\",
-        " ".join(rf"\cmidrule(lr){{{i*2+3}-{i*2+4}}}" for i in range(len(show_methods))),
-        r"Circuit & $N$ & " + " & ".join(r"$\Delta v\%$ & $\Delta h\%$" for _ in show_methods) + r" \\",
+        r" & & " + head_cols + r" \\",
+        cmid,
+        r"Circuit & $N$ & " + sub + r" \\",
         r"\midrule",
     ]
     for c, v in sorted(summary.items()):
@@ -234,6 +251,17 @@ def emit_main_table(summary, path):
         lines.append(" & ".join(cells) + r" \\")
     lines += [r"\bottomrule", r"\end{tabular}"]
     path.write_text("\n".join(lines) + "\n")
+
+
+def emit_main_table(summary, path):
+    """Slim main-paper version: 4 most important methods, fits 1-column."""
+    _emit_table(summary, path, ["vsr_post", "vsr_intra", "cd_std", "cd_sched"])
+
+
+def emit_full_table(summary, path):
+    """Full supplement version: all 6 methods."""
+    _emit_table(summary, path,
+                ["vsr_post", "vsr_intra", "cd_std", "cd_sched", "cg_strong", "repaint_bin"])
 
 
 def emit_wilcoxon_table(stats, path):
@@ -308,8 +336,11 @@ def main():
 
     PAPER_FIG.mkdir(parents=True, exist_ok=True)
     emit_main_table(summary, PAPER_FIG / "table_main_neurips.tex")
+    emit_full_table(summary, PAPER_FIG / "table_main_full.tex")
     emit_wilcoxon_table(stats, PAPER_FIG / "table_wilcoxon.tex")
-    print(f"Wrote {PAPER_FIG/'table_main_neurips.tex'}, {PAPER_FIG/'table_wilcoxon.tex'}")
+    print(f"Wrote {PAPER_FIG/'table_main_neurips.tex'} (slim)")
+    print(f"Wrote {PAPER_FIG/'table_main_full.tex'} (6-method)")
+    print(f"Wrote {PAPER_FIG/'table_wilcoxon.tex'}")
 
     # ---- print headline ----
     print("\n=== Cross-circuit medians ===")

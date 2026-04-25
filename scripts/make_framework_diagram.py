@@ -51,7 +51,7 @@ box(ax, (2.6, 1.0), 2.0, 1.2, "Verifier", "#FFE9C2",
 box(ax, (5.4, 1.0), 2.0, 1.2, "Selector", "#DDF2D9",
     subtext=r"offender mask $M$")
 box(ax, (8.2, 1.0), 2.0, 1.2, "Repair operator", "#FFD4D4",
-    subtext="hand-crafted\nor neural")
+    subtext="post-process\nor intra-sample")
 box(ax, (10.7, 1.0), 1.2, 1.2, "Legal\nplacement", "#E8E8FF")
 
 # Arrows
@@ -67,10 +67,10 @@ ax.text(6.4, 2.78, "re-verify (optional closed loop)",
         ha="center", va="bottom", fontsize=9, style="italic", color="#333")
 
 # Bottom labels
-ax.text(1.0, 0.7, "x₀ sample", ha="center", fontsize=8.5, style="italic", color="#333")
-ax.text(3.6, 0.7, "severity\noverlap graph\nboundary", ha="center", fontsize=8, color="#333")
-ax.text(6.4, 0.7, "threshold / top-k /\nseverity > 0", ha="center", fontsize=8, color="#333")
-ax.text(9.2, 0.7, "repulsive+attractive\nforce (§3.3)\nor GNN (§3.4)", ha="center", fontsize=8, color="#333")
+ax.text(1.0, 0.7, r"$x_0$ sample", ha="center", fontsize=8.5, style="italic", color="#333")
+ax.text(3.6, 0.7, "severity scalar\noverlap graph\nboundary vector", ha="center", fontsize=8, color="#333")
+ax.text(6.4, 0.7, "soft mask\n$M_i = r_i / \\max r$", ha="center", fontsize=8, color="#333")
+ax.text(9.2, 0.7, "100-step force\nintegrator $\\lambda{=}2$\n(§\\,3.3)", ha="center", fontsize=8, color="#333")
 
 fig.tight_layout()
 fig.savefig(OUT, bbox_inches="tight", dpi=200)

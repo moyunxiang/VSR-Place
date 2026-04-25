@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  26 APR 2026 01:47
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  26 APR 2026 01:54
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -566,28 +566,24 @@ l Guid-ance [[]] ex-tends this with it-er-a-tive gra-di-ent de-scent on the
 [3]
 
 [4] (./figures/table_main_neurips.tex)
-Overfull \hbox (275.41075pt too wide) in paragraph at lines 1--317
- [][] 
- []
-
-<figures/fig4_percircuit.pdf, id=263, 930.43987pt x 352.68163pt>
+<figures/fig4_percircuit.pdf, id=264, 786.25114pt x 280.90768pt>
 File: figures/fig4_percircuit.pdf Graphic file (type pdf)
 <use figures/fig4_percircuit.pdf>
-Package pdftex.def Info: figures/fig4_percircuit.pdf  used on input line 323.
-(pdftex.def)             Requested size: 377.60951pt x 143.13126pt.
-(./figures/table_wilcoxon.tex)
+Package pdftex.def Info: figures/fig4_percircuit.pdf  used on input line 325.
+(pdftex.def)             Requested size: 377.60951pt x 134.9113pt.
+ (./figures/table_wilcoxon.tex)
 
 [5 <./figures/fig4_percircuit.pdf>]
-<figures/fig8_timestep_sweep.pdf, id=320, 787.30765pt x 277.95029pt>
+<figures/fig8_timestep_sweep.pdf, id=327, 787.30765pt x 277.95029pt>
 File: figures/fig8_timestep_sweep.pdf Graphic file (type pdf)
 <use figures/fig8_timestep_sweep.pdf>
-Package pdftex.def Info: figures/fig8_timestep_sweep.pdf  used on input line 39
-9.
+Package pdftex.def Info: figures/fig8_timestep_sweep.pdf  used on input line 40
+1.
 (pdftex.def)             Requested size: 377.60951pt x 133.31282pt.
-<figures/fig9_post_vs_intra.pdf, id=321, 906.47165pt x 335.33278pt>
+<figures/fig9_post_vs_intra.pdf, id=328, 906.47165pt x 335.33278pt>
 File: figures/fig9_post_vs_intra.pdf Graphic file (type pdf)
 <use figures/fig9_post_vs_intra.pdf>
-Package pdftex.def Info: figures/fig9_post_vs_intra.pdf  used on input line 410
+Package pdftex.def Info: figures/fig9_post_vs_intra.pdf  used on input line 412
 .
 (pdftex.def)             Requested size: 377.60951pt x 139.68753pt.
 
@@ -602,21 +598,18 @@ Underfull \vbox (badness 5652) has occurred while \output is active []
 [6 <./figures/fig8_timestep_sweep.pdf>]
 
 [7 <./figures/fig9_post_vs_intra.pdf>]
-Underfull \hbox (badness 1365) in paragraph at lines 499--505
+Underfull \hbox (badness 1365) in paragraph at lines 496--502
  []\T1/ptm/b/n/10 Why does intra-sampling help big-blue3 but not adaptec1?[] \T
 1/ptm/m/n/10 We hy-poth-e-size that intra-
  []
 
 
-Underfull \hbox (badness 4096) in paragraph at lines 538--542
+Underfull \hbox (badness 4096) in paragraph at lines 535--539
 \T1/ptm/m/n/10 All ex-per-i-ments use pub-licly re-leased data (ISPD2005) and c
 heck-points (ChipDif-fu-sion
  []
 
 (./main.bbl
-Underfull \vbox (badness 4739) has occurred while \output is active []
-
-
 
 [8])
 
@@ -631,11 +624,11 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 Here is how much of TeX's memory you used:
  13064 strings out of 474662
  204058 string characters out of 5751109
- 621385 words of memory out of 5000000
+ 616689 words of memory out of 5000000
  35850 multiletter control sequences out of 15000+600000
  600825 words of font info for 81 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 75i,11n,79p,507b,556s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,11n,79p,599b,556s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmex1
 0.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/c
 mmi10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/
@@ -652,16 +645,15 @@ ype1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2025basic/texmf-dist/fonts
 onts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2025basic/texmf-dis
 t/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2025basic/texmf-
 dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2025basic/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2025basic/
-texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/texlive/2
-025basic/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/
-texlive/2025basic/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texli
-ve/2025basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/20
-25basic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (9 pages, 476287 bytes).
+mf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/texlive/2025
+basic/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/tex
+live/2025basic/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/
+2025basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2025b
+asic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on main.pdf (9 pages, 467911 bytes).
 PDF statistics:
- 578 PDF objects out of 1000 (max. 8388607)
- 287 compressed objects within 3 object streams
+ 582 PDF objects out of 1000 (max. 8388607)
+ 289 compressed objects within 3 object streams
  73 named destinations out of 1000 (max. 500000)
  149 words of extra memory for PDF output out of 10000 (max. 10000000)
 
