@@ -1,0 +1,15 @@
+circuit,seed,delta_v_pct,delta_h_pct,baseline_v,baseline_h,flags
+adaptec1,123,-37.5,42.2,21652,94.3,HPWL>+20%;non-Pareto
+adaptec2,123,-60.5,6.4,32608,16620.5,non-Pareto
+adaptec2,300,-48.2,25.7,34318,18608.0,HPWL>+20%;non-Pareto
+adaptec2,2024,-61.8,5.0,32898,15674.0,non-Pareto
+adaptec3,42,-57.9,23.1,43123,44761.9,HPWL>+20%;non-Pareto
+adaptec3,123,-52.9,26.9,39095,43485.8,HPWL>+20%;non-Pareto
+adaptec3,300,-51.8,33.9,37827,39369.6,HPWL>+20%;non-Pareto
+adaptec3,2024,-51.2,35.3,39105,38218.6,HPWL>+20%;non-Pareto
+bigblue1,123,-13.9,-80.8,10416,15.7,weak-violation-cut
+bigblue1,2024,-20.0,-47.8,9816,11.5,weak-violation-cut
+bigblue3,42,-77.7,15.0,203836,102301.9,non-Pareto
+bigblue3,123,-81.5,17.8,198179,95855.4,non-Pareto
+bigblue3,300,-72.8,14.2,144344,94951.2,non-Pareto
+bigblue3,2024,-77.1,12.9,160293,96354.4,non-Pareto

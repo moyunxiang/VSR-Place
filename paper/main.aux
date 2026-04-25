@@ -57,37 +57,45 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Per-circuit, per-method comparison (4 seeds each). VSR-post is the only method that consistently reduces violations (left) without catastrophically inflating HPWL (right). CD-std and CD-sched reduce violations less and balloon HPWL by 70--400\%.}}{5}{figure.caption.22}\protected@file@percent }
 \newlabel{fig:percircuit}{{2}{5}{Per-circuit, per-method comparison (4 seeds each). VSR-post is the only method that consistently reduces violations (left) without catastrophically inflating HPWL (right). CD-std and CD-sched reduce violations less and balloon HPWL by 70--400\%}{figure.caption.22}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Strict Pareto frontier}{5}{subsection.4.3}\protected@file@percent }
+\newlabel{sec:strict_pareto}{{4.3}{5}{Strict Pareto frontier}{subsection.4.3}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Number of (circuit, seed) pairs strictly Pareto-improving the raw diffusion draft (i.e., $\Delta v < 0$ AND $\Delta h < 0$ jointly). ChipDiffusion's released legalizers \emph  {never} achieve a strict Pareto improvement; they always reduce violations by sacrificing HPWL.}}{5}{table.caption.23}\protected@file@percent }
 \newlabel{tab:strict_pareto}{{2}{5}{Number of (circuit, seed) pairs strictly Pareto-improving the raw diffusion draft (i.e., $\Delta v < 0$ AND $\Delta h < 0$ jointly). ChipDiffusion's released legalizers \emph {never} achieve a strict Pareto improvement; they always reduce violations by sacrificing HPWL}{table.caption.23}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Statistical significance}{6}{subsection.4.4}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Paired Wilcoxon signed-rank tests, $n=24$ (circuit, seed) pairs. $^{***}$ denotes $p<10^{-3}$. VSR-post statistically dominates every non-VSR baseline on violation reduction; it ties VSR-intra on HPWL but significantly beats it on violations, suggesting they are complementary rather than substitute methods.}}{6}{table.caption.24}\protected@file@percent }
 \newlabel{tab:wilcoxon}{{3}{6}{Paired Wilcoxon signed-rank tests, $n=24$ (circuit, seed) pairs. $^{***}$ denotes $p<10^{-3}$. VSR-post statistically dominates every non-VSR baseline on violation reduction; it ties VSR-intra on HPWL but significantly beats it on violations, suggesting they are complementary rather than substitute methods}{table.caption.24}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Intra-sampling: when the backbone's wirelength prior helps}{6}{subsection.4.5}\protected@file@percent }
-\newlabel{sec:intra_results}{{4.5}{6}{Intra-sampling: when the backbone's wirelength prior helps}{subsection.4.5}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Intra-sampling HPWL change as a function of $t_{\text  {start}}$, across 6 circuits and 3 seeds. Bigblue3 (the largest tractable circuit) shows a striking monotonic improvement, peaking at $-34.5\%$ HPWL. Smaller circuits show small effects, suggesting backbone-prior leverage scales with circuit size.}}{6}{figure.caption.25}\protected@file@percent }
-\newlabel{fig:timestep_sweep}{{3}{6}{Intra-sampling HPWL change as a function of $t_{\text {start}}$, across 6 circuits and 3 seeds. Bigblue3 (the largest tractable circuit) shows a striking monotonic improvement, peaking at $-34.5\%$ HPWL. Smaller circuits show small effects, suggesting backbone-prior leverage scales with circuit size}{figure.caption.25}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Pareto control: the $\lambda $ knob}{6}{subsection.4.5}\protected@file@percent }
+\newlabel{sec:lambda_sweep}{{4.5}{6}{Pareto control: the $\lambda $ knob}{subsection.4.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces $\lambda $-sweep on 6 circuits (3 seeds, errorbars $=$ std). Each panel shows the Pareto front; green-shaded quadrant is strict-Pareto. Increasing $\lambda $ moves operating points leftward (lower HPWL) at near-constant violation reduction.}}{6}{figure.caption.25}\protected@file@percent }
+\newlabel{fig:lambda_sweep}{{3}{6}{$\lambda $-sweep on 6 circuits (3 seeds, errorbars $=$ std). Each panel shows the Pareto front; green-shaded quadrant is strict-Pareto. Increasing $\lambda $ moves operating points leftward (lower HPWL) at near-constant violation reduction}{figure.caption.25}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Step budget and compute efficiency}{6}{subsection.4.6}\protected@file@percent }
+\newlabel{sec:step_budget}{{4.6}{6}{Step budget and compute efficiency}{subsection.4.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Step budget sweep. Left: $\Delta v$ plateau by $T=100$ on all circuits. Right: linear wall-clock; CD-std ($5000$ steps) marked as dashed reference. VSR's $1.6$--$3.6\times $ speedup over CD legalizers holds at every $T$ we tested.}}{7}{figure.caption.26}\protected@file@percent }
+\newlabel{fig:step_budget}{{4}{7}{Step budget sweep. Left: $\Delta v$ plateau by $T=100$ on all circuits. Right: linear wall-clock; CD-std ($5000$ steps) marked as dashed reference. VSR's $1.6$--$3.6\times $ speedup over CD legalizers holds at every $T$ we tested}{figure.caption.26}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Failure-mode analysis}{7}{subsection.4.7}\protected@file@percent }
+\newlabel{sec:failures}{{4.7}{7}{Failure-mode analysis}{subsection.4.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Intra-sampling: when the backbone's wirelength prior helps}{7}{subsection.4.8}\protected@file@percent }
+\newlabel{sec:intra_results}{{4.8}{7}{Intra-sampling: when the backbone's wirelength prior helps}{subsection.4.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.9}Memory profile and limitations}{7}{subsection.4.9}\protected@file@percent }
+\newlabel{sec:limitations}{{4.9}{7}{Memory profile and limitations}{subsection.4.9}{}}
 \citation{chipformer}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Bigblue3 (1298 macros) qualitative comparison. Color = per-macro violation severity (log scale, dark red = high). Raw draft (left) piles macros at one corner. VSR-post (middle) spreads them out: violations drop sharply but HPWL grows. Intra-sampling (right) keeps a compact layout by re-invoking the diffusion backbone's wirelength prior. Quantitative numbers for all 4 seeds in Table~\ref {tab:main}.}}{7}{figure.caption.26}\protected@file@percent }
-\newlabel{fig:postvsintra}{{4}{7}{Bigblue3 (1298 macros) qualitative comparison. Color = per-macro violation severity (log scale, dark red = high). Raw draft (left) piles macros at one corner. VSR-post (middle) spreads them out: violations drop sharply but HPWL grows. Intra-sampling (right) keeps a compact layout by re-invoking the diffusion backbone's wirelength prior. Quantitative numbers for all 4 seeds in Table~\ref {tab:main}}{figure.caption.26}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Memory profile and limitations}{7}{subsection.4.6}\protected@file@percent }
-\newlabel{sec:limitations}{{4.6}{7}{Memory profile and limitations}{subsection.4.6}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Memory profile (peak GPU memory, 100-step ChipDiffusion sampling). Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each circuit, so we report a single column. The OOM frontier is the diffusion backbone, not the repair operator: VSR-post on synthetic baselines succeeds on \emph  {every} circuit including bigblue2/4 (last column, wall-clock). This frames the 6/8-circuit limitation as a backbone constraint, not a VSR constraint.}}{7}{table.caption.27}\protected@file@percent }
-\newlabel{tab:mem}{{4}{7}{Memory profile (peak GPU memory, 100-step ChipDiffusion sampling). Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each circuit, so we report a single column. The OOM frontier is the diffusion backbone, not the repair operator: VSR-post on synthetic baselines succeeds on \emph {every} circuit including bigblue2/4 (last column, wall-clock). This frames the 6/8-circuit limitation as a backbone constraint, not a VSR constraint}{table.caption.27}{}}
-\@writefile{toc}{\contentsline {paragraph}{Limitations.}{7}{section*.28}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Intra-sampling HPWL change as a function of $t_{\text  {start}}$, across 6 circuits and 3 seeds. Bigblue3 (the largest tractable circuit) shows a striking monotonic improvement, peaking at $-34.5\%$ HPWL. Smaller circuits show small effects, suggesting backbone-prior leverage scales with circuit size.}}{8}{figure.caption.27}\protected@file@percent }
+\newlabel{fig:timestep_sweep}{{5}{8}{Intra-sampling HPWL change as a function of $t_{\text {start}}$, across 6 circuits and 3 seeds. Bigblue3 (the largest tractable circuit) shows a striking monotonic improvement, peaking at $-34.5\%$ HPWL. Smaller circuits show small effects, suggesting backbone-prior leverage scales with circuit size}{figure.caption.27}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Memory profile (peak GPU memory, 100-step ChipDiffusion sampling). Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each circuit, so we report a single column. The OOM frontier is the diffusion backbone, not the repair operator: VSR-post on synthetic baselines succeeds on \emph  {every} circuit including bigblue2/4 (last column, wall-clock). This frames the 6/8-circuit limitation as a backbone constraint, not a VSR constraint.}}{8}{table.caption.28}\protected@file@percent }
+\newlabel{tab:mem}{{4}{8}{Memory profile (peak GPU memory, 100-step ChipDiffusion sampling). Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each circuit, so we report a single column. The OOM frontier is the diffusion backbone, not the repair operator: VSR-post on synthetic baselines succeeds on \emph {every} circuit including bigblue2/4 (last column, wall-clock). This frames the 6/8-circuit limitation as a backbone constraint, not a VSR constraint}{table.caption.28}{}}
+\@writefile{toc}{\contentsline {paragraph}{Limitations.}{8}{section*.29}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion}{8}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why does the simple force integrator beat the 5000-step legalizer?}{8}{section*.30}\protected@file@percent }
 \bibstyle{plain}
 \bibdata{refs}
 \bibcite{constraint-guidance}{{1}{}{{}}{{}}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion}{8}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Why does the simple force integrator beat the 5000-step legalizer?}{8}{section*.29}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Why does intra-sampling help bigblue3 but not adaptec1?}{8}{section*.30}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Why do learned repair operators not help here?}{8}{section*.31}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{8}{section.6}\protected@file@percent }
 \bibcite{ntuplace}{{2}{}{{}}{{}}}
 \bibcite{replace}{{3}{}{{}}{{}}}
 \bibcite{classifier-guidance}{{4}{}{{}}{{}}}
 \bibcite{chipformer}{{5}{}{{}}{{}}}
 \bibcite{chipdiffusion}{{6}{}{{}}{{}}}
+\@writefile{toc}{\contentsline {paragraph}{Why do learned repair operators not help here?}{9}{section*.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{9}{section.6}\protected@file@percent }
 \bibcite{dreamplace}{{7}{}{{}}{{}}}
 \bibcite{repaint}{{8}{}{{}}{{}}}
 \providecommand\NAT@force@numbers{}\NAT@force@numbers
-\gdef \@abspage@last{9}
+\gdef \@abspage@last{10}

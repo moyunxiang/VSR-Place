@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  26 APR 2026 01:54
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  26 APR 2026 02:07
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -541,7 +541,7 @@ LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 9
 (/usr/local/texlive/2025basic/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
-<figures/fig1_framework.pdf, id=99, 787.74298pt x 267.39899pt>
+<figures/fig1_framework.pdf, id=111, 787.74298pt x 267.39899pt>
 File: figures/fig1_framework.pdf Graphic file (type pdf)
 <use figures/fig1_framework.pdf>
 Package pdftex.def Info: figures/fig1_framework.pdf  used on input line 118.
@@ -566,7 +566,7 @@ l Guid-ance [[]] ex-tends this with it-er-a-tive gra-di-ent de-scent on the
 [3]
 
 [4] (./figures/table_main_neurips.tex)
-<figures/fig4_percircuit.pdf, id=264, 786.25114pt x 280.90768pt>
+<figures/fig4_percircuit.pdf, id=276, 786.25114pt x 280.90768pt>
 File: figures/fig4_percircuit.pdf Graphic file (type pdf)
 <use figures/fig4_percircuit.pdf>
 Package pdftex.def Info: figures/fig4_percircuit.pdf  used on input line 325.
@@ -574,86 +574,97 @@ Package pdftex.def Info: figures/fig4_percircuit.pdf  used on input line 325.
  (./figures/table_wilcoxon.tex)
 
 [5 <./figures/fig4_percircuit.pdf>]
-<figures/fig8_timestep_sweep.pdf, id=327, 787.30765pt x 277.95029pt>
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 376.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\lambda' on input line 376.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 376.
+
+<figures/fig_lambda_sweep.pdf, id=339, 930.79115pt x 497.45036pt>
+File: figures/fig_lambda_sweep.pdf Graphic file (type pdf)
+<use figures/fig_lambda_sweep.pdf>
+Package pdftex.def Info: figures/fig_lambda_sweep.pdf  used on input line 393.
+(pdftex.def)             Requested size: 377.60951pt x 201.80786pt.
+
+
+[6 <./figures/fig_lambda_sweep.pdf>]
+<figures/fig_step_budget.pdf, id=428, 786.25114pt x 278.08379pt>
+File: figures/fig_step_budget.pdf Graphic file (type pdf)
+<use figures/fig_step_budget.pdf>
+Package pdftex.def Info: figures/fig_step_budget.pdf  used on input line 419.
+(pdftex.def)             Requested size: 377.60951pt x 133.55507pt.
+<figures/fig8_timestep_sweep.pdf, id=431, 787.30765pt x 277.95029pt>
 File: figures/fig8_timestep_sweep.pdf Graphic file (type pdf)
 <use figures/fig8_timestep_sweep.pdf>
-Package pdftex.def Info: figures/fig8_timestep_sweep.pdf  used on input line 40
-1.
+Package pdftex.def Info: figures/fig8_timestep_sweep.pdf  used on input line 46
+8.
 (pdftex.def)             Requested size: 377.60951pt x 133.31282pt.
-<figures/fig9_post_vs_intra.pdf, id=328, 906.47165pt x 335.33278pt>
-File: figures/fig9_post_vs_intra.pdf Graphic file (type pdf)
-<use figures/fig9_post_vs_intra.pdf>
-Package pdftex.def Info: figures/fig9_post_vs_intra.pdf  used on input line 412
-.
-(pdftex.def)             Requested size: 377.60951pt x 139.68753pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 
-Underfull \vbox (badness 5652) has occurred while \output is active []
 
+[7 <./figures/fig_step_budget.pdf>]
 
-
-[6 <./figures/fig8_timestep_sweep.pdf>]
-
-[7 <./figures/fig9_post_vs_intra.pdf>]
-Underfull \hbox (badness 1365) in paragraph at lines 496--502
- []\T1/ptm/b/n/10 Why does intra-sampling help big-blue3 but not adaptec1?[] \T
-1/ptm/m/n/10 We hy-poth-e-size that intra-
- []
-
-
-Underfull \hbox (badness 4096) in paragraph at lines 535--539
+[8 <./figures/fig8_timestep_sweep.pdf>]
+Underfull \hbox (badness 4096) in paragraph at lines 578--582
 \T1/ptm/m/n/10 All ex-per-i-ments use pub-licly re-leased data (ISPD2005) and c
 heck-points (ChipDif-fu-sion
  []
 
 (./main.bbl
 
-[8])
+[9])
 
-[9] (./main.aux)
+[10] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: C9E71FDC36DDDE09064FC98DAACA1261;2483.
+(rerunfilecheck)             Checksum: 1AE687EE2D8B70BFA1049C5EF3CFBBE9;3084.
  ) 
 Here is how much of TeX's memory you used:
- 13064 strings out of 474662
- 204058 string characters out of 5751109
- 616689 words of memory out of 5000000
- 35850 multiletter control sequences out of 15000+600000
- 600825 words of font info for 81 fonts, out of 8000000 for 9000
+ 13093 strings out of 474662
+ 204591 string characters out of 5751109
+ 616993 words of memory out of 5000000
+ 35870 multiletter control sequences out of 15000+600000
+ 602372 words of font info for 86 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 75i,11n,79p,599b,556s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmex1
+ 75i,11n,79p,599b,568s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx1
 0.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/c
-mmi10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmmi5.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmmi6.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/ams
-fonts/cm/cmmi7.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmmi9.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmr10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmr5.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1
-/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/t
-ype1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2025basic/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2025basic/texmf-dist/f
-onts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2025basic/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2025basic/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2025basic/tex
-mf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/texlive/2025
-basic/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/tex
-live/2025basic/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/
-2025basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2025b
-asic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (9 pages, 467911 bytes).
+mex10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmmi10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmmi5.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmmi6.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/pub
+lic/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/
+public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/t
+ype1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2025basic/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2025basic/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2025basic/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2025basic/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2025basic/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2025basic/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2025basic
+/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/texlive/
+2025basic/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local
+/texlive/2025basic/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texl
+ive/2025basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2
+025basic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on main.pdf (10 pages, 373193 bytes).
 PDF statistics:
- 582 PDF objects out of 1000 (max. 8388607)
- 289 compressed objects within 3 object streams
- 73 named destinations out of 1000 (max. 500000)
- 149 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 694 PDF objects out of 1000 (max. 8388607)
+ 322 compressed objects within 4 object streams
+ 77 named destinations out of 1000 (max. 500000)
+ 178 words of extra memory for PDF output out of 10000 (max. 10000000)
 
