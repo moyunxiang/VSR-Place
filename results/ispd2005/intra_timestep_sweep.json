@@ -1,0 +1,202 @@
+[
+  {
+    "circuit": "adaptec3",
+    "seed": 42,
+    "start_timestep": 0.1,
+    "base_v": 40885,
+    "base_h": 45921.7265625,
+    "v": 19500,
+    "h": 56092.5390625,
+    "time": 1.4121549129486084
+  },
+  {
+    "circuit": "adaptec3",
+    "seed": 42,
+    "start_timestep": 0.2,
+    "base_v": 40885,
+    "base_h": 45921.7265625,
+    "v": 19152,
+    "h": 57933.484375,
+    "time": 1.6045916080474854
+  },
+  {
+    "circuit": "adaptec3",
+    "seed": 42,
+    "start_timestep": 0.3,
+    "base_v": 40885,
+    "base_h": 45921.7265625,
+    "v": 20736,
+    "h": 55556.9453125,
+    "time": 1.9000883102416992
+  },
+  {
+    "circuit": "adaptec3",
+    "seed": 42,
+    "start_timestep": 0.5,
+    "base_v": 40885,
+    "base_h": 45921.7265625,
+    "v": 17233,
+    "h": 54477.60546875,
+    "time": 2.2899184226989746
+  },
+  {
+    "circuit": "adaptec3",
+    "seed": 42,
+    "start_timestep": 0.7,
+    "base_v": 40885,
+    "base_h": 45921.7265625,
+    "v": 18233,
+    "h": 55711.55078125,
+    "time": 2.395089626312256
+  },
+  {
+    "circuit": "adaptec3",
+    "seed": 123,
+    "start_timestep": 0.1,
+    "base_v": 38801,
+    "base_h": 39625.26953125,
+    "v": 18815,
+    "h": 56823.16796875,
+    "time": 1.6333749294281006
+  },
+  {
+    "circuit": "adaptec3",
+    "seed": 123,
+    "start_timestep": 0.2,
+    "base_v": 38801,
+    "base_h": 39625.26953125,
+    "v": 20498,
+    "h": 53432.96875,
+    "time": 1.799259901046753
+  },
+  {
+    "circuit": "adaptec3",
+    "seed": 123,
+    "start_timestep": 0.3,
+    "base_v": 38801,
+    "base_h": 39625.26953125,
+    "v": 21663,
+    "h": 53865.5234375,
+    "time": 1.9098470211029053
+  },
+  {
+    "circuit": "adaptec3",
+    "seed": 123,
+    "start_timestep": 0.5,
+    "base_v": 38801,
+    "base_h": 39625.26953125,
+    "v": 18468,
+    "h": 54966.84375,
+    "time": 2.205256223678589
+  },
+  {
+    "circuit": "adaptec3",
+    "seed": 123,
+    "start_timestep": 0.7,
+    "base_v": 38801,
+    "base_h": 39625.26953125,
+    "v": 19211,
+    "h": 50353.96484375,
+    "time": 2.799550771713257
+  },
+  {
+    "circuit": "bigblue3",
+    "seed": 42,
+    "start_timestep": 0.1,
+    "base_v": 234763,
+    "base_h": 102653.96875,
+    "v": 42874,
+    "h": 80032.203125,
+    "time": 2.334949016571045
+  },
+  {
+    "circuit": "bigblue3",
+    "seed": 42,
+    "start_timestep": 0.2,
+    "base_v": 234763,
+    "base_h": 102653.96875,
+    "v": 38911,
+    "h": 80794.2109375,
+    "time": 2.5117290019989014
+  },
+  {
+    "circuit": "bigblue3",
+    "seed": 42,
+    "start_timestep": 0.3,
+    "base_v": 234763,
+    "base_h": 102653.96875,
+    "v": 43412,
+    "h": 82717.0390625,
+    "time": 2.617656946182251
+  },
+  {
+    "circuit": "bigblue3",
+    "seed": 42,
+    "start_timestep": 0.5,
+    "base_v": 234763,
+    "base_h": 102653.96875,
+    "v": 37094,
+    "h": 91901.3671875,
+    "time": 3.1034910678863525
+  },
+  {
+    "circuit": "bigblue3",
+    "seed": 42,
+    "start_timestep": 0.7,
+    "base_v": 234763,
+    "base_h": 102653.96875,
+    "v": 40003,
+    "h": 80478.71875,
+    "time": 3.2100560665130615
+  },
+  {
+    "circuit": "bigblue3",
+    "seed": 123,
+    "start_timestep": 0.1,
+    "base_v": 172066,
+    "base_h": 94196.9375,
+    "v": 40146,
+    "h": 94360.625,
+    "time": 2.3979837894439697
+  },
+  {
+    "circuit": "bigblue3",
+    "seed": 123,
+    "start_timestep": 0.2,
+    "base_v": 172066,
+    "base_h": 94196.9375,
+    "v": 38613,
+    "h": 96064.671875,
+    "time": 2.9940574169158936
+  },
+  {
+    "circuit": "bigblue3",
+    "seed": 123,
+    "start_timestep": 0.3,
+    "base_v": 172066,
+    "base_h": 94196.9375,
+    "v": 37087,
+    "h": 82368.65625,
+    "time": 3.097421169281006
+  },
+  {
+    "circuit": "bigblue3",
+    "seed": 123,
+    "start_timestep": 0.5,
+    "base_v": 172066,
+    "base_h": 94196.9375,
+    "v": 39847,
+    "h": 120467.03125,
+    "time": 3.003169298171997
+  },
+  {
+    "circuit": "bigblue3",
+    "seed": 123,
+    "start_timestep": 0.7,
+    "base_v": 172066,
+    "base_h": 94196.9375,
+    "v": 35921,
+    "h": 97251.390625,
+    "time": 3.218040943145752
+  }
+]

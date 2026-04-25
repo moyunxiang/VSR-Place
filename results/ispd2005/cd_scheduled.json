@@ -1,0 +1,182 @@
+[
+  {
+    "circuit": "adaptec1",
+    "n_macros": 543,
+    "seed": 42,
+    "baseline_v": 18424,
+    "baseline_h": 111.14997100830078,
+    "cd_sched_v": 15356,
+    "cd_sched_h": 199.909912109375,
+    "cd_sched_time": 15.304583549499512
+  },
+  {
+    "circuit": "adaptec1",
+    "n_macros": 543,
+    "seed": 123,
+    "baseline_v": 21354,
+    "baseline_h": 96.42774200439453,
+    "cd_sched_v": 16880,
+    "cd_sched_h": 287.755859375,
+    "cd_sched_time": 15.696841478347778
+  },
+  {
+    "circuit": "adaptec1",
+    "n_macros": 543,
+    "seed": 300,
+    "baseline_v": 19294,
+    "baseline_h": 126.58153533935547,
+    "cd_sched_v": 18083,
+    "cd_sched_h": 189.872314453125,
+    "cd_sched_time": 15.778396606445312
+  },
+  {
+    "circuit": "adaptec2",
+    "n_macros": 566,
+    "seed": 42,
+    "baseline_v": 39338,
+    "baseline_h": 18173.25390625,
+    "cd_sched_v": 23311,
+    "cd_sched_h": 57018.74609375,
+    "cd_sched_time": 15.81679892539978
+  },
+  {
+    "circuit": "adaptec2",
+    "n_macros": 566,
+    "seed": 123,
+    "baseline_v": 30172,
+    "baseline_h": 18710.943359375,
+    "cd_sched_v": 11111,
+    "cd_sched_h": 72534.4609375,
+    "cd_sched_time": 15.488460302352905
+  },
+  {
+    "circuit": "adaptec2",
+    "n_macros": 566,
+    "seed": 300,
+    "baseline_v": 32102,
+    "baseline_h": 17313.10546875,
+    "cd_sched_v": 16125,
+    "cd_sched_h": 56168.44140625,
+    "cd_sched_time": 15.534460544586182
+  },
+  {
+    "circuit": "adaptec3",
+    "n_macros": 723,
+    "seed": 42,
+    "baseline_v": 39302,
+    "baseline_h": 45477.08203125,
+    "cd_sched_v": 26666,
+    "cd_sched_h": 75867.03125,
+    "cd_sched_time": 15.617974281311035
+  },
+  {
+    "circuit": "adaptec3",
+    "n_macros": 723,
+    "seed": 123,
+    "baseline_v": 41022,
+    "baseline_h": 39975.1015625,
+    "cd_sched_v": 26750,
+    "cd_sched_h": 227406.1875,
+    "cd_sched_time": 17.48799157142639
+  },
+  {
+    "circuit": "adaptec3",
+    "n_macros": 723,
+    "seed": 300,
+    "baseline_v": 37890,
+    "baseline_h": 39813.4375,
+    "cd_sched_v": 23095,
+    "cd_sched_h": 247508.375,
+    "cd_sched_time": 15.643243789672852
+  },
+  {
+    "circuit": "adaptec4",
+    "n_macros": 1329,
+    "seed": 42,
+    "baseline_v": 112650,
+    "baseline_h": 62967.5234375,
+    "cd_sched_v": 76326,
+    "cd_sched_h": 108533.9453125,
+    "cd_sched_time": 16.15702795982361
+  },
+  {
+    "circuit": "adaptec4",
+    "n_macros": 1329,
+    "seed": 123,
+    "baseline_v": 109418,
+    "baseline_h": 54366.7890625,
+    "cd_sched_v": 75668,
+    "cd_sched_h": 141102.0,
+    "cd_sched_time": 15.515377521514893
+  },
+  {
+    "circuit": "adaptec4",
+    "n_macros": 1329,
+    "seed": 300,
+    "baseline_v": 99652,
+    "baseline_h": 60754.6953125,
+    "cd_sched_v": 73217,
+    "cd_sched_h": 112557.0546875,
+    "cd_sched_time": 15.559515714645386
+  },
+  {
+    "circuit": "bigblue1",
+    "n_macros": 560,
+    "seed": 42,
+    "baseline_v": 11347,
+    "baseline_h": 11.745893478393555,
+    "cd_sched_v": 9839,
+    "cd_sched_h": 55.933616638183594,
+    "cd_sched_time": 14.76643967628479
+  },
+  {
+    "circuit": "bigblue1",
+    "n_macros": 560,
+    "seed": 123,
+    "baseline_v": 10416,
+    "baseline_h": 15.7106351852417,
+    "cd_sched_v": 11483,
+    "cd_sched_h": 26.6806640625,
+    "cd_sched_time": 14.933566331863403
+  },
+  {
+    "circuit": "bigblue1",
+    "n_macros": 560,
+    "seed": 300,
+    "baseline_v": 11799,
+    "baseline_h": 10.463732719421387,
+    "cd_sched_v": 10158,
+    "cd_sched_h": 40.94442367553711,
+    "cd_sched_time": 15.425046682357788
+  },
+  {
+    "circuit": "bigblue3",
+    "n_macros": 1298,
+    "seed": 42,
+    "baseline_v": 202242,
+    "baseline_h": 101880.1875,
+    "cd_sched_v": 95759,
+    "cd_sched_h": 97756.8046875,
+    "cd_sched_time": 15.761468172073364
+  },
+  {
+    "circuit": "bigblue3",
+    "n_macros": 1298,
+    "seed": 123,
+    "baseline_v": 181523,
+    "baseline_h": 96889.34375,
+    "cd_sched_v": 139037,
+    "cd_sched_h": 180527.71875,
+    "cd_sched_time": 16.604353666305542
+  },
+  {
+    "circuit": "bigblue3",
+    "n_macros": 1298,
+    "seed": 300,
+    "baseline_v": 143412,
+    "baseline_h": 97963.4453125,
+    "cd_sched_v": 27085,
+    "cd_sched_h": 614502.0,
+    "cd_sched_time": 16.395485877990723
+  }
+]

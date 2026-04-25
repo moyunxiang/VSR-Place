@@ -1,0 +1,115 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{chipdiffusion}
+\citation{classifier-guidance}
+\citation{constraint-guidance}
+\citation{dreamplace}
+\citation{chipdiffusion}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The problem.}{1}{section*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The gap we address.}{1}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Our framework.}{1}{section*.3}\protected@file@percent }
+\citation{chipdiffusion}
+\citation{miraichip}
+\citation{chipflow}
+\citation{repaint}
+\citation{classifier-guidance}
+\citation{constraint-guidance}
+\citation{ntuplace}
+\citation{replace}
+\citation{dreamplace}
+\citation{chipdiffusion}
+\citation{placeto}
+\citation{deepplace}
+\@writefile{toc}{\contentsline {paragraph}{Key findings.}{2}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Contributions.}{2}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Diffusion for placement.}{2}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Constraint-aware generation.}{2}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Placement legalization.}{2}{section*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Negative results in learned planning.}{2}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Method}{3}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Framework}{3}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Verifier}{3}{subsection.3.2}\protected@file@percent }
+\newlabel{sec:verifier}{{3.2}{3}{Verifier}{subsection.3.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Pairwise overlap matrix $A \in \mathbb  {R}^{N\times N}_{\geq 0}$}{3}{section*.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Boundary violation $b \in \mathbb  {R}^N_{\geq 0}$}{3}{section*.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Per-macro severity $r \in \mathbb  {R}^N_{\geq 0}$}{3}{section*.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Hand-crafted repair operator}{3}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:handcrafted}{{3.3}{3}{Hand-crafted repair operator}{subsection.3.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{Repulsive force $f_{\text  {rep}}$ (overlaps).}{3}{section*.13}\protected@file@percent }
+\citation{chipdiffusion}
+\@writefile{toc}{\contentsline {paragraph}{Attractive force $f_{\text  {attr}}$ (netlist).}{4}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Boundary force $f_{\text  {bd}}$.}{4}{section*.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Learned repair operator (ablation)}{4}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experiments}{4}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Setup}{4}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Benchmark.}{4}{section*.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Backbone.}{4}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Metrics.}{4}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Seeds.}{4}{section*.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Main result: Pareto tradeoff}{4}{subsection.4.2}\protected@file@percent }
+\citation{repaint}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Main results on ISPD2005 at $\lambda =2$, averaged over 3 seeds. Negative $\Delta $viol.\% means fewer violations; negative $\Delta $HPWL\% means shorter wirelength.\relax }}{5}{table.caption.20}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:main}{{1}{5}{Main results on ISPD2005 at $\lambda =2$, averaged over 3 seeds. Negative $\Delta $viol.\% means fewer violations; negative $\Delta $HPWL\% means shorter wirelength.\relax }{table.caption.20}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Head-to-head with ChipDiffusion's legalizer}{5}{subsection.4.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces VSR ($\lambda =2$, 100 steps) vs.\ both ChipDiffusion legalizer configs (5000-step SGD), averaged over 3 seeds. $\Delta $v\% = violation reduction (negative = fewer violations; lower is better). $\Delta $h\% = HPWL change (negative = shorter wirelength; lower is better). VSR wins on every circuit for both metrics against both CD configs. Note the \emph  {scheduled} config's nominal HPWL awareness ($w_{\text  {hpwl}}{=}4{\times }10^{-5}$) is too weak to counter the legality force and in practice \emph  {increases} HPWL more than the standard config.\relax }}{5}{table.caption.21}\protected@file@percent }
+\newlabel{tab:cdleg}{{2}{5}{VSR ($\lambda =2$, 100 steps) vs.\ both ChipDiffusion legalizer configs (5000-step SGD), averaged over 3 seeds. $\Delta $v\% = violation reduction (negative = fewer violations; lower is better). $\Delta $h\% = HPWL change (negative = shorter wirelength; lower is better). VSR wins on every circuit for both metrics against both CD configs. Note the \emph {scheduled} config's nominal HPWL awareness ($w_{\text {hpwl}}{=}4{\times }10^{-5}$) is too weak to counter the legality force and in practice \emph {increases} HPWL more than the standard config.\relax }{table.caption.21}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Intra-sampling VSR (RePaint-style)}{5}{subsection.4.4}\protected@file@percent }
+\newlabel{sec:intra}{{4.4}{5}{Intra-sampling VSR (RePaint-style)}{subsection.4.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Post-processing VSR vs.\ intra-sampling VSR, 3-seed means. Intra-sampling trades $2.5$\,pp of violation reduction for $5.5$\,pp of HPWL improvement on average, with its largest gain on bigblue3 ($-43.4$\,pp HPWL). Intra-sampling is also 2--5$\times $ faster because re-denoising uses the diffusion timestep schedule instead of 100 explicit repair steps.\relax }}{6}{table.caption.22}\protected@file@percent }
+\newlabel{tab:intra}{{3}{6}{Post-processing VSR vs.\ intra-sampling VSR, 3-seed means. Intra-sampling trades $2.5$\,pp of violation reduction for $5.5$\,pp of HPWL improvement on average, with its largest gain on bigblue3 ($-43.4$\,pp HPWL). Intra-sampling is also 2--5$\times $ faster because re-denoising uses the diffusion timestep schedule instead of 100 explicit repair steps.\relax }{table.caption.22}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Two-round repair with top-$k$ selector}{6}{subsection.4.5}\protected@file@percent }
+\newlabel{sec:two-round}{{4.5}{6}{Two-round repair with top-$k$ selector}{subsection.4.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Spacing-aware verifier}{6}{subsection.4.6}\protected@file@percent }
+\newlabel{sec:spacing}{{4.6}{6}{Spacing-aware verifier}{subsection.4.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Ablations (brief; full results in supplement)}{6}{subsection.4.7}\protected@file@percent }
+\newlabel{sec:ablations}{{4.7}{6}{Ablations (brief; full results in supplement)}{subsection.4.7}{}}
+\newlabel{sec:neural-results}{{4.8}{6}{Neural repair operator (negative result)}{subsection.4.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Neural repair operator (negative result)}{6}{subsection.4.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion and Limitations}{6}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why does the simple hand-crafted operator win?}{6}{section*.23}\protected@file@percent }
+\bibstyle{plain}
+\bibdata{refs}
+\bibcite{placeto}{1}
+\bibcite{ntuplace}{2}
+\bibcite{replace}{3}
+\bibcite{classifier-guidance}{4}
+\bibcite{dreamplace}{5}
+\bibcite{repaint}{6}
+\bibcite{deepplace}{7}
+\@writefile{toc}{\contentsline {paragraph}{Why does CD's HPWL-aware legalizer \emph  {increase} HPWL?}{7}{section*.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Limitations.}{7}{section*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{7}{section.6}\protected@file@percent }
+\bibcite{constraint-guidance}{8}
+\bibcite{miraichip}{9}
+\bibcite{chipflow}{10}
+\bibcite{chipdiffusion}{11}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces VSR framework: verifier $\rightarrow $ selector $\rightarrow $ repair operator.\relax }}{8}{figure.caption.29}\protected@file@percent }
+\newlabel{fig:framework}{{1}{8}{VSR framework: verifier $\rightarrow $ selector $\rightarrow $ repair operator.\relax }{figure.caption.29}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Pareto tradeoff between violation reduction and HPWL change across $\lambda \in \{0, 0.25, 0.5, 1, 2, 4\}$ on 6 ISPD2005 circuits, 3 seeds. Each point is one (seed, $\lambda $) configuration.\relax }}{9}{figure.caption.30}\protected@file@percent }
+\newlabel{fig:pareto}{{2}{9}{Pareto tradeoff between violation reduction and HPWL change across $\lambda \in \{0, 0.25, 0.5, 1, 2, 4\}$ on 6 ISPD2005 circuits, 3 seeds. Each point is one (seed, $\lambda $) configuration.\relax }{figure.caption.30}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Before/after placement visualization on adaptec1 and adaptec3 (color = per-macro violation severity, log scale; yellow = low, dark red = high). VSR with $\lambda =2$ reduces violation severity while preserving spatial structure.\relax }}{10}{figure.caption.31}\protected@file@percent }
+\newlabel{fig:placements}{{3}{10}{Before/after placement visualization on adaptec1 and adaptec3 (color = per-macro violation severity, log scale; yellow = low, dark red = high). VSR with $\lambda =2$ reduces violation severity while preserving spatial structure.\relax }{figure.caption.31}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Per-circuit results at $\lambda =2$, 3 seeds (error bars = std). Left: violation reduction. Right: HPWL change. Negative HPWL change means improvement.\relax }}{10}{figure.caption.32}\protected@file@percent }
+\newlabel{fig:percircuit}{{4}{10}{Per-circuit results at $\lambda =2$, 3 seeds (error bars = std). Left: violation reduction. Right: HPWL change. Negative HPWL change means improvement.\relax }{figure.caption.32}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces bigblue3 (1298 macros, seed=42): the raw diffusion draft (left) piles macros at a corner. Post-processing VSR (middle) spreads them out to achieve $-79\%$ violations but grows wirelength by $18\%$. Intra-sampling VSR (right) retains a compact layout that respects the diffusion backbone's implicit wirelength prior, achieving $-82\%$ violations and $-35\%$ wirelength vs.\ the baseline.\relax }}{11}{figure.caption.33}\protected@file@percent }
+\newlabel{fig:postvsintra}{{5}{11}{bigblue3 (1298 macros, seed=42): the raw diffusion draft (left) piles macros at a corner. Post-processing VSR (middle) spreads them out to achieve $-79\%$ violations but grows wirelength by $18\%$. Intra-sampling VSR (right) retains a compact layout that respects the diffusion backbone's implicit wirelength prior, achieving $-82\%$ violations and $-35\%$ wirelength vs.\ the baseline.\relax }{figure.caption.33}{}}
+\gdef \@abspage@last{11}

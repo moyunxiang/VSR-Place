@@ -1,0 +1,30 @@
+[
+  {
+    "circuit": "bigblue2",
+    "n_macros": 23084,
+    "n_edges": 65662,
+    "attempt": "bf16",
+    "error": "OOM"
+  },
+  {
+    "circuit": "bigblue2",
+    "n_macros": 23084,
+    "n_edges": 65662,
+    "attempt": "fp16",
+    "error": "OOM"
+  },
+  {
+    "circuit": "bigblue4",
+    "n_macros": 8170,
+    "n_edges": 32432,
+    "attempt": "bf16",
+    "error": "OOM"
+  },
+  {
+    "circuit": "bigblue4",
+    "n_macros": 8170,
+    "n_edges": 32432,
+    "attempt": "fp16",
+    "error": "OOM"
+  }
+]

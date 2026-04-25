@@ -1,0 +1,138 @@
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+
+\title{Supplement: Verifier-Guided Constraint Projection}
+\author{Anonymous Authors}
+
+\begin{document}
+
+\maketitle
+
+\appendix
+
+\section{Implementation details of the verifier}
+\label{sec:supp-verifier}
+
+The pairwise overlap matrix $A \in \mathbb{R}^{N \times N}$ is computed as follows (PyTorch pseudocode):
+\begin{verbatim}
+  # centers: (N, 2), sizes: (N, 2)
+  cx, cy = centers[:, 0], centers[:, 1]
+  sw, sh = sizes[:, 0], sizes[:, 1]
+
+  # pairwise AABB
+  ovx = torch.clamp_min(
+      torch.minimum(cx[:, None] + sw[:, None]/2, cx[None, :] + sw[None, :]/2) -
+      torch.maximum(cx[:, None] - sw[:, None]/2, cx[None, :] - sw[None, :]/2),
+      0,
+  )
+  ovy = torch.clamp_min(
+      torch.minimum(cy[:, None] + sh[:, None]/2, cy[None, :] + sh[None, :]/2) -
+      torch.maximum(cy[:, None] - sh[:, None]/2, cy[None, :] - sh[None, :]/2),
+      0,
+  )
+  A = ovx * ovy
+  A.fill_diagonal_(0)  # exclude self-overlap
+\end{verbatim}
+
+Boundary violation for each macro along axis $a \in \{x,y\}$ and edge $e \in \{-,+\}$:
+\begin{equation}
+  b_i^{a,-} = \max(0, s_i^a/2 - c_i^a),
+  \qquad b_i^{a,+} = \max(0, c_i^a + s_i^a/2 - W_a),
+\end{equation}
+with $b_i = \sum_a (b_i^{a,-} + b_i^{a,+})$.
+
+\section{Neural repair operator: full training details}
+\label{sec:supp-neural}
+
+\paragraph{Architecture.} 3-layer GATv2 (heads=4, hidden=128), scale-invariant input normalization (centers and severity are divided by $\max(W, H)$). Node features: $[\mathrm{severity}, \mathrm{boundary}, \mathrm{n\_overlappers}, s^w, s^h]$. Edge features: 4-dim pin offsets (from ChipDiffusion's edge\_attr).
+
+\paragraph{Loss.} L2 on the predicted displacement against a target defined by the variant (see below).
+
+\paragraph{Variants.}
+\begin{itemize}
+\item \textbf{Synthetic teacher}: hand-crafted operator applied to synthetic placements from ChipDiffusion's data generator. 2500 training graphs, 200 val.
+\item \textbf{Real teacher}: hand-crafted operator on diffusion-sampled ISPD2005 placements (3 samples per circuit × 1--3 circuits = 3--9 samples depending on seed).
+\item \textbf{Data augmentation}: per-sample $\times 50$ random Gaussian perturbations of the baseline.
+\item \textbf{Trajectory distillation}: $(x_k, x_{k+1})$ pairs from every step of the hand-crafted operator; 30 steps $\times$ 3 samples = 90 pairs.
+\item \textbf{Ground-truth target}: ISPD2005 industrial \texttt{.pl} placements as target.
+\item \textbf{Residual learning}: train to predict $x_{GT} - x_{\text{hand}}$ after hand-crafted convergence; apply as residual scale $s \in \{0.01, 0.05, 0.1, 0.2\}$.
+\end{itemize}
+
+\paragraph{Training.} Adam, lr $10^{-3}$, 100 epochs, batch 1 (per-graph), early stop on val loss.
+
+\paragraph{Findings.} Best val loss was 0.0037 (trajectory distillation), but at inference on ISPD2005 the best variant (residual $s=0.1$) improved violations on 1 of 6 circuits while degrading HPWL. Detailed per-circuit results are available in \texttt{results/neural\_vsr/eval\_*.json}.
+
+\section{Extended Pareto results}
+\label{sec:supp-pareto}
+
+Full per-seed per-$\lambda$ results are in \texttt{results/ispd2005/pareto\_3seed\_6w.json}. The 3-seed standard deviation for $\Delta$viol is $< 4\%$ on 5 of 6 circuits and $< 8\%$ on adaptec2. The standard deviation for $\Delta$HPWL is circuit-dependent: under 15\% for adaptec1--4 and bigblue3, and up to 20\% on bigblue1 where baseline HPWL is very small and therefore percent-changes are noisier.
+
+\section{Convergence curves}
+\label{sec:supp-convergence}
+
+Figure~\ref{fig:supp-convergence} (attached) shows per-iteration $(v_t, h_t)$ trajectories for $T=300$ iterations on adaptec1 and bigblue1 at $\lambda=2$. Violations decrease near-monotonically; HPWL changes non-monotonically in the first $\sim 30$ iterations (as the repulsive force initially pushes connected macros apart) before the attractive term pulls them back. The plateau is reached by $T \approx 100$, consistent with the num\_steps ablation.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/fig7_convergence.pdf}
+\caption{Per-iteration convergence for VSR on adaptec1 and bigblue1, 3 seeds each. Top row: violations vs.\ iteration. Bottom row: HPWL vs.\ iteration. Shaded band = seed std.}
+\label{fig:supp-convergence}
+\end{figure}
+
+\section{Full ablations and extra figures}
+\label{sec:supp-ablations}
+
+\paragraph{Number of steps $T$ (Fig.~\ref{fig:supp-numsteps}).} Violations plateau near $T=100$; going to $T=500$ gains $<2\%$ on all circuits and HPWL is stable.
+
+\paragraph{Step size $\eta$ (Fig.~\ref{fig:supp-stepsize}).} $\eta=0.3$ (default) is the robust middle ground. $\eta=1.0$ gains marginal violation reduction at higher HPWL variance.
+
+\paragraph{Selective vs.\ global (Tab.~\ref{tab:supp-selective}).} Identical on ISPD2005 raw drafts because every macro violates.
+
+\paragraph{Intra-sampling start timestep (Fig.~\ref{fig:supp-timestep}).} For bigblue3, $t=0.3$ achieves the best HPWL ($-16\%$); $t=0.5$ gives $+9\%$. For adaptec3 the curve is flatter, confirming intra's circuit-dependence.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/fig5_num_steps.pdf}
+\caption{Number of repair steps ablation.}
+\label{fig:supp-numsteps}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/fig6_step_size.pdf}
+\caption{Step size ablation.}
+\label{fig:supp-stepsize}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\input{figures/table_selective}
+\caption{Selective vs.\ global repair.}
+\label{tab:supp-selective}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/fig8_timestep_sweep.pdf}
+\caption{Intra-sampling start timestep sweep.}
+\label{fig:supp-timestep}
+\end{figure}
+
+\section{Reproducibility}
+
+All code, configs, checkpoints, and result JSONs are released. A single command reproduces all main-paper numbers:
+\begin{verbatim}
+  python scripts/run_all_experiments.py --config configs/paper_main.yaml
+\end{verbatim}
+on an A800 80GB GPU (or equivalent). The full sweep takes $\sim 20$ minutes.
+
+\end{document}

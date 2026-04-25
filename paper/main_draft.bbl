@@ -1,0 +1,64 @@
+\begin{thebibliography}{10}
+
+\bibitem{placeto}
+Ravichandra Addanki, Shaileshh~Bojja Venkatakrishnan, Shreyan Gupta, Hongzi
+  Mao, and Mohammad Alizadeh.
+\newblock Placeto: Learning generalizable device placement algorithms for
+  distributed machine learning.
+\newblock In {\em NeurIPS}, 2019.
+
+\bibitem{ntuplace}
+Tung-Chieh Chen et~al.
+\newblock Ntuplace3: An analytical placer for large-scale mixed-size designs
+  with preplaced blocks and density constraints.
+\newblock In {\em TCAD}, 2008.
+
+\bibitem{replace}
+Chung-Kuan Cheng, Andrew~B. Kahng, Ilgweon Kang, and Lutong Wang.
+\newblock {RePlAce}: Advancing solution quality and routability validation in
+  global placement.
+\newblock In {\em TCAD}, 2019.
+
+\bibitem{classifier-guidance}
+Prafulla Dhariwal and Alex Nichol.
+\newblock Diffusion models beat {GAN}s on image synthesis.
+\newblock In {\em NeurIPS}, 2021.
+
+\bibitem{dreamplace}
+Yibo Lin et~al.
+\newblock {DREAMPlace}: Deep learning toolkit-enabled gpu acceleration for
+  modern vlsi placement.
+\newblock In {\em DAC}, 2019.
+
+\bibitem{repaint}
+Andreas Lugmayr, Martin Danelljan, Andres Romero, Fisher Yu, Radu Timofte, and
+  Luc Van~Gool.
+\newblock Repaint: Inpainting using denoising diffusion probabilistic models.
+\newblock In {\em CVPR}, 2022.
+
+\bibitem{deepplace}
+Placeholder.
+\newblock {DeepPlace}: Learning to place applications in multi-tenant clusters.
+\newblock In {\em Placeholder}, 2021.
+
+\bibitem{constraint-guidance}
+Placeholder.
+\newblock Training-free constraint guidance for diffusion models.
+\newblock {\em arXiv}, 2024.
+
+\bibitem{miraichip}
+Placeholder.
+\newblock Placeholder for autoregressive placement.
+\newblock In {\em Placeholder}, 2025.
+
+\bibitem{chipflow}
+Placeholder.
+\newblock Placeholder for flow-matching placement.
+\newblock In {\em Placeholder}, 2025.
+
+\bibitem{chipdiffusion}
+Vint and Others.
+\newblock Chipdiffusion: A diffusion-based graph generator for chip placement.
+\newblock In {\em ICML}, 2025.
+
+\end{thebibliography}
