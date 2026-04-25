@@ -53,3 +53,5 @@ wandb/
 # Coverage
 .coverage
 htmlcov/
+results/from_autodl/
+texput.log
