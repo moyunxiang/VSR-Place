@@ -171,8 +171,82 @@ def strict_pareto(rows):
     return out
 
 
+def stat_tests_circuit_level(rows):
+    """Paired Wilcoxon at the CIRCUIT level (n=6).
+
+    Conservative version of the seed-level test: average across seeds within
+    each circuit first, then run paired Wilcoxon over the 6 paired circuit
+    means.  This is the right test if circuit-to-circuit variance dominates
+    seed-level noise (which it does on ISPD2005 due to 4-orders-of-magnitude
+    HPWL scale variation across circuits).
+    """
+    from collections import defaultdict as DD
+    g = DD(list)
+    valid = [r for r in rows if not r.get("error") and r.get("baseline_v") is not None]
+    for r in valid:
+        g[r["circuit"]].append(r)
+
+    def circ_mean(c, key):
+        vs = [r[key] for r in g[c] if r.get(key) is not None]
+        return sum(vs) / len(vs) if vs else None
+
+    out = {}
+    pairs = [
+        ("vsr_post", "cd_std"),
+        ("vsr_post", "cd_sched"),
+        ("vsr_post", "cg_strong"),
+        ("vsr_post", "repaint_bin"),
+        ("vsr_post", "vsr_intra"),
+        ("vsr_intra", "cd_std"),
+        ("vsr_intra", "cg_strong"),
+        ("vsr_intra", "repaint_bin"),
+    ]
+    circuits = sorted(g.keys())
+    for a, b in pairs:
+        a_dv, b_dv, a_dh, b_dh = [], [], [], []
+        for c in circuits:
+            base_v = circ_mean(c, "baseline_v")
+            base_h = circ_mean(c, "baseline_h")
+            va = circ_mean(c, f"{a}_v"); ha = circ_mean(c, f"{a}_h")
+            vb = circ_mean(c, f"{b}_v"); hb = circ_mean(c, f"{b}_h")
+            if None in (va, vb, ha, hb): continue
+            a_dv.append((va - base_v) / max(base_v, 1) * 100)
+            b_dv.append((vb - base_v) / max(base_v, 1) * 100)
+            a_dh.append((ha - base_h) / max(abs(base_h), 1e-9) * 100)
+            b_dh.append((hb - base_h) / max(abs(base_h), 1e-9) * 100)
+        if not a_dv: continue
+        Wv, pv = wilcoxon(a_dv, b_dv)
+        Wh, ph = wilcoxon(a_dh, b_dh)
+        out[f"{a}_vs_{b}"] = {
+            "n_circuits": len(a_dv),
+            "dv": {"W": Wv, "p": pv},
+            "dh": {"W": Wh, "p": ph},
+        }
+    return out
+
+
+def fully_legal_stats(rows):
+    """Count trials achieving v=0 (fully legal) per method."""
+    valid = [r for r in rows if not r.get("error") and r.get("baseline_v") is not None]
+    methods = ["baseline", "vsr_post", "vsr_intra", "cd_std", "cd_sched",
+               "cg_strong", "repaint_bin"]
+    out = {}
+    for m in methods:
+        vs = [r.get(f"{m}_v") for r in valid if r.get(f"{m}_v") is not None]
+        if not vs: continue
+        out[m] = {
+            "n": len(vs),
+            "fully_legal": sum(1 for v in vs if v == 0),
+            "v_le_5":      sum(1 for v in vs if v <= 5),
+            "v_le_100":    sum(1 for v in vs if v <= 100),
+            "min_v":       min(vs),
+            "median_v":    sorted(vs)[len(vs) // 2],
+        }
+    return out
+
+
 def stat_tests(rows):
-    """Paired Wilcoxon between each pair of methods."""
+    """Paired Wilcoxon between each pair of methods (seed-level, n=24)."""
     valid = [r for r in rows if not r.get("error") and r.get("baseline_v") is not None]
     out = {}
     pairs = [
@@ -267,11 +341,11 @@ def emit_full_table(summary, path):
 def emit_wilcoxon_table(stats, path):
     """Format Wilcoxon paired-test table nicely.
 
-    - Primary VSR-post comparisons first, then VSR-intra ones, then any others.
-    - p-values: use $<10^{-3}$ when p<0.001 (instead of 0.0000); else 4 decimals.
-    - Stars rendered as LaTeX superscript with a thin space, not glued to the
-      number: e.g.\ ``$<\!10^{-3}$\,$^{\star\star\star}$''.
+    Accepts both seed-level (key 'n') and circuit-level (key 'n_circuits') formats.
     """
+    # Detect which n field is present
+    sample_v = next(iter(stats.values()))
+    n_key = "n" if "n" in sample_v else "n_circuits"
     lines = [
         r"\begin{tabular}{lrll}",
         r"\toprule",
@@ -302,10 +376,10 @@ def emit_wilcoxon_table(stats, path):
 
     for k in sorted(stats.keys(), key=sort_key):
         v = stats[k]
-        # Pretty-print row label
         a, b = k.split("_vs_")
         nice = a.replace("_", "-") + r" vs.\ " + b.replace("_", "-")
-        lines.append(f"{nice} & {v['n']} & {fmt(v['dv']['p'])} & {fmt(v['dh']['p'])} \\\\")
+        n_val = v.get(n_key, v.get("n", v.get("n_circuits", 0)))
+        lines.append(f"{nice} & {n_val} & {fmt(v['dv']['p'])} & {fmt(v['dh']['p'])} \\\\")
     lines += [r"\bottomrule", r"\end{tabular}"]
     path.write_text("\n".join(lines) + "\n")
 
@@ -323,12 +397,16 @@ def main():
     strict = strict_pareto(rows)
     stats = stat_tests(rows)
 
+    stats_circ = stat_tests_circuit_level(rows)
+    legality = fully_legal_stats(rows)
     out = {
         "n_rows": len(rows),
         "per_circuit": summary,
         "cross_circuit_medians": medians,
         "strict_pareto": strict,
-        "wilcoxon": stats,
+        "wilcoxon_seed_level": stats,        # n=24 seed-level (paired bootstrap)
+        "wilcoxon_circuit_level": stats_circ, # n=6 circuit-level (conservative)
+        "legality": legality,
     }
     out_path = RESULTS / "neurips_stats.json"
     out_path.write_text(json.dumps(out, indent=2, default=str))
@@ -338,9 +416,12 @@ def main():
     emit_main_table(summary, PAPER_FIG / "table_main_neurips.tex")
     emit_full_table(summary, PAPER_FIG / "table_main_full.tex")
     emit_wilcoxon_table(stats, PAPER_FIG / "table_wilcoxon.tex")
+    emit_wilcoxon_table(stat_tests_circuit_level(rows),
+                        PAPER_FIG / "table_wilcoxon_circuit.tex")
     print(f"Wrote {PAPER_FIG/'table_main_neurips.tex'} (slim)")
     print(f"Wrote {PAPER_FIG/'table_main_full.tex'} (6-method)")
-    print(f"Wrote {PAPER_FIG/'table_wilcoxon.tex'}")
+    print(f"Wrote {PAPER_FIG/'table_wilcoxon.tex'} (seed-level n=24)")
+    print(f"Wrote {PAPER_FIG/'table_wilcoxon_circuit.tex'} (circuit-level n=6)")
 
     # ---- print headline ----
     print("\n=== Cross-circuit medians ===")
@@ -350,11 +431,21 @@ def main():
     print("\n=== Strict Pareto improvement (Δv<0 AND Δh<0) ===")
     for m, s in strict.items():
         print(f"  {m:<14} {s['strict']}/{s['n']} (circuit, seed) pairs strictly improved")
-    print("\n=== Wilcoxon paired tests ===")
+    print("\n=== Wilcoxon (seed-level, n=24, treats seeds as paired bootstrap) ===")
     for k, v in stats.items():
         sv = "***" if v["dv"]["p"] < 0.001 else ("**" if v["dv"]["p"] < 0.01 else ("*" if v["dv"]["p"] < 0.05 else ""))
         sh = "***" if v["dh"]["p"] < 0.001 else ("**" if v["dh"]["p"] < 0.01 else ("*" if v["dh"]["p"] < 0.05 else ""))
         print(f"  {k:<32}  n={v['n']}  Δv: p={v['dv']['p']:.4g}{sv}  Δh: p={v['dh']['p']:.4g}{sh}")
+
+    print("\n=== Wilcoxon (circuit-level, n=6, conservative) ===")
+    for k, v in stats_circ.items():
+        sv = "***" if v["dv"]["p"] < 0.001 else ("**" if v["dv"]["p"] < 0.01 else ("*" if v["dv"]["p"] < 0.05 else ""))
+        sh = "***" if v["dh"]["p"] < 0.001 else ("**" if v["dh"]["p"] < 0.01 else ("*" if v["dh"]["p"] < 0.05 else ""))
+        print(f"  {k:<32}  n={v['n_circuits']}  Δv: p={v['dv']['p']:.4g}{sv}  Δh: p={v['dh']['p']:.4g}{sh}")
+
+    print("\n=== Legality (fraction of trials achieving v=0) ===")
+    for m, lg in legality.items():
+        print(f"  {m:<14} fully_legal={lg['fully_legal']}/{lg['n']}  v<=5: {lg['v_le_5']}  median_v={lg['median_v']}  min_v={lg['min_v']}")
     return 0
 
 

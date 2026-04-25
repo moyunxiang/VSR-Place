@@ -11,19 +11,19 @@
 \citation{ntuplace,dreamplace,chipdiffusion}
 \citation{chipdiffusion}
 \citation{chipformer}
-\citation{classifier-guidance}
-\citation{constraint-guidance}
-\citation{repaint}
 \@writefile{toc}{\contentsline {paragraph}{Our contribution.}{2}{section*.4}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces VSR pipeline: a non-differentiable verifier produces structured feedback (per-macro severity scalar, pairwise overlap graph, boundary vector); a selector turns it into a soft mask; a 100-step force integrator (post-mode) or structured RePaint (intra-mode) updates only offending macros. No backbone retraining; no differentiable surrogate.}}{2}{figure.caption.5}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{fig:framework}{{1}{2}{VSR pipeline: a non-differentiable verifier produces structured feedback (per-macro severity scalar, pairwise overlap graph, boundary vector); a selector turns it into a soft mask; a 100-step force integrator (post-mode) or structured RePaint (intra-mode) updates only offending macros. No backbone retraining; no differentiable surrogate}{figure.caption.5}{}}
 \@writefile{toc}{\contentsline {paragraph}{Scope.}{2}{section*.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{2}{section.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Generative models for placement.}{2}{section*.7}\protected@file@percent }
+\citation{classifier-guidance}
+\citation{constraint-guidance}
+\citation{repaint}
 \citation{ntuplace}
 \citation{replace}
 \citation{dreamplace}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{3}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Generative models for placement.}{3}{section*.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Constraint-aware generation.}{3}{section*.8}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Placement legalization.}{3}{section*.9}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {3}Method}{3}{section.3}\protected@file@percent }
@@ -37,9 +37,9 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Post-processing repair operator}{3}{subsection.3.3}\protected@file@percent }
 \newlabel{sec:handcrafted}{{3.3}{3}{Post-processing repair operator}{subsection.3.3}{}}
 \@writefile{toc}{\contentsline {paragraph}{Repulsive force $f_{\text  {rep}}$ (overlap depth).}{3}{section*.13}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Attractive force $f_{\text  {attr}}$ (netlist).}{3}{section*.14}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Boundary force $f_{\text  {bd}}$.}{3}{section*.15}\protected@file@percent }
 \citation{chipdiffusion}
+\@writefile{toc}{\contentsline {paragraph}{Attractive force $f_{\text  {attr}}$ (netlist).}{4}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Boundary force $f_{\text  {bd}}$.}{4}{section*.15}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Intra-sampling repair operator}{4}{subsection.3.4}\protected@file@percent }
 \newlabel{sec:intra}{{3.4}{4}{Intra-sampling repair operator}{subsection.3.4}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Experiments}{4}{section.4}\protected@file@percent }
@@ -50,81 +50,90 @@
 \@writefile{toc}{\contentsline {paragraph}{Seeds.}{4}{section*.18}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Metrics.}{4}{section*.19}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Statistics.}{4}{section*.20}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Main result: VSR-post strictly dominates}{4}{subsection.4.2}\protected@file@percent }
-\newlabel{sec:main_result}{{4.2}{4}{Main result: VSR-post strictly dominates}{subsection.4.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Main result: VSR-post strictly dominates}{5}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:main_result}{{4.2}{5}{Main result: VSR-post strictly dominates}{subsection.4.2}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Per-circuit $\Delta v$ (\% violations) and $\Delta h$ (\% HPWL), mean $\pm $std over 4 seeds. Negative is improvement. Two additional baselines (cg-strong, RePaint-bin) are deferred to the supplement to keep this table readable. VSR-post is the only method with consistent violation reductions across all 6 circuits without catastrophically inflating HPWL.}}{5}{table.caption.21}\protected@file@percent }
 \newlabel{tab:main}{{1}{5}{Per-circuit $\Delta v$ (\% violations) and $\Delta h$ (\% HPWL), mean $\pm $std over 4 seeds. Negative is improvement. Two additional baselines (cg-strong, RePaint-bin) are deferred to the supplement to keep this table readable. VSR-post is the only method with consistent violation reductions across all 6 circuits without catastrophically inflating HPWL}{table.caption.21}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Per-circuit, per-method comparison (4 seeds each). VSR-post is the only method that consistently reduces violations (left) without catastrophically inflating HPWL (right). CD-std and CD-sched reduce violations less and balloon HPWL by 70--400\%.}}{5}{figure.caption.22}\protected@file@percent }
 \newlabel{fig:percircuit}{{2}{5}{Per-circuit, per-method comparison (4 seeds each). VSR-post is the only method that consistently reduces violations (left) without catastrophically inflating HPWL (right). CD-std and CD-sched reduce violations less and balloon HPWL by 70--400\%}{figure.caption.22}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Strict Pareto frontier}{5}{subsection.4.3}\protected@file@percent }
 \newlabel{sec:strict_pareto}{{4.3}{5}{Strict Pareto frontier}{subsection.4.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Number of (circuit, seed) pairs strictly Pareto-improving the raw diffusion draft (i.e., $\Delta v < 0$ AND $\Delta h < 0$ jointly). ChipDiffusion's released legalizers \emph  {never} achieve a strict Pareto improvement; they always reduce violations by sacrificing HPWL.}}{5}{table.caption.23}\protected@file@percent }
-\newlabel{tab:strict_pareto}{{2}{5}{Number of (circuit, seed) pairs strictly Pareto-improving the raw diffusion draft (i.e., $\Delta v < 0$ AND $\Delta h < 0$ jointly). ChipDiffusion's released legalizers \emph {never} achieve a strict Pareto improvement; they always reduce violations by sacrificing HPWL}{table.caption.23}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Statistical significance}{6}{subsection.4.4}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Paired Wilcoxon signed-rank tests, $n=24$ (circuit, seed) pairs. $^{***}$ denotes $p<10^{-3}$. VSR-post statistically dominates every non-VSR baseline on violation reduction; it ties VSR-intra on HPWL but significantly beats it on violations, suggesting they are complementary rather than substitute methods.}}{6}{table.caption.24}\protected@file@percent }
-\newlabel{tab:wilcoxon}{{3}{6}{Paired Wilcoxon signed-rank tests, $n=24$ (circuit, seed) pairs. $^{***}$ denotes $p<10^{-3}$. VSR-post statistically dominates every non-VSR baseline on violation reduction; it ties VSR-intra on HPWL but significantly beats it on violations, suggesting they are complementary rather than substitute methods}{table.caption.24}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Statistical significance}{5}{subsection.4.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Number of (circuit, seed) pairs strictly Pareto-improving the raw diffusion draft (\,$\Delta v<0$ AND $\Delta h<0$ jointly) at $\lambda =2$. The complementary $24-12=12$ trials \emph  {not} strictly Pareto-improving include 12 ``non-Pareto'' trials (HPWL grew) and 2 ``weak-violation-cut'' trials on bigblue1 (Pareto-improved on HPWL but $\Delta v > -20\%$); see Appendix D for the full breakdown of the 14 entries flagged in our failure analysis. ChipDiffusion's released legalizers achieve $0/24$ strict-Pareto improvements (every trial inflates HPWL). At $\lambda =8$ VSR-post reaches $18/18$ (\S  \ref {sec:lambda_sweep}).}}{6}{table.caption.23}\protected@file@percent }
+\newlabel{tab:strict_pareto}{{2}{6}{Number of (circuit, seed) pairs strictly Pareto-improving the raw diffusion draft (\,$\Delta v<0$ AND $\Delta h<0$ jointly) at $\lambda =2$. The complementary $24-12=12$ trials \emph {not} strictly Pareto-improving include 12 ``non-Pareto'' trials (HPWL grew) and 2 ``weak-violation-cut'' trials on bigblue1 (Pareto-improved on HPWL but $\Delta v > -20\%$); see Appendix D for the full breakdown of the 14 entries flagged in our failure analysis. ChipDiffusion's released legalizers achieve $0/24$ strict-Pareto improvements (every trial inflates HPWL). At $\lambda =8$ VSR-post reaches $18/18$ (\S \ref {sec:lambda_sweep})}{table.caption.23}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Circuit-level paired Wilcoxon, $n=6$ (mean over 4 seeds within each circuit). $^{\star }$: $p<0.05$. VSR-post outperforms both ChipDiffusion legalizers on both metrics; the comparison to classifier-guidance is significant on violations but \emph  {not} on HPWL ($p=0.25$), which we report transparently. The seed-level $n=24$ test (supplement Table~\ref {tab:wilcoxon-seed}) gives the same direction with smaller $p$-values, but treats seeds-within-a-circuit as paired bootstrap draws, not iid samples.}}{6}{table.caption.24}\protected@file@percent }
+\newlabel{tab:wilcoxon}{{3}{6}{Circuit-level paired Wilcoxon, $n=6$ (mean over 4 seeds within each circuit). $^{\star }$: $p<0.05$. VSR-post outperforms both ChipDiffusion legalizers on both metrics; the comparison to classifier-guidance is significant on violations but \emph {not} on HPWL ($p=0.25$), which we report transparently. The seed-level $n=24$ test (supplement Table~\ref {tab:wilcoxon-seed}) gives the same direction with smaller $p$-values, but treats seeds-within-a-circuit as paired bootstrap draws, not iid samples}{table.caption.24}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Pareto control: the $\lambda $ knob}{6}{subsection.4.5}\protected@file@percent }
 \newlabel{sec:lambda_sweep}{{4.5}{6}{Pareto control: the $\lambda $ knob}{subsection.4.5}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces $\lambda $-sweep on 6 circuits (3 seeds, errorbars $=$ std). Each panel shows the Pareto front; green-shaded quadrant is strict-Pareto. Increasing $\lambda $ moves operating points leftward (lower HPWL) at near-constant violation reduction.}}{6}{figure.caption.25}\protected@file@percent }
-\newlabel{fig:lambda_sweep}{{3}{6}{$\lambda $-sweep on 6 circuits (3 seeds, errorbars $=$ std). Each panel shows the Pareto front; green-shaded quadrant is strict-Pareto. Increasing $\lambda $ moves operating points leftward (lower HPWL) at near-constant violation reduction}{figure.caption.25}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Step budget and compute efficiency}{7}{subsection.4.6}\protected@file@percent }
-\newlabel{sec:step_budget}{{4.6}{7}{Step budget and compute efficiency}{subsection.4.6}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Step budget sweep. Left: $\Delta v$ plateau by $T=100$ on all circuits. Right: linear wall-clock; CD-std ($5000$ steps) marked as dashed reference. VSR's $1.6$--$3.6\times $ speedup over CD legalizers holds at every $T$ we tested.}}{7}{figure.caption.26}\protected@file@percent }
-\newlabel{fig:step_budget}{{4}{7}{Step budget sweep. Left: $\Delta v$ plateau by $T=100$ on all circuits. Right: linear wall-clock; CD-std ($5000$ steps) marked as dashed reference. VSR's $1.6$--$3.6\times $ speedup over CD legalizers holds at every $T$ we tested}{figure.caption.26}{}}
+\@writefile{toc}{\contentsline {paragraph}{Why $\lambda =2$ as the main-table setting?}{6}{section*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Step budget and compute efficiency}{6}{subsection.4.6}\protected@file@percent }
+\newlabel{sec:step_budget}{{4.6}{6}{Step budget and compute efficiency}{subsection.4.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces $\lambda $-sweep on 6 circuits (3 seeds, errorbars $=$ std). Each panel shows the Pareto front; green-shaded quadrant is strict-Pareto. Increasing $\lambda $ moves operating points leftward (lower HPWL) at near-constant violation reduction.}}{7}{figure.caption.26}\protected@file@percent }
+\newlabel{fig:lambda_sweep}{{3}{7}{$\lambda $-sweep on 6 circuits (3 seeds, errorbars $=$ std). Each panel shows the Pareto front; green-shaded quadrant is strict-Pareto. Increasing $\lambda $ moves operating points leftward (lower HPWL) at near-constant violation reduction}{figure.caption.26}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Step budget sweep. Left: $\Delta v$ plateau by $T=100$ on all circuits. Right: linear wall-clock; CD-std ($5000$ steps) marked as dashed reference. VSR's $1.6$--$3.6\times $ speedup over CD legalizers holds at every $T$ we tested.}}{7}{figure.caption.27}\protected@file@percent }
+\newlabel{fig:step_budget}{{4}{7}{Step budget sweep. Left: $\Delta v$ plateau by $T=100$ on all circuits. Right: linear wall-clock; CD-std ($5000$ steps) marked as dashed reference. VSR's $1.6$--$3.6\times $ speedup over CD legalizers holds at every $T$ we tested}{figure.caption.27}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Failure-mode analysis}{7}{subsection.4.7}\protected@file@percent }
 \newlabel{sec:failures}{{4.7}{7}{Failure-mode analysis}{subsection.4.7}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Component ablation: which signals matter?}{7}{subsection.4.8}\protected@file@percent }
 \newlabel{sec:component_ablation}{{4.8}{7}{Component ablation: which signals matter?}{subsection.4.8}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.9}Intra-sampling: when the backbone's wirelength prior helps}{7}{subsection.4.9}\protected@file@percent }
-\newlabel{sec:intra_results}{{4.9}{7}{Intra-sampling: when the backbone's wirelength prior helps}{subsection.4.9}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Component ablation, mean $\pm $ std over 18 (circuit, seed) pairs. Removing the pairwise overlap signal (and equivalently the repulsive force) \emph  {inflates} violations by 79\%; removing the attractive force preserves violation reduction but inflates HPWL by 138\%; soft (severity-weighted) masking degrades both metrics by 28\,pp on $\Delta v$. Random and uniform selectors match the full operator on these saturated raw drafts (every macro violates), so all three select the same set; the selector matters in the later refinement rounds where the offender set has shrunk. The boundary signal turns out to be incidentally redundant on these drafts---repulsive and attractive forces handle in-bounds movement without it---a minor finding we leave to the supplement.}}{8}{table.caption.27}\protected@file@percent }
-\newlabel{tab:component_ablation}{{4}{8}{Component ablation, mean $\pm $ std over 18 (circuit, seed) pairs. Removing the pairwise overlap signal (and equivalently the repulsive force) \emph {inflates} violations by 79\%; removing the attractive force preserves violation reduction but inflates HPWL by 138\%; soft (severity-weighted) masking degrades both metrics by 28\,pp on $\Delta v$. Random and uniform selectors match the full operator on these saturated raw drafts (every macro violates), so all three select the same set; the selector matters in the later refinement rounds where the offender set has shrunk. The boundary signal turns out to be incidentally redundant on these drafts---repulsive and attractive forces handle in-bounds movement without it---a minor finding we leave to the supplement}{table.caption.27}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Intra-sampling HPWL change as a function of $t_{\text  {start}}$, across 6 circuits and 3 seeds. Bigblue3 (the largest tractable circuit) shows a striking monotonic improvement, peaking at $-34.5\%$ HPWL. Smaller circuits show small effects, suggesting backbone-prior leverage scales with circuit size.}}{8}{figure.caption.28}\protected@file@percent }
-\newlabel{fig:timestep_sweep}{{5}{8}{Intra-sampling HPWL change as a function of $t_{\text {start}}$, across 6 circuits and 3 seeds. Bigblue3 (the largest tractable circuit) shows a striking monotonic improvement, peaking at $-34.5\%$ HPWL. Smaller circuits show small effects, suggesting backbone-prior leverage scales with circuit size}{figure.caption.28}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Component ablation, mean $\pm $ std over 18 (circuit, seed) pairs. Removing the pairwise overlap signal (and equivalently the repulsive force) \emph  {inflates} violations by 79\%; removing the attractive force preserves violation reduction but inflates HPWL by 138\%; soft (severity-weighted) masking degrades both metrics by 28\,pp on $\Delta v$. Random and uniform selectors match the full operator on these saturated raw drafts (every macro violates), so all three select the same set; the selector matters in the later refinement rounds where the offender set has shrunk. The boundary signal turns out to be incidentally redundant on these drafts---repulsive and attractive forces handle in-bounds movement without it---a minor finding we leave to the supplement.}}{8}{table.caption.28}\protected@file@percent }
+\newlabel{tab:component_ablation}{{4}{8}{Component ablation, mean $\pm $ std over 18 (circuit, seed) pairs. Removing the pairwise overlap signal (and equivalently the repulsive force) \emph {inflates} violations by 79\%; removing the attractive force preserves violation reduction but inflates HPWL by 138\%; soft (severity-weighted) masking degrades both metrics by 28\,pp on $\Delta v$. Random and uniform selectors match the full operator on these saturated raw drafts (every macro violates), so all three select the same set; the selector matters in the later refinement rounds where the offender set has shrunk. The boundary signal turns out to be incidentally redundant on these drafts---repulsive and attractive forces handle in-bounds movement without it---a minor finding we leave to the supplement}{table.caption.28}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.9}Intra-sampling: when the backbone's wirelength prior helps}{8}{subsection.4.9}\protected@file@percent }
+\newlabel{sec:intra_results}{{4.9}{8}{Intra-sampling: when the backbone's wirelength prior helps}{subsection.4.9}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.10}Memory profile and limitations}{8}{subsection.4.10}\protected@file@percent }
 \newlabel{sec:limitations}{{4.10}{8}{Memory profile and limitations}{subsection.4.10}{}}
-\citation{chipformer}
+\@writefile{toc}{\contentsline {paragraph}{Limitations.}{8}{section*.31}\protected@file@percent }
 \bibstyle{plain}
 \bibdata{refs}
 \bibcite{constraint-guidance}{{1}{}{{}}{{}}}
-\bibcite{ntuplace}{{2}{}{{}}{{}}}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Memory profile (peak GPU memory, 100-step ChipDiffusion sampling). Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each circuit, so we report a single column. The OOM frontier is the diffusion backbone, not the repair operator: VSR-post on synthetic baselines succeeds on \emph  {every} circuit including bigblue2/4 (last column, wall-clock). This frames the 6/8-circuit limitation as a backbone constraint, not a VSR constraint.}}{9}{table.caption.29}\protected@file@percent }
-\newlabel{tab:mem}{{5}{9}{Memory profile (peak GPU memory, 100-step ChipDiffusion sampling). Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each circuit, so we report a single column. The OOM frontier is the diffusion backbone, not the repair operator: VSR-post on synthetic baselines succeeds on \emph {every} circuit including bigblue2/4 (last column, wall-clock). This frames the 6/8-circuit limitation as a backbone constraint, not a VSR constraint}{table.caption.29}{}}
-\@writefile{toc}{\contentsline {paragraph}{Limitations.}{9}{section*.30}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Intra-sampling HPWL change as a function of $t_{\text  {start}}$, across 6 circuits and 3 seeds. Bigblue3 (the largest tractable circuit) shows a striking monotonic improvement, peaking at $-34.5\%$ HPWL. Smaller circuits show small effects, suggesting backbone-prior leverage scales with circuit size.}}{9}{figure.caption.29}\protected@file@percent }
+\newlabel{fig:timestep_sweep}{{5}{9}{Intra-sampling HPWL change as a function of $t_{\text {start}}$, across 6 circuits and 3 seeds. Bigblue3 (the largest tractable circuit) shows a striking monotonic improvement, peaking at $-34.5\%$ HPWL. Smaller circuits show small effects, suggesting backbone-prior leverage scales with circuit size}{figure.caption.29}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Memory profile (peak GPU memory, 100-step ChipDiffusion sampling). Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each circuit, so we report a single column. The OOM frontier is the diffusion backbone, not the repair operator: VSR-post on synthetic baselines succeeds on \emph  {every} circuit including bigblue2/4 (last column, wall-clock). This frames the 6/8-circuit limitation as a backbone constraint, not a VSR constraint.}}{9}{table.caption.30}\protected@file@percent }
+\newlabel{tab:mem}{{5}{9}{Memory profile (peak GPU memory, 100-step ChipDiffusion sampling). Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each circuit, so we report a single column. The OOM frontier is the diffusion backbone, not the repair operator: VSR-post on synthetic baselines succeeds on \emph {every} circuit including bigblue2/4 (last column, wall-clock). This frames the 6/8-circuit limitation as a backbone constraint, not a VSR constraint}{table.caption.30}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {5}Discussion and Conclusion}{9}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Why does a 100-step force integrator beat a 5000-step legalizer?}{9}{section*.31}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Conclusion.}{9}{section*.32}\protected@file@percent }
+\bibcite{ntuplace}{{2}{}{{}}{{}}}
 \bibcite{replace}{{3}{}{{}}{{}}}
 \bibcite{classifier-guidance}{{4}{}{{}}{{}}}
 \bibcite{chipformer}{{5}{}{{}}{{}}}
 \bibcite{chipdiffusion}{{6}{}{{}}{{}}}
 \bibcite{dreamplace}{{7}{}{{}}{{}}}
 \bibcite{repaint}{{8}{}{{}}{{}}}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Implementation details of the verifier}{11}{appendix.A}\protected@file@percent }
-\newlabel{sec:supp-verifier}{{A}{11}{Implementation details of the verifier}{appendix.A}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B}Lambda sweep: per-circuit detail}{11}{appendix.B}\protected@file@percent }
-\newlabel{sec:supp-lambda}{{B}{11}{Lambda sweep: per-circuit detail}{appendix.B}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Per-circuit $\Delta v\,\%$ and $\Delta h\,\%$ across the extended $\lambda $ sweep (9 values, mean over 3 seeds). Strict-Pareto count rises monotonically and \emph  {saturates at $\lambda {=}8$ with 18/18 (100\%)} trials strictly Pareto-improving the raw draft.}}{11}{table.caption.34}\protected@file@percent }
-\newlabel{tab:supp-lambda}{{6}{11}{Per-circuit $\Delta v\,\%$ and $\Delta h\,\%$ across the extended $\lambda $ sweep (9 values, mean over 3 seeds). Strict-Pareto count rises monotonically and \emph {saturates at $\lambda {=}8$ with 18/18 (100\%)} trials strictly Pareto-improving the raw draft}{table.caption.34}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {C}Component ablation: full table and notes}{11}{appendix.C}\protected@file@percent }
-\newlabel{sec:supp-component}{{C}{11}{Component ablation: full table and notes}{appendix.C}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Component ablation, mean $\pm $ std over 18 (circuit, seed) pairs. Raw data: \texttt  {results/vsr\_extra/component\_ablation.json}.}}{11}{table.caption.35}\protected@file@percent }
-\newlabel{tab:supp-component}{{7}{11}{Component ablation, mean $\pm $ std over 18 (circuit, seed) pairs. Raw data: \texttt {results/vsr\_extra/component\_ablation.json}}{table.caption.35}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {D}Failure-mode analysis: full list}{12}{appendix.D}\protected@file@percent }
-\newlabel{sec:supp-failures}{{D}{12}{Failure-mode analysis: full list}{appendix.D}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces All 14 trials flagged at $\lambda {=}2$. Raw data: \texttt  {results/vsr\_extra/failure\_cases.csv}.}}{12}{table.caption.36}\protected@file@percent }
-\newlabel{tab:supp-failures}{{8}{12}{All 14 trials flagged at $\lambda {=}2$. Raw data: \texttt {results/vsr\_extra/failure\_cases.csv}}{table.caption.36}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {E}Toy cross-domain experiment}{12}{appendix.E}\protected@file@percent }
-\newlabel{sec:supp-toy2d}{{E}{12}{Toy cross-domain experiment}{appendix.E}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Toy 2D non-overlap, mean over $250$ runs/method. Classifier guidance kills overlap but inflates wirelength $5.4\times $, mirroring the placement-domain finding; verifier-guided structured repair preserves both. Raw rows: \texttt  {results/toy/toy\_results.json}.}}{12}{table.caption.37}\protected@file@percent }
-\newlabel{tab:supp-toy}{{9}{12}{Toy 2D non-overlap, mean over $250$ runs/method. Classifier guidance kills overlap but inflates wirelength $5.4\times $, mirroring the placement-domain finding; verifier-guided structured repair preserves both. Raw rows: \texttt {results/toy/toy\_results.json}}{table.caption.37}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {F}Neural repair operator: full training details}{12}{appendix.F}\protected@file@percent }
-\newlabel{sec:supp-neural}{{F}{12}{Neural repair operator: full training details}{appendix.F}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Seed-level Wilcoxon (paired bootstrap)}{11}{appendix.A}\protected@file@percent }
+\newlabel{sec:supp-wilcoxon-seed}{{A}{11}{Seed-level Wilcoxon (paired bootstrap)}{appendix.A}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Seed-level paired Wilcoxon, $n=24$ (4 seeds within each of 6 circuits, treated as paired bootstrap draws). Use as a lower bound on $p$-values; the circuit-level test (Table~3) is the conservative test we report.}}{11}{table.caption.33}\protected@file@percent }
+\newlabel{tab:wilcoxon-seed}{{6}{11}{Seed-level paired Wilcoxon, $n=24$ (4 seeds within each of 6 circuits, treated as paired bootstrap draws). Use as a lower bound on $p$-values; the circuit-level test (Table~3) is the conservative test we report}{table.caption.33}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}Force update: precise specification}{11}{appendix.B}\protected@file@percent }
+\newlabel{sec:supp-force}{{B}{11}{Force update: precise specification}{appendix.B}{}}
+\@writefile{toc}{\contentsline {paragraph}{Repulsive force $f_{\text  {rep}}$.}{11}{section*.34}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Boundary force $f_{\text  {bd}}$.}{11}{section*.35}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Attractive force $f_{\text  {attr}}$ (netlist).}{11}{section*.36}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Per-step clamp.}{11}{section*.37}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Code.}{11}{section*.38}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {C}Implementation details of the verifier}{11}{appendix.C}\protected@file@percent }
+\newlabel{sec:supp-verifier}{{C}{11}{Implementation details of the verifier}{appendix.C}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {D}Lambda sweep: per-circuit detail}{12}{appendix.D}\protected@file@percent }
+\newlabel{sec:supp-lambda}{{D}{12}{Lambda sweep: per-circuit detail}{appendix.D}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Per-circuit $\Delta v\,\%$ and $\Delta h\,\%$ across the extended $\lambda $ sweep (9 values, mean over 3 seeds). Strict-Pareto count rises monotonically and \emph  {saturates at $\lambda {=}8$ with 18/18 (100\%)} trials strictly Pareto-improving the raw draft.}}{12}{table.caption.39}\protected@file@percent }
+\newlabel{tab:supp-lambda}{{7}{12}{Per-circuit $\Delta v\,\%$ and $\Delta h\,\%$ across the extended $\lambda $ sweep (9 values, mean over 3 seeds). Strict-Pareto count rises monotonically and \emph {saturates at $\lambda {=}8$ with 18/18 (100\%)} trials strictly Pareto-improving the raw draft}{table.caption.39}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {E}Component ablation: full table and notes}{12}{appendix.E}\protected@file@percent }
+\newlabel{sec:supp-component}{{E}{12}{Component ablation: full table and notes}{appendix.E}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Component ablation, mean $\pm $ std over 18 (circuit, seed) pairs. Raw data: \texttt  {results/vsr\_extra/component\_ablation.json}.}}{12}{table.caption.40}\protected@file@percent }
+\newlabel{tab:supp-component}{{8}{12}{Component ablation, mean $\pm $ std over 18 (circuit, seed) pairs. Raw data: \texttt {results/vsr\_extra/component\_ablation.json}}{table.caption.40}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F}Failure-mode analysis: full list}{12}{appendix.F}\protected@file@percent }
+\newlabel{sec:supp-failures}{{F}{12}{Failure-mode analysis: full list}{appendix.F}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces All 14 trials flagged at $\lambda {=}2$. Raw data: \texttt  {results/vsr\_extra/failure\_cases.csv}.}}{13}{table.caption.41}\protected@file@percent }
+\newlabel{tab:supp-failures}{{9}{13}{All 14 trials flagged at $\lambda {=}2$. Raw data: \texttt {results/vsr\_extra/failure\_cases.csv}}{table.caption.41}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {G}Toy cross-domain experiment}{13}{appendix.G}\protected@file@percent }
+\newlabel{sec:supp-toy2d}{{G}{13}{Toy cross-domain experiment}{appendix.G}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Toy 2D non-overlap, mean over $250$ runs/method. Classifier guidance kills overlap but inflates wirelength $5.4\times $, mirroring the placement-domain finding; verifier-guided structured repair preserves both. Raw rows: \texttt  {results/toy/toy\_results.json}.}}{13}{table.caption.42}\protected@file@percent }
+\newlabel{tab:supp-toy}{{10}{13}{Toy 2D non-overlap, mean over $250$ runs/method. Classifier guidance kills overlap but inflates wirelength $5.4\times $, mirroring the placement-domain finding; verifier-guided structured repair preserves both. Raw rows: \texttt {results/toy/toy\_results.json}}{table.caption.42}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {H}Neural repair operator: full training details}{13}{appendix.H}\protected@file@percent }
+\newlabel{sec:supp-neural}{{H}{13}{Neural repair operator: full training details}{appendix.H}{}}
 \providecommand\NAT@force@numbers{}\NAT@force@numbers
-\@writefile{toc}{\contentsline {section}{\numberline {G}Convergence curves and step-size ablation}{13}{appendix.G}\protected@file@percent }
-\newlabel{sec:supp-convergence}{{G}{13}{Convergence curves and step-size ablation}{appendix.G}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Per-iteration convergence on adaptec1 and bigblue1, 3 seeds. Top: violations. Bottom: HPWL. Shaded band: seed std.}}{13}{figure.caption.38}\protected@file@percent }
-\newlabel{fig:supp-convergence}{{6}{13}{Per-iteration convergence on adaptec1 and bigblue1, 3 seeds. Top: violations. Bottom: HPWL. Shaded band: seed std}{figure.caption.38}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {H}Reproducibility and released artifacts}{13}{appendix.H}\protected@file@percent }
-\newlabel{sec:supp-repro}{{H}{13}{Reproducibility and released artifacts}{appendix.H}{}}
-\gdef \@abspage@last{13}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Convergence curves and step-size ablation}{14}{appendix.I}\protected@file@percent }
+\newlabel{sec:supp-convergence}{{I}{14}{Convergence curves and step-size ablation}{appendix.I}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Per-iteration convergence on adaptec1 and bigblue1, 3 seeds. Top: violations. Bottom: HPWL. Shaded band: seed std.}}{14}{figure.caption.43}\protected@file@percent }
+\newlabel{fig:supp-convergence}{{6}{14}{Per-iteration convergence on adaptec1 and bigblue1, 3 seeds. Top: violations. Bottom: HPWL. Shaded band: seed std}{figure.caption.43}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {J}Reproducibility and released artifacts}{14}{appendix.J}\protected@file@percent }
+\newlabel{sec:supp-repro}{{J}{14}{Reproducibility and released artifacts}{appendix.J}{}}
+\gdef \@abspage@last{14}
