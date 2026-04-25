@@ -18,7 +18,9 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-PY = "/opt/homebrew/Caskroom/miniforge/base/bin/python3.12"
+# Use the same interpreter that's running this script -- portable across local
+# mac (miniforge) and AutoDL (miniconda3) hosts.
+PY = sys.executable
 
 CHECKS = [
     {
