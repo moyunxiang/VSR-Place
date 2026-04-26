@@ -1,5 +1,28 @@
 # VSR-Place Development Log
 
+#### 2026-04-26 18:50 HKT — Phase 5 round 5 (Round-3 reviewer 5/10)
+**Context**: 用户更新 review 到 round 3 (5/10)。reviewer 主要 ask: (W4/Q5) 透明承认 VSR pre-pass slightly worsens macros-only HPWL post-pipeline (+226 vs +216); (W5) 直接讲 adaptec3/4 λ=8 full-HPWL 退化数字; (W9/S5/Q6) 删 supplement 老 seed-42 sweep（被 24-trial 取代）; (S6) per-circuit win/loss count; (Q7) cd-std vs cd-sched sensitivity；其他 W2/W4 残留软化语言。
+**Actions**:
+- GPU: 写 `scripts/run_cdstd_pipeline.py`，用 cd-std (legality-only) 做下游 legalizer 的 sensitivity check on 24 trials → 13 min on A800
+- 拉 `cdstd_pipeline.json`, 扩 `regen_round2_paper_tables.py` 加 `table_cdstd_pipeline.tex` (含 Wilcoxon)
+- 删 main appendix §"Tuned baselines: cg/RePaint sweeps" (sec:supp-tuned-baselines, seed-42 only) — 已被 24-trial sec:supp-baseline-sweeps-24 取代
+- 删 supplement §"Independent classical force-directed legalizer" (15 cached drafts) + §"Tuned baselines"; 24-trial 版本已存在 main appendix
+- 改 §4.4 "Robustness checks" 把 (ii)/(iii) 改成引 24-trial 表
+- 加 main appendix §sec:supp-cdstd-pipeline (sensitivity check section)
+- §sec:downstream_pipeline 加 W4/Q5 透明承认: post-pipeline macros-only HPWL median +226% vs raw +216% (VSR worsens slightly), 加 per-circuit win count (3/6 v, 2/6 hf, 4/6 hm)
+- §sec:downstream_pipeline 加 §4.6 W5: λ=8 per-circuit full-HPWL 显式数字 — adaptec1+4%, adaptec2-44%, adaptec3+100%, adaptec4+30%, bigblue1+14%, bigblue3-17%; "2 gain, 3 lose, 1 neutral"
+- 残留 strong-language 检查通过
+
+**Critical findings**:
+- **cd-std pipeline** median: raw v_post=32162, vsr8+cdstd=30774; Δh_full raw=+6.2%, vsr=+3.5%
+- cd-std Wilcoxon n=6: p_v=0.156, p_hf=0.156 — 未达显著但比 cd-sched (p=0.562/1.0) 紧得多
+- Full legality 0/24 在 BOTH cd-std AND cd-sched pipeline
+- per-circuit win 4/6 on cd-std vs 3/6 on cd-sched — cd-std 更适合 VSR pre-pass
+- 总体诚实结论: pipeline gain 是 mixed per-circuit, 不显著在 n=6
+
+**Build**: main.pdf 17 页 (body 9 + refs + appendix 7), supplement.pdf 8 页, 0 undef refs
+**Next**: commit + push
+
 #### 2026-04-26 17:00 HKT — Phase 5 round 4b: 三点 follow-up
 **Context**: 用户三条修改要求: (1) 主表切到 λ=8 或明确 λ-family; (2) 软化 "decisive downstream"; (3) 报告下游 residual + full legality + circuit-level 显著性。
 **Actions**:

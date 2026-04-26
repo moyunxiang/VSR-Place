@@ -27,6 +27,7 @@ from scipy import stats
 REPO = Path(__file__).resolve().parent.parent
 MAIN = REPO / "results" / "ispd2005" / "main_neurips.json"
 R2 = REPO / "results" / "vsr_extra" / "round2_review.json"
+CDSTD = REPO / "results" / "vsr_extra" / "cdstd_pipeline.json"
 PAPER_FIG = REPO / "paper" / "figures"
 
 CIRCUITS = ["adaptec1", "adaptec2", "adaptec3", "adaptec4", "bigblue1", "bigblue3"]
@@ -221,11 +222,83 @@ def main():
         f.write(f"- full-design $\\Delta h_f$: $p = {p_hf:.3f}$\n")
 
     print()
-    print("=== Headlines ===")
+    print("=== Headlines (cd-sched pipeline) ===")
     print(f"Pipeline residual v_post median:  raw={med_raw_v:.0f}  vsr8+cd={med_pipe_v:.0f}")
     print(f"Pipeline Δh_full median:          raw={med_raw_hf:+.1f}%  vsr8+cd={med_pipe_hf:+.1f}%")
     print(f"Full-legality (v=0): raw {full_legal_raw}/{n_total}  pipe {full_legal_pipe}/{n_total}")
     print(f"Circuit-level Wilcoxon (n=6): v_post p={p_v:.3f}  Δh_f p={p_hf:.3f}")
+
+    # ----------------------------------------------- cd-std sensitivity table
+    if CDSTD.exists():
+        cdstd_rows = json.load(open(CDSTD))
+        cdstd_rows = [r for r in cdstd_rows if r.get("cdstd_raw_v") is not None
+                      and r.get("pipe_vsr8_cdstd_v") is not None]
+        cm_raw_v, cm_pipe_v = [], []
+        cm_raw_hf, cm_pipe_hf = [], []
+        full_legal_raw_s = 0; full_legal_pipe_s = 0; n_total_s = 0
+        rows_s = []
+        for c in CIRCUITS:
+            rs = [r for r in cdstd_rows if r["circuit"] == c]
+            if not rs: continue
+            n_total_s += len(rs)
+            full_legal_raw_s += sum(1 for r in rs if r["cdstd_raw_v"] == 0)
+            full_legal_pipe_s += sum(1 for r in rs if r["pipe_vsr8_cdstd_v"] == 0)
+            m_raw_v = S.mean(r["cdstd_raw_v"] for r in rs)
+            m_pipe_v = S.mean(r["pipe_vsr8_cdstd_v"] for r in rs)
+            m_raw_hf = S.mean(r["cdstd_raw_full_h"] for r in rs)
+            m_pipe_hf = S.mean(r["pipe_vsr8_cdstd_full_h"] for r in rs)
+            cm_raw_v.append(m_raw_v); cm_pipe_v.append(m_pipe_v)
+            cm_raw_hf.append(m_raw_hf); cm_pipe_hf.append(m_pipe_hf)
+            m_bv = S.mean(r["baseline_v"] for r in rs)
+            m_bhf = S.mean(r["baseline_full_h"] for r in rs)
+            rows_s.append({
+                "c": c, "n": len(rs),
+                "raw_v": m_raw_v, "pipe_v": m_pipe_v,
+                "raw_hf": pct(m_raw_hf, m_bhf),
+                "pipe_hf": pct(m_pipe_hf, m_bhf),
+                "raw_legal": sum(1 for r in rs if r["cdstd_raw_v"] == 0),
+                "pipe_legal": sum(1 for r in rs if r["pipe_vsr8_cdstd_v"] == 0),
+            })
+        if rows_s:
+            w_v_s = stats.wilcoxon(cm_raw_v, cm_pipe_v, zero_method="pratt")
+            w_hf_s = stats.wilcoxon(cm_raw_hf, cm_pipe_hf, zero_method="pratt")
+            p_v_s = float(w_v_s.pvalue); p_hf_s = float(w_hf_s.pvalue)
+            out = PAPER_FIG / "table_cdstd_pipeline.tex"
+            with open(out, "w") as f:
+                f.write(r"\begin{tabular}{lr|rrc|rrc}" + "\n")
+                f.write(r"\toprule" + "\n")
+                f.write(r"& & \multicolumn{3}{c|}{raw $\to$ cd-std} & "
+                        r"\multicolumn{3}{c}{raw $\to$ VSR($\lambda{=}8$) $\to$ cd-std} \\" + "\n")
+                f.write(r"\cmidrule(lr){3-5} \cmidrule(lr){6-8}" + "\n")
+                f.write(r"Circuit & $n$ & $v_\text{post}$ & $\Delta h_f$\% & legal & "
+                        r"$v_\text{post}$ & $\Delta h_f$\% & legal \\" + "\n")
+                f.write(r"\midrule" + "\n")
+                for r in rows_s:
+                    f.write(f"{r['c']} & {r['n']} & "
+                            f"${r['raw_v']:.0f}$ & ${r['raw_hf']:+.1f}$ & "
+                            f"{r['raw_legal']}/{r['n']} & "
+                            f"${r['pipe_v']:.0f}$ & ${r['pipe_hf']:+.1f}$ & "
+                            f"{r['pipe_legal']}/{r['n']} \\\\\n")
+                f.write(r"\midrule" + "\n")
+                med_raw_v_s = S.median(r["raw_v"] for r in rows_s)
+                med_pipe_v_s = S.median(r["pipe_v"] for r in rows_s)
+                med_raw_hf_s = S.median(r["raw_hf"] for r in rows_s)
+                med_pipe_hf_s = S.median(r["pipe_hf"] for r in rows_s)
+                f.write(f"\\textbf{{median}} & -- & ${med_raw_v_s:.0f}$ & "
+                        f"${med_raw_hf_s:+.1f}$ & {full_legal_raw_s}/{n_total_s} & "
+                        f"${med_pipe_v_s:.0f}$ & ${med_pipe_hf_s:+.1f}$ & "
+                        f"{full_legal_pipe_s}/{n_total_s} \\\\\n")
+                f.write(f"\\multicolumn{{8}}{{l}}{{Circuit-level paired Wilcoxon "
+                        f"($n{{=}}6$): $v_\\text{{post}}$ $p={p_v_s:.3f}$; "
+                        f"$\\Delta h_f$ $p={p_hf_s:.3f}$.}} \\\\\n")
+                f.write(r"\bottomrule" + "\n")
+                f.write(r"\end{tabular}" + "\n")
+            print(f"\nWrote {out}")
+            print(f"=== Headlines (cd-std pipeline) ===")
+            print(f"residual_v median: raw={med_raw_v_s:.0f}  vsr8+cdstd={med_pipe_v_s:.0f}")
+            print(f"Δh_full median:    raw={med_raw_hf_s:+.1f}%  vsr8+cdstd={med_pipe_hf_s:+.1f}%")
+            print(f"Wilcoxon n=6: p_v={p_v_s:.3f}  p_hf={p_hf_s:.3f}")
+            print(f"Full-legality: raw {full_legal_raw_s}/{n_total_s}  pipe {full_legal_pipe_s}/{n_total_s}")
 
 
 if __name__ == "__main__":

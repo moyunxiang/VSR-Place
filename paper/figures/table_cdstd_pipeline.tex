@@ -1,0 +1,17 @@
+\begin{tabular}{lr|rrc|rrc}
+\toprule
+& & \multicolumn{3}{c|}{raw $\to$ cd-std} & \multicolumn{3}{c}{raw $\to$ VSR($\lambda{=}8$) $\to$ cd-std} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8}
+Circuit & $n$ & $v_\text{post}$ & $\Delta h_f$\% & legal & $v_\text{post}$ & $\Delta h_f$\% & legal \\
+\midrule
+adaptec1 & 4 & $15878$ & $-25.8$ & 0/4 & $14407$ & $-19.9$ & 0/4 \\
+adaptec2 & 4 & $22614$ & $+2.8$ & 0/4 & $23261$ & $-27.5$ & 0/4 \\
+adaptec3 & 4 & $41709$ & $+10.0$ & 0/4 & $38287$ & $+3.6$ & 0/4 \\
+adaptec4 & 4 & $72904$ & $+10.5$ & 0/4 & $73956$ & $+6.0$ & 0/4 \\
+bigblue1 & 4 & $9207$ & $+3.1$ & 0/4 & $7888$ & $+3.5$ & 0/4 \\
+bigblue3 & 4 & $125160$ & $+9.3$ & 0/4 & $100091$ & $+8.7$ & 0/4 \\
+\midrule
+\textbf{median} & -- & $32162$ & $+6.2$ & 0/24 & $30774$ & $+3.5$ & 0/24 \\
+\multicolumn{8}{l}{Circuit-level paired Wilcoxon ($n{=}6$): $v_\text{post}$ $p=0.156$; $\Delta h_f$ $p=0.156$.} \\
+\bottomrule
+\end{tabular}

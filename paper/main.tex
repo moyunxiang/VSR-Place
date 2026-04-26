@@ -429,21 +429,22 @@ draws, not iid samples.}
 \end{table}
 
 \paragraph{Robustness checks.} Three reviewer-prompted controls in the
-supplement.  (i) Full-design HPWL with cells at industrial \texttt{.pl}
+supplement (all on the same $24$ trials as Table~1).
+(i) Full-design HPWL with cells at industrial \texttt{.pl}
 (\S\ref{sec:supp-full-hpwl}): median $\Delta h{=}{+}10.7\%$
 (VSR-post) / $-1.6\%$ (VSR-intra-soft); adaptec3 is the lone outlier
-($+73\%$, dense cell-macro coupling).  (ii) Per-circuit tuning of cg
-($w\in\{0.5,...,8\}$) and RePaint ($t_\text{start}\in\{0.1,...,0.7\}$),
-\S\ref{sec:supp-tuned-baselines}: best-tuned cg medians
-$-7\%/{+}14\%$, RePaint $+109\%/{-}53\%$ (HPWL ``win'' = macro
-collapse), VSR-post $-55\%/{-}11\%$ --- VSR-post produces a strictly
-more negative $\Delta v$ than either tuned baseline on every circuit
-(legality axis only; HPWL axis is a Pareto trade).
-(iii) Independent classical force-directed legalizer
-(\S\ref{sec:supp-classical}): pure repulsion+boundary $-48\%/{+}126\%$,
-+net-spring (NTUplace3-style) $-45\%/{+}24\%$, vs.\ VSR-post
-$-44\%/{+}9\%$.  Comparable legality cut, much lower HPWL cost ---
-the selector mask + $\lambda$ knob, not brute repulsion, is what buys
+($+73\%$, dense cell-macro coupling).
+(ii) Per-circuit tuning of cg ($w\in\{2,8\}$, the two best per-family
+settings) and RePaint ($t_\text{start}\in\{0.3, 0.5\}$) on $4$ seeds
+(\S\ref{sec:supp-round2}, Table~\ref{tab:supp-baseline-sweeps-24}):
+no setting beats VSR-post on $\Delta v$.  (We deprecate the earlier
+seed-$42$-only sweep across the wider grids in favour of this $4$-seed
+version.)
+(iii) Independent classical force-directed legalizer on $24$ trials
+(Table~\ref{tab:supp-classical-24}): cross-circuit medians
+FD-pure $-54\%/{+}144\%$, FD+spring $-52\%/{+}34\%$, VSR-post($\lambda{=}8$)
+$-52\%/{-}34\%$ --- comparable legality cut, $\sim 70$pp better HPWL.
+The selector mask + $\lambda$ knob, not brute repulsion, is what buys
 HPWL preservation.
 
 \paragraph{Verifier--evaluation circularity.} VSR is designed to reduce
@@ -517,28 +518,30 @@ near-constant violation reduction.}
 \subsection{Downstream pipeline test}
 \label{sec:downstream_pipeline}
 
-A natural test of the repair-layer framing is whether
-\texttt{raw}$\to$\texttt{cd-sched} differs from
-\texttt{raw}$\to$\texttt{VSR}$\to$\texttt{cd-sched} in final placement
-quality.  On all $24$ trials at $\lambda{=}8$
-(Table~\ref{tab:supp-downstream-pipeline}), we report
-\emph{absolute} residual violations: median $v_\text{post}{=}23{,}824$
-(raw$\to$cd) vs.\ $22{,}089$ (VSR$\to$cd); full legality ($v{=}0$) is
-$\mathbf{0/24}$ under \emph{either} pipeline; full-design HPWL median
-$+8.4\%$ vs.\ $+7.1\%$.  Conservative circuit-level paired Wilcoxon
-($n{=}6$) gives $p_v{=}0.562$ and $p_{h_f}{=}1.000$ --- we cannot
-reject the null that the two pipelines yield equivalent post-legalizer
-placements.  The honest reading is supportive but not decisive: VSR
-pre-conditioning nudges medians in the right direction, but the gap is
-small in absolute terms and not significant on $n{=}6$, and neither
-pipeline produces a usable (legal) placement on any trial.
+We test whether \texttt{raw}$\to$\texttt{cd-sched} differs from
+\texttt{raw}$\to$\texttt{VSR}$\to$\texttt{cd-sched} on $24$ trials
+(Table~\ref{tab:supp-downstream-pipeline}).  Residual $v_\text{post}$
+median $23{,}824$ (raw) vs.\ $22{,}089$ (VSR); full legality $\mathbf{0/24}$
+either way; full-design $\Delta h$ median $+8.4\%$ vs.\ $+7.1\%$;
+\emph{post-pipeline macros-only} $\Delta h$ median $+215.7\%$ vs.\
+$+226.2\%$ --- VSR pre-pass slightly \emph{worsens} median macros-only
+HPWL after the legalizer.  Per-circuit wins (VSR-pre $<$ raw):
+residual $v$ $3/6$, full-design $\Delta h$ $2/6$, macros-only
+$\Delta h$ $4/6$.  Circuit-level paired Wilcoxon ($n{=}6$):
+$p_v{=}0.562$, $p_{h_f}{=}1.000$ --- not significant.  A cd-std
+sensitivity check (\S\ref{sec:supp-cdstd-pipeline}) gives the same
+conclusion.  \textbf{Honest reading:} the pipeline gain is mixed
+per-circuit, not significant on $n{=}6$, and neither pipeline reaches
+full legality.
 
-\paragraph{$\lambda{=}8$ on $4$ seeds (Q3, Q6).}  On the same $24$
-trials, VSR-post at $\lambda{=}8$ gives median macros-only
-$\Delta h=-34.1\%$ at near-identical $\Delta v$ to $\lambda{=}2$
-(Table~\ref{tab:supp-lambda8-main}); residual violation count median
-$\sim 18$k, same order as $\lambda{=}2$, confirming $\lambda$ trades
-macros-only HPWL not legality.
+\paragraph{$\lambda{=}8$ on $4$ seeds (Q3, Q6).}  Macros-only median
+$\Delta h{=}{-}34.1\%$ at near-identical $\Delta v$ to $\lambda{=}2$;
+residual $v$ median $\sim 18$k.  But per-circuit full-design $\Delta h$
+is highly variable: adaptec1 $+4\%$, adaptec2 $-44\%$,
+\textbf{adaptec3 $+100\%$}, \textbf{adaptec4 $+30\%$}, bigblue1
+$+14\%$, bigblue3 $-17\%$ --- $2$ gain, $3$ lose, $1$ neutral.  This
+exposes the limit of macros-only optimisation when local cell-macro
+coupling is dense.
 
 \subsection{Step budget and compute efficiency}
 \label{sec:step_budget}
@@ -1011,27 +1014,6 @@ macros-only trend.}
 \label{tab:supp-full-hpwl}
 \end{table}
 
-\section{Tuned baselines: cg legality weight and RePaint $t_\text{start}$ sweeps}
-\label{sec:supp-tuned-baselines}
-
-Per-circuit hyperparameter sweep at seed=42:
-$w \in \{0.5,1,2,4,8\}$ for cg (HPWL guidance$=0$, the strongest
-legality regime), $t_\text{start}\in\{0.1,0.2,0.3,0.5,0.7\}$ for
-RePaint with binary mask of violating macros.
-
-\begin{table}[h]
-\centering
-\small
-\input{figures/table_baseline_sweeps}
-\caption{Best-tuned cg / RePaint vs.\ VSR-post per circuit.
-$w^\star$ and $t^\star$ are the legality weight / $t_\text{start}$
-that minimise violation count for that family on that circuit.
-Cross-circuit median: cg-tuned $\Delta v{=}-7.1\%/\Delta h{=}+14.2\%$;
-RePaint-tuned $\Delta v{=}+109.4\%/\Delta h{=}-52.8\%$ (HPWL ``win'' =
-collapse); VSR-post $\Delta v{=}-55\%/\Delta h{=}-11\%$.}
-\label{tab:supp-tuned-baselines}
-\end{table}
-
 \section{Round-2 GPU experiments: pipeline + $\lambda{=}8$ + extended baselines}
 \label{sec:supp-round2}
 
@@ -1064,27 +1046,37 @@ without changing residual violation magnitude vs.\ $\lambda{=}2$.}
 \label{tab:supp-lambda8-main}
 \end{table}
 
-\section{Independent classical force-directed legalizer baseline}
-\label{sec:supp-classical}
+\section{Sensitivity check: cd-std as second-stage legalizer (Q7)}
+\label{sec:supp-cdstd-pipeline}
 
-\textbf{FD-pure} = pairwise overlap repulsion + boundary force on all
-macros (no mask, no spring).  \textbf{FD+spring} = + degree-normalised
-net-spring with weight 1.0, NTUplace3-style.  All three operators run
-$T{=}100$ steps, step size $0.3$, on the 15 cached ChipDiffusion
-drafts (Table~\ref{tab:supp-classical}).  Table~\ref{tab:supp-classical-24}
-extends the comparison to the same $6$ circuits $\times$ $4$ seeds
-as Table~1.
+We replace \texttt{cd-sched} (HPWL-aware) with \texttt{cd-std}
+(legality-only, $5000$ SGD steps, hpwl\_weight$=0$) as the second-stage
+legalizer to test sensitivity of the downstream pipeline finding.  Same
+$24$ trials, same baseline drafts, same VSR$\to$ pre-pass at
+$\lambda{=}8$.
 
 \begin{table}[h]
 \centering
 \small
-\input{figures/table_classical_legalizer}
-\caption{Classical force-directed legalizer baselines vs.\ VSR-post on
-the original $15$ cached drafts.  All three reduce violations
-comparably; the selector mask + tunable $\lambda$, not a different
-force model, is what gives VSR-post its HPWL preservation.}
-\label{tab:supp-classical}
+\input{figures/table_cdstd_pipeline}
+\caption{Sensitivity check: \texttt{cd-std} (legality-only) as the
+second-stage legalizer.  Cross-circuit medians and per-circuit
+win counts are similar to \texttt{cd-sched}: VSR pre-conditioning
+nudges medians in the right direction but the difference is small in
+absolute terms.  Full legality remains $0/24$ under either pipeline.
+Raw rows: \texttt{results/vsr\_extra/cdstd\_pipeline.json}.}
+\label{tab:supp-cdstd-pipeline}
 \end{table}
+
+\section{Independent classical force-directed legalizer ($24$ trials)}
+\label{sec:supp-classical}
+
+\textbf{FD-pure} = pairwise overlap repulsion + boundary force on all
+macros (no mask, no spring).  \textbf{FD+spring} = + degree-normalised
+net-spring with weight 1.0, NTUplace3-style.  Both operators run
+$T{=}100$ steps, step size $0.3$, on the same $6$ circuits $\times$ $4$
+seeds as Table~1, sharing the diffusion-sampled baseline draft for
+pairing.
 
 \begin{table}[h]
 \centering
