@@ -92,8 +92,13 @@
   - F1-F12 文本修正（abstract、claims、tone-down、limitations）
   - F4 circuit-level Wilcoxon (n=6) 替换主表
   - W2 tuned baselines: cg legality_weight + RePaint t_start sweep → supplement Table，main 段落引用
+  - W2/Q5 **independent classical force-directed legalizer baseline** (FD-pure + FD+spring) → main §4.4(iii) + supplement §sec:supp-classical
+  - W4 verifier-evaluation circularity 透明段落 → main §4.4
   - W5/E4 full-design HPWL with cells fixed at .pl → supplement Table，main 段落引用
+  - W7 selector saturated-draft regime artifact 透明段落 → main §4.4
+  - W9/Q7 no_grad OOM 源代码精确行号引用 (chipdiffusion/diffusion/models.py:1501-1550) → main Limitations + appendix §sec:supp-mem
   - F11 bigblue3 overlap-area: 进 full_metrics 表（6 circuits 全有 overlap_area / max_overlap）
+  - **Suggestion 6 principled λ selection**: LOCO CV，6/6 folds 都选 λ̂=8，held-out 6/6 strict-Pareto → main §4.6 + supplement §sec:supp-lambda-loco
 - [ ] **AutoDL 关机**（password policy 阻止本地 SSH，需要用户手动: web 控制台或 `ssh autodl_main 'shutdown -h now'`）
 - [ ] 内部 review 一轮（你 / 同事）
 - [ ] NeurIPS abstract registration（截止前）

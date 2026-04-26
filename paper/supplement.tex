@@ -150,6 +150,68 @@ Raw data: \texttt{results/vsr\_extra/failure\_cases.csv}.}
 \label{tab:supp-failures}
 \end{table}
 
+\section{LOCO cross-validation for $\lambda$}
+\label{sec:supp-lambda-loco}
+
+To answer the reviewer suggestion ``include a principled validation
+protocol for choosing $\lambda$,'' we run leave-one-circuit-out
+cross-validation on the $\lambda$-sweep results: for each held-out
+circuit, choose $\hat\lambda$ that maximises the strict-Pareto count on
+the other 5 circuits (tie-break by Pareto-improvement score, then by
+smaller $\lambda$), then evaluate on the held-out circuit.
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_lambda_loco}
+\caption{LOCO cross-validation for $\lambda$ selection on the
+$\lambda$-sweep results.  $\hat\lambda$ is chosen on the 5 held-in
+circuits (objective: strict-Pareto count, tie-break smaller $\lambda$);
+$\Delta v$ and $\Delta h$ are evaluated on the held-out circuit.
+``Oracle $\lambda^\star$'' is the per-circuit best $\lambda$ that minimises
+$\Delta h$ subject to $\Delta v < 0$.  All 6 folds select
+$\hat\lambda{=}8$, and held-out test gives \textbf{$6/6$ strict-Pareto
+improvement} matching the per-circuit oracle.  This is the principled
+selection rule.  Raw rows: \texttt{results/vsr\_extra/lambda\_loco.csv}.}
+\label{tab:supp-lambda-loco}
+\end{table}
+
+\section{Independent classical force-directed legalizer}
+\label{sec:supp-classical}
+
+To address the reviewer concern about strong-baseline coverage
+beyond ML-only baselines (cg / RePaint), we implement an independent
+classical force-directed legalizer that does \emph{not} use VSR's
+selector, severity, or net-spring.  All operators run for $T{=}100$
+steps with step size $0.3$ on the same 15 cached ChipDiffusion drafts
+(adaptec1$\times 8$ + adaptec2$\times 5$ + adaptec3$\times 1$ +
+bigblue1$\times 1$, the union of currently-cached drafts).
+
+\begin{itemize}
+\item \textbf{FD-pure}: pairwise overlap repulsion + boundary force,
+all macros free.  This is the standard analytical force-directed
+legalizer reduction.
+\item \textbf{FD+spring}: FD-pure + a degree-normalised
+net-spring attraction with weight $1.0$ on every netlist edge,
+NTUplace3 / RePLACE-flavoured.
+\item \textbf{VSR-post (ours)}: selector mask + repulsion + boundary
++ degree-normalised net-spring with $\lambda{=}2$.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_classical_legalizer}
+\caption{Independent classical force-directed legalizer baselines vs.\
+VSR-post on cached ChipDiffusion drafts.  FD-pure and FD+spring use the
+same step-budget and step-size as VSR-post and operate on \emph{all}
+macros (no mask).  All three reduce violations comparably; VSR-post's
+HPWL preservation advantage comes from the selector mask + tunable
+$\lambda$, not from a different force model.  Raw rows:
+\texttt{results/vsr\_extra/classical\_legalizer.json}.}
+\label{tab:supp-classical}
+\end{table}
+
 \section{Tuned baselines: sweeps of cg legality weight and RePaint $t_\text{start}$}
 \label{sec:supp-tuned-baselines}
 

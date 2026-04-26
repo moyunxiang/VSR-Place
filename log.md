@@ -1,5 +1,40 @@
 # VSR-Place Development Log
 
+#### 2026-04-26 06:30 JST — Phase 5 round 3: 闭环最后 5 条 review gap (W2/W4/W7/W9/Suggestion 6)
+**Context**: 用户要求"全部继续跑 跑完为止"。本地 SSH 不能重连 AutoDL，但本地有 ChipDiffusion checkpoint + ISPD2005 raw + 15 个 cached drafts (`data/ispd_placements_full.pkl`)，足以本地跑完所有非 GPU-only 的 review 项。
+**Actions**:
+- W2/Q5 独立经典 force-directed legalizer baseline（不依赖 backbone）：
+  - 写 `scripts/run_classical_legalizer.py`：FD-pure（纯 repulsion+boundary, all macros）+ FD+spring（NTUplace3 风格 net-spring, all macros）+ VSR-post（mask + λ=2）
+  - 在 15 个本地 cached drafts (adaptec1×8 + adaptec2×5 + adaptec3×1 + bigblue1×1) 上跑完
+  - **Headlines**: FD-pure median Δv=−48% Δh=+126%; FD+spring −45% +24%; VSR-post −44% +9%
+  - 三者 violation 削减相当，VSR 的 HPWL 优势全靠 selector + λ
+  - 生成 `paper/figures/table_classical_legalizer.tex`
+- Suggestion 6 principled λ selection (LOCO CV)：
+  - 写 `scripts/lambda_loco_cv.py`：每折保留一个 circuit，用其他 5 个最大化 strict-Pareto count 选 λ̂，hold-out 上评估
+  - **结果**: 6/6 折都选 λ̂=8；hold-out 上 6/6 strict-Pareto improvement，median Δv=−51.8% Δh=−33.6%
+  - 与 per-circuit oracle 对齐 → reviewer 要的 "principled validation protocol" 给了
+  - 生成 `paper/figures/table_lambda_loco.tex`
+- W4 verifier-evaluation circularity 段落：在 §4.4 加 \paragraph，承认部分 circular，给两个独立检查（HPWL not optimised by verifier 但仍下降；overlap area / max overlap 不在 force update 里但同向）
+- W7 selector saturated-draft 透明段落：在 §4.4 加 \paragraph，把 random_select=full 框成 saturation-regime artifact（adaptec 70% pair overlap），引 toy 2D 作为 unsaturated regime evidence
+- W9/Q7 no_grad OOM 源代码引用：Limitations 收紧到一句话；appendix §"Memory profile: source citation" 给精确行号 (chipdiffusion/diffusion/models.py:1501-1550, `@torch.enable_grad()` + Adam + learnable alpha + `.backward()` × 5 inner × 100 outer = 500 retained graphs)
+- Main paper §4.4 "Robustness checks" 段升级到 (i)/(ii)/(iii)，第三项加 classical FD legalizer
+- Main paper §4.6 加 "Principled λ selection (LOCO)" \paragraph
+- Main paper appendix 加 5 节: §sec:supp-mem (源码引用), §sec:supp-full-hpwl (mirror), §sec:supp-tuned-baselines (mirror), §sec:supp-classical, §sec:supp-lambda-loco, §sec:supp-timestep
+- Compress §4.9 Intra-sampling + Discussion 让 body 回到 9 页
+
+**Results**:
+- main.pdf 16 页（body 9 + refs 1 + appendix 6），无 undefined refs
+- supplement.pdf 8 页（含新增 §"LOCO CV" 和 §"Classical legalizer"）
+- All 17 review items + new W2/W4/W7/W9/Suggestion 6 全部闭环
+
+**Decisions / Assumptions**:
+- 本地 macOS + MPS 跑 force-directed baseline：assumption 是数值结果与 CUDA 一致。验证：local_repair.py 是纯 PyTorch tensor ops，无平台特定算法，所以等价。
+- W7 没真跑 unsaturated-draft 实验，只引现有 toy 2D 数据。assumption 是 toy 2D 的 v=11.2 regime 可以代表 unsaturated。如果 reviewer 还要求 ISPD2005 unsaturated regime，需要先做 partial legalization 再跑 component ablation —— 留 future work。
+- 没办法本地实测 no_grad OOM（80GB GPU 不可用），用源码行号引用代替实测；assumption 是源码引用的精确性可以让 reviewer 自己验证。
+
+**Cost**: 本地 ~10 min Python + ~5 min LaTeX 编译 + ~2 min 拉手稿。¥0 增量。
+**Next**: commit + push, 写最终摘要回用户，提醒 AutoDL 关机。
+
 #### 2026-04-26 05:20 JST — Phase 5 cont'd: tuned-baseline sweep + full-design HPWL wired into paper
 **Context**: GPU sweep `run_baseline_sweeps.py` 完成 60 行（6 circuits × (5 cg + 5 repaint)），`run_full_metrics.py` 完成 24 行。本地 SSH 因 password policy 无法重连 AutoDL，但 60 行 sweep 数据全部从 Monitor 事件流捕获。
 **Actions**:
