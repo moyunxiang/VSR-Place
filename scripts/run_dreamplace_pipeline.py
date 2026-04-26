@@ -44,8 +44,8 @@ import torch  # noqa: E402
 NAMES = ["adaptec1", "adaptec2", "adaptec3", "adaptec4",
          "bigblue1", "bigblue2", "bigblue3", "bigblue4"]
 CIRCUITS = [0, 1, 2, 3, 4, 6]
-# Subset for cost: 2 seeds per circuit (12 trials × 2 treatments = 24 DREAMPlace runs)
-SEEDS = [42, 123]
+# Full coverage: 4 seeds = 24 trials × 4 treatments (raw, vsr8, fd_pure, fd_spring) = 96 DP runs
+SEEDS = [42, 123, 300, 2024]
 LAMBDA8 = 8.0
 NUM_REPAIR = 100
 
@@ -254,6 +254,14 @@ def main():
                 cent_v = local_repair_loop(cent_b, sz, cw, ch, num_steps=NUM_REPAIR,
                                            step_size=0.3, only_mask=(sev > 0),
                                            edge_index=ei, hpwl_weight=LAMBDA8)
+                # FD-pure (no mask, no spring) — classical force-directed
+                cent_fd = local_repair_loop(cent_b, sz, cw, ch, num_steps=NUM_REPAIR,
+                                            step_size=0.3, only_mask=None,
+                                            edge_index=None, hpwl_weight=0.0)
+                # FD+spring (no mask, net-spring weight 1.0) — NTUplace3-style
+                cent_fs = local_repair_loop(cent_b, sz, cw, ch, num_steps=NUM_REPAIR,
+                                            step_size=0.3, only_mask=None,
+                                            edge_index=ei, hpwl_weight=1.0)
                 # Sanity check we have macro count match
                 if cent_b.shape[0] != n_macros_bookshelf:
                     print(f"  WARNING: cond macros {cent_b.shape[0]} != bookshelf macros {n_macros_bookshelf}", flush=True)
@@ -275,7 +283,8 @@ def main():
                     src_pl = bench_circuit / f"{name}.pl"
                 src_pl_lines = open(src_pl).readlines()
 
-                for treat, centers in [("raw", cent_b), ("vsr8", cent_v)]:
+                for treat, centers in [("raw", cent_b), ("vsr8", cent_v),
+                                       ("fdpure", cent_fd), ("fdspring", cent_fs)]:
                     work = REPO / "results" / "vsr_extra" / f"dp_{name}_seed{seed}_{treat}"
                     if work.exists(): shutil.rmtree(work)
                     work.mkdir(parents=True)

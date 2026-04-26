@@ -1,17 +1,17 @@
-\begin{tabular}{lr|rrc|rrc}
+\begin{tabular}{lr|rr|rr|rr|rr}
 \toprule
-& & \multicolumn{3}{c|}{raw $\to$ DREAMPlace} & \multicolumn{3}{c}{raw $\to$ VSR($\lambda{=}8$) $\to$ DREAMPlace} \\
-\cmidrule(lr){3-5} \cmidrule(lr){6-8}
-Circuit & $n$ & $v_\text{post}$ & $\Delta v$\% & legal & $v_\text{post}$ & $\Delta v$\% & legal \\
+& & \multicolumn{2}{c|}{raw} & \multicolumn{2}{c|}{FD-pure} & \multicolumn{2}{c|}{FD+spring} & \multicolumn{2}{c}{VSR ($\lambda{=}8$)} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10}
+Circuit & $n$ & $v_\text{post}$ & $\Delta v$\% & $v_\text{post}$ & $\Delta v$\% & $v_\text{post}$ & $\Delta v$\% & $v_\text{post}$ & $\Delta v$\% \\
 \midrule
-adaptec1 & 2 & $20644$ & $+7.2$ & 0/2 & $9052$ & $-53.0$ & 0/2 \\
-adaptec2 & 2 & $12531$ & $-64.7$ & 0/2 & $6084$ & $-82.9$ & 0/2 \\
-adaptec3 & 2 & $19992$ & $-51.8$ & 0/2 & $9750$ & $-76.5$ & 0/2 \\
-adaptec4 & 2 & $72392$ & $-33.7$ & 0/2 & $31252$ & $-71.4$ & 0/2 \\
-bigblue1 & 2 & $12484$ & $+13.8$ & 0/2 & $9052$ & $-17.5$ & 0/2 \\
-bigblue3 & 2 & $108021$ & $-43.2$ & 0/2 & $35000$ & $-81.6$ & 0/2 \\
+adaptec1 & 4 & $21001$ & $+5.9$ & $10040$ & $-49.4$ & $10191$ & $-48.6$ & $9771$ & $-50.7$ \\
+adaptec2 & 4 & $12510$ & $-62.8$ & $5818$ & $-82.7$ & $6270$ & $-81.4$ & $6022$ & $-82.1$ \\
+adaptec3 & 4 & $19150$ & $-51.2$ & $9050$ & $-77.0$ & $9355$ & $-76.2$ & $9982$ & $-74.6$ \\
+adaptec4 & 4 & $72200$ & $-31.5$ & $25846$ & $-75.5$ & $28181$ & $-73.3$ & $30455$ & $-71.1$ \\
+bigblue1 & 4 & $12476$ & $+13.7$ & $8325$ & $-24.1$ & $8170$ & $-25.5$ & $8277$ & $-24.6$ \\
+bigblue3 & 4 & $113538$ & $-34.5$ & $33109$ & $-80.9$ & $28608$ & $-83.5$ & $37386$ & $-78.4$ \\
 \midrule
-\textbf{median} & -- & $20318$ & $-38.5$ & 0/12 & $9401$ & $-73.9$ & 0/12 \\
-\multicolumn{8}{l}{Circuit-level paired Wilcoxon ($n{=}6$): $v_\text{post}$ $p=0.031$.} \\
+\textbf{median} & -- & $20075$ & $-33.0$ & $9545$ & $-76.2$ & $9773$ & $-74.7$ & $9876$ & $-72.8$ \\
+\multicolumn{10}{l}{Circuit-level paired Wilcoxon ($n{=}6$): raw vs.\ VSR $p_v=0.031$; raw vs.\ FD-pure $p_v=0.031$; raw vs.\ FD+spring $p_v=0.031$; VSR vs.\ FD-pure $p_v=0.219$.} \\
 \bottomrule
 \end{tabular}

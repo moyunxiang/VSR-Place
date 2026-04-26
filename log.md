@@ -1,5 +1,33 @@
 # VSR-Place Development Log
 
+#### 2026-04-26 22:50 HKT — Phase 5 round 7: DREAMPlace 全 24 trials + FD baselines 比较
+**Context**: 用户问"还有什么 GPU 实验没跑". 决定扩展 DREAMPlace 实验: 12 → 24 trials (4 seeds), 加 FD-pure / FD+spring 作为 pre-conditioner baseline (回答"是 VSR 特殊还是任何 pre-conditioning 都帮 DREAMPlace?")
+**Actions**:
+- 扩 `run_dreamplace_pipeline.py`: SEEDS=[42,123,300,2024], 加 fdpure + fdspring 两个 treatment
+- 跑 24 trials × 4 treatments × ~17-25s/DP = 96 DREAMPlace 调用 ≈ 36 min A800
+- 扩 `analyze_dreamplace_pipeline.py`: 4-treatment table，加 raw vs fdp Wilcoxon, vsr vs fdp Wilcoxon
+
+**🚨 关键诚实发现**:
+- raw → DP median: Δv=−33%, v_post=20075
+- FD-pure → DP median: **Δv=−76.2%**, v_post=**9545** (最佳!)
+- FD+spring → DP median: Δv=−74.7%, v_post=9773
+- VSR(λ=8) → DP median: Δv=−72.8%, v_post=9876 (略差于 FD-pure)
+- **Per-trial wins**: VSR vs raw 24/24 ✓; FD-pure vs raw 24/24 ✓; **VSR vs FD-pure 仅 7/24** (FD 略胜)
+- **Wilcoxon n=6**: raw vs VSR p=0.031*, raw vs FD-pure p=0.031*, **VSR vs FD-pure p=0.219 (NOT signif)**
+
+**论文 reframe**:
+- 之前的 "VSR pipeline 显著胜过 raw pipeline" 仍然成立
+- 但 "VSR 是特殊"的 claim **被推翻** — 任何 macro pre-conditioning 都帮 DREAMPlace 同等程度
+- VSR 的独特价值在 macros-only Pareto 上，不在 post-DREAMPlace residual
+
+**Paper 更新**:
+- §4.6 §sec:downstream_pipeline 重写: VSR ≈ FD-pure ≈ FD+spring on DP
+- abstract 更新: "VSR does not out-perform classical FD pre-conditioners on this pipeline metric"
+- §sec:supp-dreamplace caption 更新: 4-treatment table
+- Limitations: 加 "VSR statistically equivalent to FD pre-conditioning on DREAMPlace pipeline"
+
+**Build**: main.pdf 18 页 (body 9, refs starts p10 line 0), supplement.pdf 8 页, 0 undef refs
+
 #### 2026-04-26 21:30 HKT — Phase 5 round 6: DREAMPlace external pipeline + multiple-comparison correction (#1+#2)
 **Context**: 用户两步骤要求: (1) Bonferroni/BH 多重检验校正; (2) DREAMPlace 作为外部 legalizer 的端到端 pipeline 实验。GPU 还开着。
 **Actions** (#1, ~30 min):

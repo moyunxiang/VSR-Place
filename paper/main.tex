@@ -50,12 +50,14 @@ legalizers on both metrics ($p_\text{BH}{=}0.044$);
 under highly conservative Bonferroni adjustment, no individual
 pairwise test reaches $p{<}0.05$ on $n{=}6$ (expected at this sample
 size).  Raw, BH-adjusted, and Bonferroni-adjusted $p$-values are all
-reported transparently.  In a downstream pipeline test
-(\texttt{raw}$\to$\texttt{cd-sched} vs.\
-\texttt{raw}$\to$\texttt{VSR}$\to$\texttt{cd-sched}, $24$ trials), the
-VSR pre-pass nudges medians in the right direction but the difference
-is not significant on $n{=}6$ ($p_v{=}0.56$, $p_{h_f}{=}1.00$); both
-pipelines leave $\sim 22$k residual violations.  An intra-sampling
+reported transparently.  Two downstream pipeline tests on $24$ trials.  With ChipDiffusion's
+weak HPWL-aware legalizer (\texttt{cd-sched}), no pre-conditioner
+significantly out-performs raw ($p{>}0.5$).  With the strong external
+legalizer DREAMPlace, three pre-conditioners (VSR, classical FD-pure,
+FD+spring) all significantly halve the median residual count ($p_v{=}0.031$
+each vs.\ raw); VSR does not out-perform the classical FD pre-conditioners
+on this pipeline metric (VSR vs.\ FD-pure $p_v{=}0.22$).  No pipeline
+reaches full legality on any trial.  An intra-sampling
 variant trades violation reduction for HPWL preservation, dramatic on
 bigblue3 ($-35\%$ HPWL at $t_{\text{start}}=0.5$).  The bigblue2/4 OOM
 frontier is dominated by ChipDiffusion's \texttt{guidance\_mode='opt'}
@@ -530,16 +532,18 @@ $23.8$k (raw) vs.\ $22.1$k (VSR); $0/24$ legal; full-design $\Delta h$
 $+8.4\%$ vs.\ $+7.1\%$; per-circuit VSR-wins $3/6$; circuit Wilcoxon
 $p_v{=}0.562$ --- \emph{not} significant; cd-std consistent
 (\S\ref{sec:supp-cdstd-pipeline}).
-\textbf{DREAMPlace~\cite{dreamplace} ($12$ trials)}: built from source,
-run as legalize+detailed-place stage.  Median residual $20.3$k (raw)
-vs.\ $\mathbf{9.4}$k (VSR$\to$DP); $\Delta v{=}{-}38.5\%$ vs.\
-$\mathbf{{-}73.9\%}$; \textbf{per-trial wins $12/12$, per-circuit
-$6/6$}; circuit Wilcoxon $\mathbf{p_v{=}0.031}$
-(Table~\ref{tab:supp-dp-pipeline}).  Full legality $0/12$ either way.
-\textbf{Honest reading.} VSR's downstream value depends on the
-legalizer: small and not significant on cd-sched; large and
-significant on the strong external DREAMPlace ($v_\text{post}$
-halved, $12/12$ trials).  Neither pipeline reaches full legality.
+\textbf{DREAMPlace~\cite{dreamplace} ($24$ trials, $4$ pre-conditioners)}.
+Median post-DP residual: raw $20$k, FD-pure $\mathbf{9.5}$k, FD+spring
+$9.8$k, VSR $9.9$k; circuit Wilcoxon ($n{=}6$): raw vs.\ VSR
+$p_v{=}0.031$, raw vs.\ FD-pure $p_v{=}0.031$, VSR vs.\ FD-pure
+$p_v{=}0.22$ (\emph{not} significant).  Full legality $0/24$ for all four
+(Table~\ref{tab:supp-dp-pipeline}).  \textbf{Honest reading.} On the
+strong external legalizer, \emph{any} pre-conditioning (VSR or
+classical FD) significantly halves the residual; VSR does not
+out-perform classical FD on this pipeline metric.  VSR's distinct value
+is in the upstream macros-only trade (Tables~\ref{tab:main},
+\ref{tab:wilcoxon}), not in post-DREAMPlace residual.  No pipeline
+reaches full legality.
 
 \paragraph{$\lambda{=}8$ on $4$ seeds (Q3, Q6).}  Macros-only median
 $\Delta h{=}{-}34.1\%$ at near-identical $\Delta v$ to $\lambda{=}2$;
@@ -648,21 +652,15 @@ HPWL) on adaptec3/4, and dramatic on bigblue3:
 essentially unchanged --- consistent with more re-noising re-invoking
 the backbone prior more strongly.
 
-\subsection{Memory profile and limitations}
+\subsection{Limitations}
 \label{sec:limitations}
 
-bigblue2 ($N{=}23$k) and bigblue4 ($N{=}8.2$k) OOM at $\geq 77$\,GB on
-an $80$\,GB A800 in fp32/bf16/fp16; single-step forward is only
-$1$--$3$\,GB, so OOM is dominated by accumulated attention-graph
-activations across the $100$-step rollout (Table~\ref{tab:supp-mem-profile}).
-VSR-post on synthetic baselines succeeds at negligible memory
-($137$\,s / $941$\,s on bigblue4 / bigblue2): the OOM is a
-ChipDiffusion sampler artefact, not a VSR cost
-(\S\ref{sec:supp-mem}).
-\textbf{Other limitations:} no method achieves $v{=}0$ on any trial
-(downstream legalizer still required); single backbone tested;
-full-design HPWL median $+10.7\%$ (adaptec3 $+73\%$, per-circuit at
-$\lambda{=}8$ in \S\ref{sec:downstream_pipeline}).
+bigblue2/4 OOM is a ChipDiffusion \texttt{guidance\_mode='opt'} sampler
+artefact, not a VSR cost (\S\ref{sec:supp-mem},
+Table~\ref{tab:supp-mem-profile}).  No method achieves $v{=}0$ on any
+trial; single backbone tested; full-design HPWL median $+10.7\%$
+(adaptec3 $+73\%$); on the DREAMPlace pipeline VSR is statistically
+equivalent to classical FD pre-conditioning (\S\ref{sec:downstream_pipeline}).
 
 \bibliographystyle{plain}
 \bibliography{refs}
@@ -1063,16 +1061,17 @@ $\approx 16$ minutes A800.
 \centering
 \small
 \input{figures/table_dreamplace_pipeline}
-\caption{External legalizer pipeline (R-3 round / Q4).  raw $\to$
-DREAMPlace vs.\ raw $\to$ VSR($\lambda{=}8$) $\to$ DREAMPlace, on $12$
-trials (subset for cost).  VSR pre-conditioning more than halves
-median residual violations ($20.3$k $\to$ $9.4$k);
-\textbf{per-trial wins $12/12$, per-circuit wins $6/6$};
-circuit-level paired Wilcoxon $\mathbf{p_v{=}0.031}$.  Macros-only HPWL
-is not directly comparable post-DREAMPlace (DREAMPlace optimises a
-density+wirelength objective on the full design that re-places cells
-significantly).  Full legality remains $0/12$ under either pipeline.
-Raw rows: \texttt{results/vsr\_extra/dreamplace\_pipeline.json}.}
+\caption{External legalizer pipeline (Q4): four pre-conditioners
+(raw / FD-pure / FD+spring / VSR$\lambda{=}8$) each fed to DREAMPlace
+as the legalize+detailed-place stage, $24$ trials.  All three
+non-trivial pre-conditioners halve the median residual relative to
+raw ($\sim 9.5$k vs.\ $20$k); circuit-level paired Wilcoxon
+($n{=}6$): raw vs.\ each pre-conditioner $p_v{=}0.031$, but VSR vs.\
+FD-pure $p_v{=}0.22$ (not significant) --- VSR does not
+out-perform classical FD baselines on this pipeline metric.
+Macros-only HPWL is not comparable post-DREAMPlace (DREAMPlace
+optimises full-design density+wirelength).  Full legality $0/24$ for
+all four.}
 \label{tab:supp-dp-pipeline}
 \end{table}
 

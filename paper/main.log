@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  26 APR 2026 21:35
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  26 APR 2026 22:53
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -523,7 +523,7 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 26.
 (/usr/local/texlive/2025basic/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Underfull \hbox (badness 10000) in paragraph at lines 79--86
+Underfull \hbox (badness 10000) in paragraph at lines 81--88
 []\T1/ptm/m/it/10 Classifier-style guid-ance \T1/ptm/m/n/10 [[], []] in-jects t
 he gra-di-ent of a smooth penalty
  []
@@ -536,26 +536,28 @@ he gra-di-ent of a smooth penalty
 {/usr/local/texlive/2025basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/us
 r/local/texlive/2025basic/texmf-dist/fonts/enc/dvips/base/8r.enc}]
 LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 1
-13.
+15.
 
 (/usr/local/texlive/2025basic/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
-<figures/fig1_framework.pdf, id=182, 787.74298pt x 267.39899pt>
+<figures/fig1_framework.pdf, id=178, 787.74298pt x 267.39899pt>
 File: figures/fig1_framework.pdf Graphic file (type pdf)
 <use figures/fig1_framework.pdf>
-Package pdftex.def Info: figures/fig1_framework.pdf  used on input line 140.
+Package pdftex.def Info: figures/fig1_framework.pdf  used on input line 142.
 (pdftex.def)             Requested size: 377.60951pt x 128.18275pt.
 
 
-[2 <./figures/fig1_framework.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 171--182
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 173--184
  []\T1/ptm/b/n/10 Constraint-aware gen-er-a-tion.[] \T1/ptm/m/n/10 Clas-si-fier
  guid-ance [[]] re-quires a dif-fer-en-tiable score
  []
 
 
-Underfull \hbox (badness 1205) in paragraph at lines 171--182
+Underfull \hbox (badness 1205) in paragraph at lines 173--184
 \OMS/cmsy/m/n/10 r [] \OML/cmm/m/it/10 p\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 c\OMS
 /cmsy/m/n/10 j\OML/cmm/m/it/10 x[]\OT1/cmr/m/n/10 )$\T1/ptm/m/n/10 . Uni-ver-sa
 l Guid-ance [[]] ex-tends this with it-er-a-tive gra-di-ent de-scent on the
@@ -563,13 +565,15 @@ l Guid-ance [[]] ex-tends this with it-er-a-tive gra-di-ent de-scent on the
 
 
 
-[3]
+[2]
+
+[3 <./figures/fig1_framework.pdf>]
 
 [4] (./figures/table_main_neurips.tex)
-<figures/fig4_percircuit.pdf, id=347, 786.25114pt x 280.90768pt>
+<figures/fig4_percircuit.pdf, id=345, 786.25114pt x 280.90768pt>
 File: figures/fig4_percircuit.pdf Graphic file (type pdf)
 <use figures/fig4_percircuit.pdf>
-Package pdftex.def Info: figures/fig4_percircuit.pdf  used on input line 366.
+Package pdftex.def Info: figures/fig4_percircuit.pdf  used on input line 368.
 (pdftex.def)             Requested size: 377.60951pt x 134.9113pt.
 
 
@@ -580,42 +584,37 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 (./figures/table_wilcoxon_circuit.tex)
 
+[5]
+
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 
-[5]
+[6 <./figures/fig4_percircuit.pdf>]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 474.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\lambda' on input line 474.
+(hyperref)                removing `math shift' on input line 476.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 474.
+(hyperref)                removing `\lambda' on input line 476.
 
 
-Underfull \hbox (badness 3780) in paragraph at lines 477--490
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 476.
+
+
+Underfull \hbox (badness 3780) in paragraph at lines 479--492
 \T1/ptm/m/n/10 A nat-u-ral re-viewer con-cern is whether $\OML/cmm/m/it/10 ^^U[
 ]\OT1/cmr/m/n/10 2$ \T1/ptm/m/n/10 is a fit-ted con-stant. We sweep $\OML/cmm/m
 /it/10 ^^U \OMS/cmsy/m/n/10 2
  []
 
-
-Underfull \vbox (badness 2189) has occurred while \output is active []
-
-
-
-[6 <./figures/fig4_percircuit.pdf>]
 <figures/fig_lambda_sweep.pdf, id=443, 930.79115pt x 497.45036pt>
 File: figures/fig_lambda_sweep.pdf Graphic file (type pdf)
 <use figures/fig_lambda_sweep.pdf>
-Package pdftex.def Info: figures/fig_lambda_sweep.pdf  used on input line 514.
+Package pdftex.def Info: figures/fig_lambda_sweep.pdf  used on input line 516.
 (pdftex.def)             Requested size: 377.60951pt x 201.80786pt.
-
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
@@ -625,8 +624,11 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 <figures/fig_step_budget.pdf, id=468, 786.25114pt x 278.08379pt>
 File: figures/fig_step_budget.pdf Graphic file (type pdf)
 <use figures/fig_step_budget.pdf>
-Package pdftex.def Info: figures/fig_step_budget.pdf  used on input line 571.
+Package pdftex.def Info: figures/fig_step_budget.pdf  used on input line 575.
 (pdftex.def)             Requested size: 377.60951pt x 133.55507pt.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
 
 
 [8 <./figures/fig_lambda_sweep.pdf> <./figures/fig_step_budget.pdf>]
@@ -635,7 +637,7 @@ Package pdftex.def Info: figures/fig_step_budget.pdf  used on input line 571.
 [9])
 
 [10] (./figures/table_wilcoxon.tex)
-Underfull \hbox (badness 3428) in paragraph at lines 719--724
+Underfull \hbox (badness 3428) in paragraph at lines 717--722
  []\T1/ptm/b/n/10 Attractive force $\OML/cmm/m/it/10 f[]$ \T1/ptm/b/n/10 (netli
 st).[] \T1/ptm/m/n/10 Hy-per-edges from ChipDif-fu-sion's \T1/cmtt/m/n/10 edge_
 index \T1/ptm/m/n/10 are pre-
@@ -646,7 +648,7 @@ index \T1/ptm/m/n/10 are pre-
 [11
 
 ] (./figures/table_component_ablation.tex)
-Underfull \hbox (badness 2460) in paragraph at lines 815--815
+Underfull \hbox (badness 2460) in paragraph at lines 813--813
 []\T1/ptm/m/n/10 Table 7: |Com-po-nent ab-la-tion, mean $\OMS/cmsy/m/n/10 ^^F$ 
 \T1/ptm/m/n/10 std over 18 (cir-cuit, seed) pairs. Raw data:
  []
@@ -657,7 +659,7 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 [12]
-Underfull \hbox (badness 3849) in paragraph at lines 888--895
+Underfull \hbox (badness 3849) in paragraph at lines 886--893
 \T1/ptm/m/n/10 chi-tec-ture: 3-layer GATv2 (heads$\OT1/cmr/m/n/10 = 4$\T1/ptm/m
 /n/10 , hidden$\OT1/cmr/m/n/10 = 128$\T1/ptm/m/n/10 , $\OMS/cmsy/m/n/10 ^^X \OT
 1/cmr/m/n/10 100$\T1/ptm/m/n/10 K pa-ram-e-ters), scale-
@@ -669,83 +671,88 @@ Underfull \vbox (badness 1496) has occurred while \output is active []
 
 
 [13]
-<figures/fig7_convergence.pdf, id=677, 715.0972pt x 424.61511pt>
+<figures/fig7_convergence.pdf, id=679, 715.0972pt x 424.61511pt>
 File: figures/fig7_convergence.pdf Graphic file (type pdf)
 <use figures/fig7_convergence.pdf>
-Package pdftex.def Info: figures/fig7_convergence.pdf  used on input line 929.
+Package pdftex.def Info: figures/fig7_convergence.pdf  used on input line 927.
 (pdftex.def)             Requested size: 337.86465pt x 200.61874pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 963--983
+Underfull \hbox (badness 10000) in paragraph at lines 961--981
 []\T1/ptm/m/n/10 The big-blue2/4 OOM cited in the main pa-per is an arte-fact o
 f ChipDif-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 963--983
+Underfull \hbox (badness 10000) in paragraph at lines 961--981
 \T1/ptm/m/n/10 fu-sion's re-leased sam-pler, not a generic diffusion-inference 
 cost. The
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 963--983
+Underfull \hbox (badness 10000) in paragraph at lines 961--981
 \T1/cmtt/m/n/10 guidance_mode='opt' \T1/ptm/m/n/10 path goes through \T1/cmtt/m
 /n/10 reverse_guidance_opt_force \T1/ptm/m/n/10 in
  []
 
 
-Underfull \hbox (badness 3942) in paragraph at lines 963--983
+Underfull \hbox (badness 3942) in paragraph at lines 961--981
 \T1/ptm/m/n/10 (line 1517--1521), runs \T1/cmtt/m/n/10 grad_descent_steps\T1/pt
 m/m/n/10 =5 in-ner steps each call-ing \T1/cmtt/m/n/10 .backward()
  []
 
 
-Underfull \hbox (badness 2150) in paragraph at lines 963--983
+Underfull \hbox (badness 2150) in paragraph at lines 961--981
 \T1/ptm/m/n/10 (line 1532), and ad-di-tion-ally main-tains a learn-able \T1/cmt
 t/m/n/10 self.alpha \T1/ptm/m/n/10 pa-ram-e-ter with its own
  []
 
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <12> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 984.
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 982.
 (./figures/table_full_metrics.tex)
 
 [14 <./figures/fig7_convergence.pdf>]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1005.
+(hyperref)                removing `math shift' on input line 1003.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\lambda' on input line 1005.
+(hyperref)                removing `\lambda' on input line 1003.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1005.
+(hyperref)                removing `math shift' on input line 1003.
 
 (./figures/table_downstream_pipeline.tex) (./figures/table_lambda8_main.tex)
 
 [15]
-Underfull \hbox (badness 10000) in paragraph at lines 1053--1056
+Underfull \hbox (badness 10000) in paragraph at lines 1051--1054
 []\T1/ptm/m/n/10 Run DREAM-Place with \T1/cmtt/m/n/10 global_place_flag=0\T1/pt
 m/m/n/10 , \T1/cmtt/m/n/10 legalize_flag=1\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 2197) in paragraph at lines 1053--1056
+Underfull \hbox (badness 2197) in paragraph at lines 1051--1054
 \T1/cmtt/m/n/10 detailed_place_flag=1 \T1/ptm/m/n/10 (so it acts as a le-gal-iz
 er rather than a global placer;
  []
 
-(./figures/table_dreamplace_pipeline.tex) (./figures/table_cdstd_pipeline.tex)
+(./figures/table_dreamplace_pipeline.tex)
+Overfull \hbox (182.40353pt too wide) in paragraph at lines 1--1074
+ [][] 
+ []
+
+(./figures/table_cdstd_pipeline.tex)
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1101.
+(hyperref)                removing `math shift' on input line 1100.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1101.
+(hyperref)                removing `math shift' on input line 1100.
 
 (./figures/table_classical_legalizer_24.tex)
 
@@ -757,25 +764,25 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1135.
+(hyperref)                removing `math shift' on input line 1134.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\lambda' on input line 1135.
+(hyperref)                removing `\lambda' on input line 1134.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1135.
+(hyperref)                removing `math shift' on input line 1134.
 
 (./figures/table_lambda_loco.tex)
-Underfull \hbox (badness 6725) in paragraph at lines 1149--1149
+Underfull \hbox (badness 6725) in paragraph at lines 1148--1148
 []\T1/ptm/m/n/10 Table 18: |LOCO se-lec-tion on the $\OML/cmm/m/it/10 ^^U$\T1/p
 tm/m/n/10 -sweep. All 6 folds se-lect $[][]\OT1/cmr/m/n/10 8$\T1/ptm/m/n/10 ; h
 eld-out
  []
 
 
-Underfull \hbox (badness 3029) in paragraph at lines 1149--1149
+Underfull \hbox (badness 3029) in paragraph at lines 1148--1148
 \T1/ptm/m/n/10 test gives \T1/ptm/b/n/10 6/6 strict-Pareto im-prove-ment \T1/pt
 m/m/n/10 match-ing the per-circuit or-a-cle. Raw rows:
  []
@@ -783,11 +790,11 @@ m/m/n/10 match-ing the per-circuit or-a-cle. Raw rows:
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<figures/fig8_timestep_sweep.pdf, id=737, 787.30765pt x 277.95029pt>
+<figures/fig8_timestep_sweep.pdf, id=739, 787.30765pt x 277.95029pt>
 File: figures/fig8_timestep_sweep.pdf Graphic file (type pdf)
 <use figures/fig8_timestep_sweep.pdf>
 Package pdftex.def Info: figures/fig8_timestep_sweep.pdf  used on input line 11
-58.
+57.
 (pdftex.def)             Requested size: 337.86465pt x 119.28302pt.
 
 
@@ -801,12 +808,12 @@ LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: CE20613A7465A96A3B5A5088D5E2F1B4;8139.
+(rerunfilecheck)             Checksum: 8D0A097D70335F12FEFFBB048EC8BC6C;8035.
  ) 
 Here is how much of TeX's memory you used:
  13318 strings out of 474662
  209898 string characters out of 5751109
- 642344 words of memory out of 5000000
+ 643348 words of memory out of 5000000
  36001 multiletter control sequences out of 15000+600000
  609424 words of font info for 104 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
@@ -841,10 +848,10 @@ nts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2025basic/texm
 f-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2025basic/texmf-dis
 t/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2025basic/texmf-dist/fon
 ts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (18 pages, 537285 bytes).
+Output written on main.pdf (18 pages, 534844 bytes).
 PDF statistics:
- 1024 PDF objects out of 1200 (max. 8388607)
- 510 compressed objects within 6 object streams
+ 1026 PDF objects out of 1200 (max. 8388607)
+ 512 compressed objects within 6 object streams
  128 named destinations out of 1000 (max. 500000)
  327 words of extra memory for PDF output out of 10000 (max. 10000000)
 
