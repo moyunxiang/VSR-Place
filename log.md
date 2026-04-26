@@ -1,5 +1,28 @@
 # VSR-Place Development Log
 
+#### 2026-04-26 17:00 HKT — Phase 5 round 4b: 三点 follow-up
+**Context**: 用户三条修改要求: (1) 主表切到 λ=8 或明确 λ-family; (2) 软化 "decisive downstream"; (3) 报告下游 residual + full legality + circuit-level 显著性。
+**Actions**:
+- 写 `scripts/regen_round2_paper_tables.py`：从 main_neurips.json (λ=2) + round2_review.json (λ=8) 重生成 Table 1，加 VSR-post λ-family 双子列 (λ=2 / λ=8)；同时重生成 downstream_pipeline 表，加 absolute residual v、full-legality count、circuit-level paired Wilcoxon p-values
+- 修 §4.2 主表标题 + caption + bullets，明确 VSR-post 是 λ-controlled family
+- 修 §4.5 Pareto control："Why λ=2 as main-table" → "Reporting both λ=2 and λ=8"，去掉 "chose not to silently switch" 防御性措辞
+- 修 §4.6 §sec:downstream_pipeline："Decisive" → "Downstream pipeline test"；prose 用 absolute residual + Wilcoxon 替代百分比 framing
+- 修 abstract：去掉 "decisive" / "Pareto-superior at every λ"，改成 "λ-controlled family", 显式承认 pipeline test "supportive but not decisive"
+- 修 §1 contribution：去 "empirically Pareto-superior", 改成 "Pareto frontier dominates"，加 "downstream pipeline test" 进 contribution list
+- 移 Table 5 (Memory profile) 到 supplement §sec:supp-mem 让 body 严格 9 页
+
+**Critical headline**:
+- pipeline residual v_post median: raw=23824, vsr8+cd=22089 (+7% better, but small absolute)
+- full-legality (v=0): **0/24 in BOTH pipelines**
+- circuit-level paired Wilcoxon n=6: **p_v=0.562, p_h_f=1.000** — NOT significant
+- 这是 reviewer 怀疑的事 — "decisive" framing 不成立
+
+**Honest framing now in paper**:
+- "supportive but not decisive: VSR pre-conditioning nudges medians in the right direction, but the gap is small in absolute terms and not significant on n=6, and neither pipeline produces a usable (legal) placement on any trial."
+
+**Build**: main.pdf 18 页 (body 9 + refs + appendix 8), supplement.pdf 9 页, 0 undef refs
+**Next**: commit + push.
+
 #### 2026-04-26 16:30 HKT — Phase 5 round 4 (Round-2 reviewer 5/10)
 **Context**: 用户更新 `paper/neurips_review.md` 到 round-2 review (5/10)，要求补全所有实验。GPU 重新可用，密码用户提供 (L0aeT4SXputg)。reviewer 主要 ask：(R1) 决定性下游 pipeline 实验; (R2) 全 24 trials λ=8 rerun; (R3) cg/RePaint 4 seeds; (R4) classical FD 6 circuits 4 seeds; (W7) n=24/n=6 不一致和 Table 2 vs Appendix F 计数不一致; (W8) RePaint-bin HPWL p=0.0747 → 不能 claim outperforms; (W9) 移除 "non-differentiable"; (W10/Q7) adaptec3 +73% full-HPWL; (S6) Fig1 "Legal placement" → "Repaired placement"; (S7) 软化 "strictly dominates"。
 

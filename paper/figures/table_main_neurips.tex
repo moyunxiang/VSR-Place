@@ -1,14 +1,15 @@
-\begin{tabular}{lrrrrrrrrr}
+\begin{tabular}{lrrrrrrrrrrrr}
 \toprule
- & & \multicolumn{2}{c}{VSR-post} & \multicolumn{2}{c}{VSR-intra} & \multicolumn{2}{c}{CD-std} & \multicolumn{2}{c}{CD-sched} \\
-\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10}
-Circuit & $N$ & $\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ \\
+ & & \multicolumn{4}{c}{VSR-post ($\lambda$-family)} & \multicolumn{2}{c}{VSR-intra} & \multicolumn{2}{c}{CD-std} & \multicolumn{2}{c}{CD-sched} \\
+\cmidrule(lr){3-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10} \cmidrule(lr){11-12}
+ & & \multicolumn{2}{c}{$\lambda=2$} & \multicolumn{2}{c}{$\lambda=8$} & & & & & & \\
+Circuit & $N$ & $\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ & $\Delta v$ & $\Delta h$ \\
 \midrule
-adaptec1 & 543 & $-35.4{\scriptscriptstyle\pm1.8}$ & $+2.1{\scriptscriptstyle\pm23.7}$ & $+3.2{\scriptscriptstyle\pm0.6}$ & $+0.2{\scriptscriptstyle\pm6.5}$ & $-26.2{\scriptscriptstyle\pm7.3}$ & $+184.9{\scriptscriptstyle\pm115.9}$ & $-15.0{\scriptscriptstyle\pm11.5}$ & $+160.9{\scriptscriptstyle\pm65.1}$ \\
-adaptec2 & 566 & $-57.0{\scriptscriptstyle\pm5.3}$ & $+7.8{\scriptscriptstyle\pm11.4}$ & $+1.2{\scriptscriptstyle\pm0.1}$ & $-2.5{\scriptscriptstyle\pm0.2}$ & $-43.5{\scriptscriptstyle\pm3.6}$ & $+99.0{\scriptscriptstyle\pm19.8}$ & $-51.1{\scriptscriptstyle\pm11.7}$ & $+230.0{\scriptscriptstyle\pm69.9}$ \\
-adaptec3 & 723 & $-53.5{\scriptscriptstyle\pm2.7}$ & $+29.8{\scriptscriptstyle\pm5.0}$ & $+0.2{\scriptscriptstyle\pm0.2}$ & $-1.9{\scriptscriptstyle\pm11.5}$ & $+0.7{\scriptscriptstyle\pm7.5}$ & $+108.1{\scriptscriptstyle\pm44.8}$ & $-22.5{\scriptscriptstyle\pm15.7}$ & $+270.3{\scriptscriptstyle\pm188.8}$ \\
-adaptec4 & 1329 & $-57.4{\scriptscriptstyle\pm3.0}$ & $-10.1{\scriptscriptstyle\pm2.4}$ & $+6.2{\scriptscriptstyle\pm2.5}$ & $-6.6{\scriptscriptstyle\pm1.1}$ & $-28.8{\scriptscriptstyle\pm5.7}$ & $+85.8{\scriptscriptstyle\pm11.8}$ & $-29.0{\scriptscriptstyle\pm8.3}$ & $+90.0{\scriptscriptstyle\pm22.7}$ \\
-bigblue1 & 560 & $-24.2{\scriptscriptstyle\pm9.7}$ & $-67.1{\scriptscriptstyle\pm12.1}$ & $+1.4{\scriptscriptstyle\pm0.5}$ & $+2.7{\scriptscriptstyle\pm4.3}$ & $-14.2{\scriptscriptstyle\pm5.9}$ & $+81.6{\scriptscriptstyle\pm30.5}$ & $-13.1{\scriptscriptstyle\pm7.9}$ & $+207.8{\scriptscriptstyle\pm69.4}$ \\
-bigblue3 & 1298 & $-77.3{\scriptscriptstyle\pm3.1}$ & $+15.0{\scriptscriptstyle\pm1.8}$ & $-4.1{\scriptscriptstyle\pm2.6}$ & $-30.3{\scriptscriptstyle\pm5.4}$ & $-19.0{\scriptscriptstyle\pm21.1}$ & $+71.6{\scriptscriptstyle\pm13.6}$ & $-50.7{\scriptscriptstyle\pm14.6}$ & $+128.3{\scriptscriptstyle\pm158.2}$ \\
+adaptec1 & 543 & $-35.4{\scriptscriptstyle\pm2.1}$ & $+2.1{\scriptscriptstyle\pm27.4}$ & $-35.3{\scriptscriptstyle\pm7.8}$ & $-38.2{\scriptscriptstyle\pm2.0}$ & $+3.2{\scriptscriptstyle\pm0.6}$ & $+0.2{\scriptscriptstyle\pm7.5}$ & $-26.2{\scriptscriptstyle\pm8.5}$ & $+184.9{\scriptscriptstyle\pm133.9}$ & $-15.0{\scriptscriptstyle\pm13.3}$ & $+160.9{\scriptscriptstyle\pm75.1}$ \\
+adaptec2 & 566 & $-57.0{\scriptscriptstyle\pm6.1}$ & $+7.8{\scriptscriptstyle\pm13.2}$ & $-51.4{\scriptscriptstyle\pm5.2}$ & $-28.0{\scriptscriptstyle\pm5.0}$ & $+1.2{\scriptscriptstyle\pm0.1}$ & $-2.5{\scriptscriptstyle\pm0.3}$ & $-43.5{\scriptscriptstyle\pm4.1}$ & $+99.0{\scriptscriptstyle\pm22.8}$ & $-51.1{\scriptscriptstyle\pm13.6}$ & $+230.0{\scriptscriptstyle\pm80.7}$ \\
+adaptec3 & 723 & $-53.5{\scriptscriptstyle\pm3.1}$ & $+29.8{\scriptscriptstyle\pm5.8}$ & $-52.6{\scriptscriptstyle\pm4.0}$ & $-6.7{\scriptscriptstyle\pm14.5}$ & $+0.2{\scriptscriptstyle\pm0.2}$ & $-1.9{\scriptscriptstyle\pm13.3}$ & $+0.7{\scriptscriptstyle\pm8.6}$ & $+108.1{\scriptscriptstyle\pm51.7}$ & $-22.5{\scriptscriptstyle\pm18.1}$ & $+270.3{\scriptscriptstyle\pm218.0}$ \\
+adaptec4 & 1329 & $-57.4{\scriptscriptstyle\pm3.5}$ & $-10.1{\scriptscriptstyle\pm2.7}$ & $-55.5{\scriptscriptstyle\pm1.4}$ & $-37.1{\scriptscriptstyle\pm7.7}$ & $+6.2{\scriptscriptstyle\pm2.9}$ & $-6.6{\scriptscriptstyle\pm1.3}$ & $-28.8{\scriptscriptstyle\pm6.6}$ & $+85.8{\scriptscriptstyle\pm13.7}$ & $-29.0{\scriptscriptstyle\pm9.6}$ & $+90.0{\scriptscriptstyle\pm26.3}$ \\
+bigblue1 & 560 & $-24.2{\scriptscriptstyle\pm11.2}$ & $-67.1{\scriptscriptstyle\pm13.9}$ & $-23.1{\scriptscriptstyle\pm11.1}$ & $-74.8{\scriptscriptstyle\pm4.4}$ & $+1.4{\scriptscriptstyle\pm0.6}$ & $+2.7{\scriptscriptstyle\pm4.9}$ & $-14.2{\scriptscriptstyle\pm6.8}$ & $+81.6{\scriptscriptstyle\pm35.2}$ & $-13.1{\scriptscriptstyle\pm9.1}$ & $+207.8{\scriptscriptstyle\pm80.1}$ \\
+bigblue3 & 1298 & $-77.3{\scriptscriptstyle\pm3.6}$ & $+15.0{\scriptscriptstyle\pm2.1}$ & $-70.0{\scriptscriptstyle\pm2.3}$ & $-30.7{\scriptscriptstyle\pm4.3}$ & $-4.1{\scriptscriptstyle\pm3.0}$ & $-30.3{\scriptscriptstyle\pm6.2}$ & $-19.0{\scriptscriptstyle\pm24.4}$ & $+71.6{\scriptscriptstyle\pm15.7}$ & $-50.7{\scriptscriptstyle\pm16.9}$ & $+128.3{\scriptscriptstyle\pm182.6}$ \\
 \bottomrule
 \end{tabular}

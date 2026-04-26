@@ -1,15 +1,17 @@
-\begin{tabular}{lr|rrrr|rrrr}
+\begin{tabular}{lr|rrc|rrc}
 \toprule
-& seeds & \multicolumn{4}{c|}{raw $\to$ cd-sched} & \multicolumn{4}{c}{raw $\to$ VSR($\lambda{=}8$) $\to$ cd-sched} \\
-Circuit & $n$ & $\Delta v$\% & $\Delta h_m$\% & $\Delta h_f$\% & $t$\,s & $\Delta v$\% & $\Delta h_m$\% & $\Delta h_f$\% & $t$\,s \\
+& & \multicolumn{3}{c|}{raw $\to$ cd-sched} & \multicolumn{3}{c}{raw $\to$ VSR($\lambda{=}8$) $\to$ cd-sched} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8}
+Circuit & $n$ & $v_\text{post}$ & $\Delta h_f$\% & legal & $v_\text{post}$ & $\Delta h_f$\% & legal \\
 \midrule
-adaptec1 & 4 & $-15.4$ & $+198.4$ & $-16.0$ & 17 & $-15.1$ & $+171.4$ & $-11.2$ & 19 \\
-adaptec2 & 4 & $-53.0$ & $+297.4$ & $-1.2$ & 18 & $-45.6$ & $+275.5$ & $-10.1$ & 23 \\
-adaptec3 & 4 & $-23.5$ & $+170.9$ & $+39.3$ & 18 & $-36.8$ & $+274.2$ & $+48.4$ & 22 \\
-adaptec4 & 4 & $-33.6$ & $+112.2$ & $+18.0$ & 18 & $-35.0$ & $+99.9$ & $+18.7$ & 22 \\
-bigblue1 & 4 & $-15.3$ & $+233.0$ & $-2.6$ & 17 & $-13.7$ & $+178.1$ & $-2.0$ & 20 \\
-bigblue3 & 4 & $-60.3$ & $+242.7$ & $+26.7$ & 18 & $-77.4$ & $+295.6$ & $+16.2$ & 29 \\
+adaptec1 & 4 & $16604$ & $-16.0$ & 0/4 & $16663$ & $-11.2$ & 0/4 \\
+adaptec2 & 4 & $16017$ & $-1.2$ & 0/4 & $18532$ & $-10.1$ & 0/4 \\
+adaptec3 & 4 & $31044$ & $+39.3$ & 0/4 & $25647$ & $+48.4$ & 0/4 \\
+adaptec4 & 4 & $70714$ & $+18.0$ & 0/4 & $69133$ & $+18.7$ & 0/4 \\
+bigblue1 & 4 & $9216$ & $-2.6$ & 0/4 & $9393$ & $-2.0$ & 0/4 \\
+bigblue3 & 4 & $66244$ & $+26.7$ & 0/4 & $37671$ & $+16.2$ & 0/4 \\
 \midrule
-\textbf{median} & -- & $-28.5$ & $+215.7$ & $+8.4$ & 18 & $-35.9$ & $+226.2$ & $+7.1$ & 22 \\
+\textbf{median} & -- & $23824$ & $+8.4$ & 0/24 & $22089$ & $+7.1$ & 0/24 \\
+\multicolumn{8}{l}{Circuit-level paired Wilcoxon ($n{=}6$): $v_\text{post}$ $p=0.562$; $\Delta h_f$ $p=1.000$.} \\
 \bottomrule
 \end{tabular}

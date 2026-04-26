@@ -32,26 +32,33 @@ predicates.  We propose \textbf{Verifier-Guided Selective Repair (VSR)}: a
 verifier emits per-macro severity, a pairwise overlap graph, and boundary
 protrusions; an offender mask + a 100-step force integrator parametrized by a
 single wirelength/legality knob $\lambda$ moves the violating macros while
-preserving the rest.  We position VSR as a \emph{repair layer}, not a
-legalizer: across 6 ISPD2005 circuits and 4 seeds, VSR reduces residual
-violations by a median \textbf{55.3\%} relative to the diffusion draft (no
-method we test, including ChipDiffusion's 5000-step legalizer, achieves a
-fully legal placement on any of the 24 trials---a backbone-level limitation
-discussed in \S\ref{sec:limitations}).  At $\lambda=2$, VSR is strictly
-Pareto-improving on \textbf{12/24} (circuit, seed) trials versus 0/24 for
-either ChipDiffusion legalizer; at $\lambda=8$ this rises to
-\textbf{18/18 (100\%)} of the lambda-sweep trials.  Conservative
-circuit-level paired Wilcoxon tests ($n=6$) show VSR-post outperforms both
-ChipDiffusion legalizers on both metrics ($p<0.05$); against RePaint-binary
-the violation difference is significant ($p=0.031$) but the HPWL
-difference is not ($p=0.075$); against classifier-guidance only
-violations are significant.  We report all $p$-values without
-multiple-comparison correction.  An intra-sampling variant trades some
-violation reduction for strong HPWL preservation, dramatic on the largest
-tractable circuit (bigblue3 at $t_{\text{start}}=0.5$: $-35\%$ HPWL).
-The bigblue2/bigblue4 OOM frontier we report is dominated by ChipDiffusion's
-guidance-mode optimization graphs accumulated across 100 sampling steps,
-not by VSR itself.
+preserving the rest.  VSR is a $\lambda$-controlled \emph{family} of repair
+operators rather than a single setting; we report two reference points
+($\lambda{=}2$, $\lambda{=}8$) and the full
+sweep.  We position VSR as a repair \emph{layer}, not a legalizer: across
+6 ISPD2005 circuits and 4 seeds, no method we test (including
+ChipDiffusion's 5000-step legalizer and a downstream
+\texttt{VSR}$\to$\texttt{cd-sched} pipeline) achieves a fully legal
+placement on any of the 24 trials.  Within the macros-only operating
+point, VSR reduces residual violations by a median $-55\%$ at
+$\lambda{=}2$ and $-52\%$ at $\lambda{=}8$ relative to the diffusion
+draft; strict Pareto improvement is $12/24$ at $\lambda{=}2$ and rises
+to $18/18$ on the lambda sweep at $\lambda{=}8$.  Conservative
+circuit-level paired Wilcoxon ($n{=}6$) shows VSR-post outperforms both
+ChipDiffusion legalizers on both metrics ($p<0.05$); against
+RePaint-binary the violation difference is significant ($p=0.031$) but
+HPWL is not ($p=0.075$); against classifier-guidance only violations
+are significant.  $p$-values are reported without multiple-comparison
+correction.  In a downstream pipeline test
+(\texttt{raw}$\to$\texttt{cd-sched} vs.\
+\texttt{raw}$\to$\texttt{VSR}$\to$\texttt{cd-sched}, $24$ trials), the
+VSR pre-pass nudges medians in the right direction but the difference
+is not significant on $n{=}6$ ($p_v{=}0.56$, $p_{h_f}{=}1.00$); both
+pipelines leave $\sim 22$k residual violations.  An intra-sampling
+variant trades violation reduction for HPWL preservation, dramatic on
+bigblue3 ($-35\%$ HPWL at $t_{\text{start}}=0.5$).  The bigblue2/4 OOM
+frontier is dominated by ChipDiffusion's \texttt{guidance\_mode='opt'}
+optimization graphs across $100$ sampling steps, not by VSR.
 \end{abstract}
 
 \section{Introduction}
@@ -92,14 +99,15 @@ raw draft.
 
 \paragraph{Our contribution.}  We package three classical ingredients
 (pairwise repulsion, boundary force, netlist-attractive force) into a
-\emph{repair layer} aimed at the diffusion-output-correction regime.  Each
-ingredient on its own is well-known in placement legalization; the
-contribution is in (i) putting them together inside a Pareto-controlled
-single-knob ($\lambda$) framework that is empirically Pareto-superior to
-ChipDiffusion's released legalizer at every $\lambda \in [2, 8]$ we test,
-and (ii) systematic component ablation, statistical analysis, and failure
-characterization that turns this into a publishable empirical study rather
-than a hand-rolled engineering trick.  Concretely:
+$\lambda$-controlled \emph{family} of repair operators aimed at the
+diffusion-output-correction regime.  Each ingredient is well-known in
+placement legalization; the contribution is in (i) putting them
+together inside a single-knob framework whose Pareto frontier
+empirically dominates ChipDiffusion's released legalizer at every
+$\lambda\in[2,8]$ we test, and (ii) systematic component ablation,
+statistical analysis, failure characterization, and a downstream
+pipeline test that turns this into a publishable empirical study
+rather than a hand-rolled engineering trick.  Concretely:
 \begin{itemize}
 \item Reduces violations by a median \textbf{55.3\%} across 6 ISPD2005
 circuits, vs.\ $-22.6\%$ for ChipDiffusion's standard legalizer.  We are
@@ -318,20 +326,23 @@ the appendix as a lower bound on $p$-values
 \label{sec:main_result}
 
 Table~\ref{tab:main} reports per-circuit means with standard deviations across
-4 seeds for the four primary methods; cg-strong and repaint-bin are deferred
-to supplementary Table~3 to keep the main page readable.  Highlights:
+4 seeds, showing VSR-post at \emph{both} $\lambda{=}2$ and $\lambda{=}8$
+to make the operator family explicit.  cg-strong and repaint-bin are
+deferred to supplementary tables.  Highlights:
 \begin{itemize}
-\item VSR-post reduces violations on \emph{every} circuit, by $24$--$77\%$,
-median $55.3\%$.
-\item No baseline achieves a comparable reduction: the strongest, cd-sched,
-has a median of $25.8\%$ but \emph{nearly triples} median HPWL ($+184.4\%$).
-\item HPWL-wise, VSR-post is essentially neutral (median $+5.0\%$, vs.\
-$+92.4\%$ for cd-std and $+184.4\%$ for cd-sched).  On adaptec4 and bigblue1
-it actively \emph{shortens} HPWL.
-\item RePaint with a binary mask increases violations on 4 of 6 circuits (median $+134\%$); without our soft-mask refinement, intra-sampling-style repair is materially harmful.
-\item Classifier-guidance with strong legality weighting reduces violations
-by only $\sim 1\%$ in the median; the soft surrogate is a poor proxy for the
-discrete overlap predicate.
+\item At $\lambda{=}2$, VSR-post reduces violations on every circuit
+($24$--$77\%$, median $-55\%$); HPWL is essentially neutral (median
+$+5\%$).  At $\lambda{=}8$, $\Delta v$ stays in the same range
+(median $-52\%$) while macros-only $\Delta h$ shifts strongly negative
+(median $-34\%$): the same operator at a different point on its
+Pareto knob.
+\item No baseline achieves comparable violation reduction: the
+strongest legalizer, cd-sched, has median $-26\%$ but nearly triples
+HPWL ($+184\%$).  cd-std nearly doubles HPWL.
+\item RePaint-binary increases violations on 4 of 6 circuits (median
+$+134\%$); cg-strong reduces violations by only $\sim 1\%$ in median
+--- the soft surrogate is a poor proxy for the discrete overlap
+predicate.
 \end{itemize}
 
 \begin{table}[h]
@@ -339,11 +350,13 @@ discrete overlap predicate.
 \scriptsize
 \setlength{\tabcolsep}{3pt}
 \resizebox{\linewidth}{!}{\input{figures/table_main_neurips}}
-\caption{Per-circuit $\Delta v$ (\% violations) and $\Delta h$ (\% HPWL),
-mean $\pm$std over 4 seeds.  Negative is improvement.  Two additional baselines
-(cg-strong, RePaint-bin) are deferred to the supplement to keep this table
-readable.  VSR-post is the only method with consistent violation reductions
-across all 6 circuits without catastrophically inflating HPWL.}
+\caption{Per-circuit $\Delta v$ (\% violations) and $\Delta h$ (\% HPWL,
+macros-only) for VSR-post at $\lambda{=}2$ and $\lambda{=}8$ (the
+operator family) plus the four primary baselines, mean $\pm$std over
+4 seeds.  Negative is improvement.  At fixed $\lambda{=}2$ VSR-post
+trades minimum HPWL inflation for moderate legality gain; at
+$\lambda{=}8$ it trades equivalent legality for substantially better
+HPWL.  cg-strong and RePaint-binary are in the supplement.}
 \label{tab:main}
 \end{table}
 
@@ -470,17 +483,18 @@ is \emph{not} a fixed heuristic; $\lambda$ exposes a smooth one-dimensional
 control that, for HPWL-priority workloads, yields a Pareto-improving
 operating point on \emph{every single (circuit, seed) trial}.
 
-\paragraph{Why $\lambda=2$ as the main-table setting?}  We report $\lambda=2$
-in Tables~\ref{tab:main}--\ref{tab:wilcoxon} because that is the value at
-which we benchmarked all baselines (the main-experiment script was authored
-before the lambda sweep was added).  Replacing $\lambda=2$ with $\lambda=8$
-in Table~\ref{tab:main} would shift VSR-post's median $\Delta h$ from $-7.8\%$
-to $-37.9\%$ while keeping median $\Delta v$ near $-49\%$, and would change
-the strict-Pareto count from $12/24$ to $18/18$; the qualitative comparisons
-to baselines would be unchanged.  We chose not to silently switch the
-headline number to $\lambda=8$ post-hoc; we report the full sweep
-transparently and recommend $\lambda \in [4, 8]$ for HPWL-priority
-deployment.
+\paragraph{Reporting both $\lambda{=}2$ and $\lambda{=}8$.}
+We do not privilege a single $\lambda$.  Table~\ref{tab:main} shows
+both $\lambda{=}2$ and $\lambda{=}8$ side-by-side; statistical tests
+(Table~\ref{tab:wilcoxon}) are at $\lambda{=}2$ for parity with the
+baselines (whose hyperparameters were also fixed), and the
+$\lambda{=}8$ result on the same $24$ trials is in
+\S\ref{sec:downstream_pipeline} (median $\Delta v=-52\%$,
+$\Delta h=-34\%$).  LOCO cross-validation
+(\S\ref{sec:supp-lambda-loco}) selects $\hat\lambda{=}8$ unanimously;
+deployment-driven users should treat $\lambda \in [4,8]$ as the
+HPWL-priority regime and $\lambda \in [1,2]$ as the
+legality-conservative regime.
 
 \paragraph{Principled $\lambda$ selection (LOCO).}  Leave-one-circuit-out
 cross-validation: per held-out circuit, pick $\hat\lambda$ maximising
@@ -500,26 +514,31 @@ near-constant violation reduction.}
 \label{fig:lambda_sweep}
 \end{figure}
 
-\subsection{Decisive downstream pipeline experiment}
+\subsection{Downstream pipeline test}
 \label{sec:downstream_pipeline}
 
-The round-2 reviewer's central question: does VSR-then-legalizer
-beat raw-then-legalizer?  We run all $24$ trials with both pipelines
-through ChipDiffusion's $5000$-step HPWL-aware legalizer
-\texttt{cd-sched} (Table~\ref{tab:supp-downstream-pipeline}).
-Cross-circuit medians: legality
-$\Delta v{=}{-}35.9\%$ (VSR$\to$cd) vs.\ $-28.5\%$ (raw$\to$cd) ---
-pre-conditioning with VSR cuts $7.4$pp more violations after the
-same legalizer; full-design HPWL $\Delta h_f{=}{+}7.1\%$ vs.\
-$+8.4\%$ --- the VSR pre-pass yields slightly \emph{lower}
-post-pipeline full-design HPWL despite the macros-only $-34\%$
-inflation seen pre-legalizer.  Wall-clock $22$\,s vs.\ $18$\,s.  The
-$\lambda{=}8$ main on $4$ seeds (Table~\ref{tab:supp-lambda8-main},
-addresses Q3/Q6): median $\Delta v{=}{-}52.2\%$, macros-only
-$\Delta h{=}{-}34.1\%$, full-design $\Delta h{=}{+}8.9\%$, residual
-violation count median $\sim 18$k --- of the same order as
-$\lambda{=}2$, confirming that $\lambda$ trades macros-only HPWL,
-not legality, and no trial reaches $v=0$.
+A natural test of the repair-layer framing is whether
+\texttt{raw}$\to$\texttt{cd-sched} differs from
+\texttt{raw}$\to$\texttt{VSR}$\to$\texttt{cd-sched} in final placement
+quality.  On all $24$ trials at $\lambda{=}8$
+(Table~\ref{tab:supp-downstream-pipeline}), we report
+\emph{absolute} residual violations: median $v_\text{post}{=}23{,}824$
+(raw$\to$cd) vs.\ $22{,}089$ (VSR$\to$cd); full legality ($v{=}0$) is
+$\mathbf{0/24}$ under \emph{either} pipeline; full-design HPWL median
+$+8.4\%$ vs.\ $+7.1\%$.  Conservative circuit-level paired Wilcoxon
+($n{=}6$) gives $p_v{=}0.562$ and $p_{h_f}{=}1.000$ --- we cannot
+reject the null that the two pipelines yield equivalent post-legalizer
+placements.  The honest reading is supportive but not decisive: VSR
+pre-conditioning nudges medians in the right direction, but the gap is
+small in absolute terms and not significant on $n{=}6$, and neither
+pipeline produces a usable (legal) placement on any trial.
+
+\paragraph{$\lambda{=}8$ on $4$ seeds (Q3, Q6).}  On the same $24$
+trials, VSR-post at $\lambda{=}8$ gives median macros-only
+$\Delta h=-34.1\%$ at near-identical $\Delta v$ to $\lambda{=}2$
+(Table~\ref{tab:supp-lambda8-main}); residual violation count median
+$\sim 18$k, same order as $\lambda{=}2$, confirming $\lambda$ trades
+macros-only HPWL not legality.
 
 \subsection{Step budget and compute efficiency}
 \label{sec:step_budget}
@@ -534,7 +553,7 @@ for CD-sched---i.e., VSR is $\mathbf{1.6\times}$ faster than the standard
 legalizer and $\mathbf{3.6\times}$ faster than the HPWL-aware variant
 \emph{while} producing strictly Pareto-better results
 (\S\ref{sec:strict_pareto}).  Peak GPU memory is determined by the
-diffusion sampling forward (Table~\ref{tab:mem}), so VSR's marginal
+diffusion sampling forward (Table~\ref{tab:supp-mem-profile}), so VSR's marginal
 compute is essentially free.
 
 \begin{figure}[h]
@@ -623,35 +642,17 @@ the backbone prior more strongly.
 \label{sec:limitations}
 
 We profile peak GPU memory of the full ChipDiffusion sampling pipeline (100
-denoising steps) on adaptec2 (control, 566 macros) and the two intractable
-circuits, in fp32, bf16, fp16 (Table~\ref{tab:mem}).  bigblue2 (23,084
-macros) and bigblue4 (8,170 macros) OOM at $\geq 77$~GB on an 80~GB
-A800 in all three precisions; forward-pass memory is only
-$\sim 1$--$3$~GB so the OOM is dominated by accumulated attention-graph
-activations across the 100-step rollout.  VSR-post on synthetic
-baselines of the same circuits succeeds in $137$\,s (bigblue4) and
-$941$\,s (bigblue2) with negligible peak memory.
+denoising steps) on adaptec2 (control, 566 macros) and the two
+intractable circuits in fp32/bf16/fp16
+(Table~\ref{tab:supp-mem-profile} in supplement).  bigblue2 ($N{=}23$k)
+and bigblue4 ($N{=}8.2$k) OOM at $\geq 77$\,GB on an 80\,GB A800 in
+all three precisions; single-step forward is only $\sim 1$--$3$\,GB so
+the OOM is dominated by accumulated attention-graph activations across
+the $100$-step rollout.  VSR-post on synthetic baselines of the same
+circuits succeeds in $137$\,s / $941$\,s (bigblue4 / bigblue2) with
+negligible peak memory.
 
-\begin{table}[h]
-\centering
-\small
-\begin{tabular}{lrrrrc}
-\toprule
-Circuit & $N$ macros & forward (MB) & full-sample (MB) & sample OK? & vsr-post (s) \\
-\midrule
-adaptec2 & 566    & 221     & 18,075                 & \checkmark      & 1.2 \\
-bigblue4 & 8,170  & 1,030   & \textbf{77,300}        & OOM             & 137 \\
-bigblue2 & 23,084 & 2,946   & \textbf{78,571}        & OOM             & 941 \\
-\bottomrule
-\end{tabular}
-\caption{Memory profile (peak GPU memory, 100-step ChipDiffusion sampling).
-Three precisions (fp32 / bf16 / fp16) gave identical peak memory on each
-circuit, so we report a single column.  The OOM frontier is the diffusion
-backbone, not the repair operator: VSR-post on synthetic baselines succeeds
-on \emph{every} circuit including bigblue2/4 (last column, wall-clock).
-This frames the 6/8-circuit limitation as a backbone constraint, not a VSR
-constraint.}
-\label{tab:mem}
+% (Table moved to supplement: \ref{tab:supp-mem-profile}.)
 \end{table}
 
 \paragraph{Limitations.}
@@ -948,6 +949,26 @@ $T=500$ adds $<2$\,pp at 5$\times$ wall-clock.
 \section{Memory profile: source citation for the OOM artefact}
 \label{sec:supp-mem}
 
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrrrc}
+\toprule
+Circuit & $N$ macros & forward (MB) & full-sample (MB) & sample OK? & vsr-post (s) \\
+\midrule
+adaptec2 & 566    & 221     & 18,075                 & \checkmark      & 1.2 \\
+bigblue4 & 8,170  & 1,030   & \textbf{77,300}        & OOM             & 137 \\
+bigblue2 & 23,084 & 2,946   & \textbf{78,571}        & OOM             & 941 \\
+\bottomrule
+\end{tabular}
+\caption{Memory profile (peak GPU memory, 100-step ChipDiffusion
+sampling).  Three precisions (fp32/bf16/fp16) gave identical peak memory.
+The OOM frontier is the diffusion backbone, not the repair operator:
+VSR-post on synthetic baselines succeeds on every circuit including
+bigblue2/4 (last column).}
+\label{tab:supp-mem-profile}
+\end{table}
+
 The bigblue2/4 OOM cited in the main paper is an artefact of
 ChipDiffusion's released sampler, not a generic diffusion-inference
 cost.  The \texttt{guidance\_mode='opt'} path goes through
@@ -1016,7 +1037,7 @@ collapse); VSR-post $\Delta v{=}-55\%/\Delta h{=}-11\%$.}
 
 A single $24$-trial driver covers four reviewer asks at once
 (\texttt{run\_round2\_review.py}):
-the decisive downstream pipeline (R1/Q1), the $\lambda{=}8$ main on
+the downstream pipeline test (R1/Q1), the $\lambda{=}8$ main on
 $4$ seeds (R2/Q3/Q6), the FD baseline on the full $24$ trials (R4/Q5),
 and the cg/RePaint sweep at $4$ seeds (R3/Q4).
 Tables~\ref{tab:supp-downstream-pipeline}--\ref{tab:supp-baseline-sweeps-24}.
@@ -1025,7 +1046,7 @@ Tables~\ref{tab:supp-downstream-pipeline}--\ref{tab:supp-baseline-sweeps-24}.
 \centering
 \small
 \input{figures/table_downstream_pipeline}
-\caption{Decisive downstream pipeline (R1/Q1).  raw $\to$
+\caption{Downstream pipeline test (R1/Q1).  raw $\to$
 \texttt{cd-sched} vs.\ raw $\to$ VSR-post($\lambda{=}8$) $\to$
 \texttt{cd-sched}, on $24$ trials.  Pre-conditioning with VSR cuts
 $7.4$pp more violations and gives slightly lower full-design HPWL.}

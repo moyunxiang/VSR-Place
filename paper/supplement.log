@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  26 APR 2026 16:28
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  26 APR 2026 18:22
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -462,16 +462,11 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 (hyperref)                removing `math shift' on input line 222.
 
-(./figures/table_lambda_loco.tex)
-
-LaTeX Warning: `h' float specifier changed to `ht'.
 
 
+[3] (./figures/table_lambda_loco.tex)
 
-[3] (./figures/table_classical_legalizer.tex)
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
+[4] (./figures/table_classical_legalizer.tex)
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 (hyperref)                removing `math shift' on input line 284.
@@ -485,23 +480,13 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 (hyperref)                removing `math shift' on input line 284.
 
 (./figures/table_baseline_sweeps.tex)
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <14.4> not available
 (Font)              Font shape `T1/cmtt/m/n' tried instead on input line 324.
 
 
-[4] (./figures/table_full_metrics.tex)
+[5] (./figures/table_full_metrics.tex)
 
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-
-[5]
+[6]
 Overfull \hbox (26.54678pt too wide) in paragraph at lines 411--416
 \T1/cmr/m/n/10 mal-iza-tion (cen-ters and sever-ity di-vided by $[]\OT1/cmr/m/n
 /10 (\OML/cmm/m/it/10 W; H\OT1/cmr/m/n/10 )$\T1/cmr/m/n/10 ). Node fea-tures: $
@@ -509,25 +494,22 @@ Overfull \hbox (26.54678pt too wide) in paragraph at lines 411--416
 /m/n/10 .
  []
 
-<figures/fig7_convergence.pdf, id=140, 715.0972pt x 424.61511pt>
+<figures/fig7_convergence.pdf, id=144, 715.0972pt x 424.61511pt>
 File: figures/fig7_convergence.pdf Graphic file (type pdf)
 <use figures/fig7_convergence.pdf>
 Package pdftex.def Info: figures/fig7_convergence.pdf  used on input line 457.
 (pdftex.def)             Requested size: 399.29463pt x 237.09605pt.
 
-
-[6]
-
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<figures/fig5_num_steps.pdf, id=152, 787.36719pt x 278.08379pt>
+
+
+[7]
+<figures/fig5_num_steps.pdf, id=157, 787.36719pt x 278.08379pt>
 File: figures/fig5_num_steps.pdf Graphic file (type pdf)
 <use figures/fig5_num_steps.pdf>
 Package pdftex.def Info: figures/fig5_num_steps.pdf  used on input line 496.
 (pdftex.def)             Requested size: 399.29463pt x 141.02736pt.
-
-
-[7]
 <figures/fig6_step_size.pdf, id=158, 787.36719pt x 280.25577pt>
 File: figures/fig6_step_size.pdf Graphic file (type pdf)
 <use figures/fig6_step_size.pdf>
@@ -562,11 +544,11 @@ Package rerunfilecheck Info: File `supplement.out' has not changed.
 Here is how much of TeX's memory you used:
  10704 strings out of 474662
  164083 string characters out of 5751109
- 591333 words of memory out of 5000000
+ 583162 words of memory out of 5000000
  33524 multiletter control sequences out of 15000+600000
  581008 words of font info for 96 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 75i,13n,79p,1284b,594s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,13n,79p,1284b,511s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/moyunxiang/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknap
 pen/ec/ectt1440.600pk> </Users/moyunxiang/Library/texlive/2025basic/texmf-var/f
 onts/pk/ljfour/jknappen/ec/tcrm1000.600pk> </Users/moyunxiang/Library/texlive/2
@@ -604,9 +586,9 @@ cal/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr
 usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/symbols/msam
 10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/sym
 bols/msbm10.pfb>
-Output written on supplement.pdf (9 pages, 426225 bytes).
+Output written on supplement.pdf (9 pages, 427200 bytes).
 PDF statistics:
- 901 PDF objects out of 1000 (max. 8388607)
+ 904 PDF objects out of 1000 (max. 8388607)
  273 compressed objects within 3 object streams
  49 named destinations out of 1000 (max. 500000)
  141 words of extra memory for PDF output out of 10000 (max. 10000000)
