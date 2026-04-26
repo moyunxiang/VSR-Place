@@ -105,6 +105,36 @@
 - [ ] 上传 OpenReview + 完整 supplement
 - [ ] author / affiliation block（投稿时填）
 
+## Phase 5 round 4 — Round-2 reviewer (5/10) 闭环（commit `42082f0`）
+
+GPU 实验全部完成（24 trials × 13 methods，30 min on AutoDL A800 80GB，~¥15 增量）：
+
+- [x] **R1/Q1 决定性下游 pipeline**: raw→cd-sched vs vsr8→cd-sched on 24 trials → median Δv −35.9% (vs raw -28.5%) + 略低 full-HPWL → main §4.6 + supplement §sec:supp-round2
+- [x] **R2/Q3/Q6 λ=8 main 4 seeds**: median Δv=-52.2%/Δh_macro=-34.1%/Δh_full=+8.9%, residual ≈18k → table_lambda8_main.tex
+- [x] **R3/Q4 cg/RePaint 4 seeds**: w∈{2,8} + t∈{0.3,0.5} on 24 trials → table_baseline_sweeps_24.tex
+- [x] **R4/Q5 classical FD on 24 trials**: FD-pure (-54%/+144%), FD+spring (-52%/+34%), VSR-post (-52%/-34%) → table_classical_legalizer_24.tex
+- [x] **W7 inconsistencies**: §4.1 (n=24) vs §4.4 (n=6) 调和；Table 2 caption + §4.7 文案修正
+- [x] **W8 RePaint-bin overclaim**: 删 "p<0.05 both metrics" claim，标注 HPWL p=0.075 透明
+- [x] **W9/Q8 non-differentiable**: 全文替换为 "piecewise differentiable, vanishing gradient in inactive regions"
+- [x] **W10/Q7 adaptec3 +73%**: Limitations 加专门段落 + 引 §sec:downstream_pipeline 作为 mitigation evidence
+- [x] **S6 Fig 1 标签**: "Legal placement" → "Repaired placement"
+- [x] **S7 strictly dominates**: §4.2 标题改 + §4.4 措辞软化
+
+未做（reviewer 提到但工作量大）：
+- [ ] multiple-comparison correction (Bonferroni/BH) — 仅在 §4.4 footnote 注明 "p-values are marginal, no correction"
+- [ ] DREAMPlace / RePLACE 实测对比 — 在 Limitations 里说明输入格式不匹配 macros-only
+
+仓库当前状态：
+```
+paper/main.pdf       ← 18 页（body 9 + refs + appendix 8）
+paper/supplement.pdf ← 9 页
+results/vsr_extra/round2_review.json (24 rows × 13 methods)
+4 张新 paper figure tables (downstream_pipeline / lambda8_main / classical_legalizer_24 / baseline_sweeps_24)
+GitHub HEAD: commit 42082f0
+```
+
+总成本：~¥165（前 ¥150 + round 4 ¥15）。
+
 ## Phase 5 实测 — Reviewer 回应数据
 - cg-tuned median: Δv=−7.1%, Δh=+14.2%（每电路最优 hp 后仍弱于 VSR）
 - RePaint-tuned median: Δv=**+109.4%**, Δh=−52.8%（HPWL "改善" 来自 macros 塌缩）
