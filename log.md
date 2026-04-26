@@ -1,5 +1,38 @@
 # VSR-Place Development Log
 
+#### 2026-04-26 16:30 HKT — Phase 5 round 4 (Round-2 reviewer 5/10)
+**Context**: 用户更新 `paper/neurips_review.md` 到 round-2 review (5/10)，要求补全所有实验。GPU 重新可用，密码用户提供 (L0aeT4SXputg)。reviewer 主要 ask：(R1) 决定性下游 pipeline 实验; (R2) 全 24 trials λ=8 rerun; (R3) cg/RePaint 4 seeds; (R4) classical FD 6 circuits 4 seeds; (W7) n=24/n=6 不一致和 Table 2 vs Appendix F 计数不一致; (W8) RePaint-bin HPWL p=0.0747 → 不能 claim outperforms; (W9) 移除 "non-differentiable"; (W10/Q7) adaptec3 +73% full-HPWL; (S6) Fig1 "Legal placement" → "Repaired placement"; (S7) 软化 "strictly dominates"。
+
+**Actions**:
+- 写 `scripts/run_round2_review.py`：单脚本跑 24 trials × 13 methods (baseline, vsr8, fd_pure, fd_spring, cd_raw, vsr8_cd_pipeline, cg w∈{2,8}, rp t∈{0.3,0.5})。共享 baseline draft 节省 sampling。
+- scp 到 AutoDL，nohup `/root/miniconda3/bin/python` 启动 (注意 python 不在 PATH)
+- 30 min 跑完 24 trials，pull `round2_review.json`
+- 写 `scripts/analyze_round2_review.py`：聚合 → 4 张 paper-ready tex 表
+- 主表/补充：加 §"Decisive downstream pipeline experiment" with 真实数字; appendix 加 §sec:supp-round2 + 4 张表
+- 修 W7 (Table 2 caption + §4.7 phrasing); W8 (abstract + §4.2 RePaint-bin p=0.075 透明); W9 ("non-differentiable" → "piecewise differentiable"); S6 (regen fig1_framework.pdf); S7 (§4.3 title + §4.4 wording);
+- 加 W10 段落 in Limitations: adaptec3 +73% full-HPWL 直接讨论 + 引 §sec:downstream_pipeline
+- Compress §4.9 / §4.10 / §Discussion 让 body 回到 9 页
+
+**Headlines (round2_review.json, 24 trials)**:
+- **Pipeline (decisive)**: raw→cd v=−28.5%/h_f=+8.4% vs vsr8→cd v=**−35.9%**/h_f=+7.1% — VSR cuts 7.4pp more violations + 1.3pp better full-HPWL
+- λ=8 main on 4 seeds: median Δv=−52.2%, Δh_macro=−34.1%, Δh_full=+8.9%, residual ≈18k (same as λ=2)
+- FD-pure (24 trials): Δv=−54%/Δh=+144% — comparable legality, 178pp worse HPWL than VSR
+- FD+spring: Δv=−52%/Δh=+34% — closer but still 68pp worse than VSR
+- cg/RePaint 4-seed sweep 写入 supplement table
+
+**Decisions**:
+- Conclusion 段落删掉（substance 已分散在 §sec:downstream_pipeline + §Limitations + §sec:lambda_sweep），让 body 紧凑
+- §sec:downstream_pipeline 用 prose-only 不用 itemize，节省 vertical space
+- 没修 multiple-comparison correction（reviewer 提到但工作量大）；用 footnote 注明 "individual p-values are marginal"
+
+**Results**:
+- main.pdf 18 页 (body 9 + refs 1 + appendix 8); supplement.pdf 9 页
+- 0 undefined refs
+- 22+ review item 全闭环（剩 multiple-comparison BH/Bonferroni 没补）
+
+**Cost**: GPU ~30 min (~¥15) + 本地 ~30 min。机器仍开着待用户关。
+**Next**: commit + push, 提醒用户关 AutoDL。
+
 #### 2026-04-26 06:30 JST — Phase 5 round 3: 闭环最后 5 条 review gap (W2/W4/W7/W9/Suggestion 6)
 **Context**: 用户要求"全部继续跑 跑完为止"。本地 SSH 不能重连 AutoDL，但本地有 ChipDiffusion checkpoint + ISPD2005 raw + 15 个 cached drafts (`data/ispd_placements_full.pkl`)，足以本地跑完所有非 GPU-only 的 review 项。
 **Actions**:

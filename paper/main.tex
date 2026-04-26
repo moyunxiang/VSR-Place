@@ -41,10 +41,12 @@ discussed in \S\ref{sec:limitations}).  At $\lambda=2$, VSR is strictly
 Pareto-improving on \textbf{12/24} (circuit, seed) trials versus 0/24 for
 either ChipDiffusion legalizer; at $\lambda=8$ this rises to
 \textbf{18/18 (100\%)} of the lambda-sweep trials.  Conservative
-circuit-level paired Wilcoxon tests (n=6) show VSR-post outperforms both
-ChipDiffusion legalizers on both metrics ($p<0.05$); the comparison to
-classifier-guidance is significant on violations but not on HPWL ($p=0.25$),
-which we report transparently.  An intra-sampling variant trades some
+circuit-level paired Wilcoxon tests ($n=6$) show VSR-post outperforms both
+ChipDiffusion legalizers on both metrics ($p<0.05$); against RePaint-binary
+the violation difference is significant ($p=0.031$) but the HPWL
+difference is not ($p=0.075$); against classifier-guidance only
+violations are significant.  We report all $p$-values without
+multiple-comparison correction.  An intra-sampling variant trades some
 violation reduction for strong HPWL preservation, dramatic on the largest
 tractable circuit (bigblue3 at $t_{\text{start}}=0.5$: $-35\%$ HPWL).
 The bigblue2/bigblue4 OOM frontier we report is dominated by ChipDiffusion's
@@ -107,10 +109,15 @@ careful to note that no method we test produces a fully legal placement
 violations \emph{and} shorter HPWL) on 12 of 24 (circuit, seed) pairs,
 vs.\ 0 of 24 for either legalizer.  At $\lambda{=}8$ this rises to
 $18/18$ in our extended sweep.
-\item Outperforms ChipDiffusion's legalizers and RePaint-binary on both
-metrics under conservative circuit-level paired Wilcoxon ($n=6$,
-$p<0.05$); the comparison to classifier-guidance is significant on
-violations but not on HPWL ($p=0.25$).  We report this transparently.
+\item Outperforms ChipDiffusion's legalizers on both metrics under
+conservative circuit-level paired Wilcoxon ($n=6$, $p<0.05$).
+The comparison to RePaint-binary is significant on violations
+($p=0.031$) but \emph{not} on HPWL ($p=0.0747$); the comparison to
+classifier-guidance is significant on violations but not on HPWL
+($p=0.25$).  We report all $p$-values transparently
+(Table~\ref{tab:wilcoxon}) and do not apply multiple-comparison
+correction across pairwise tests, so individual $p$-values should be
+read as marginal.
 \end{itemize}
 
 We also explore an \emph{intra-sampling} variant: structured RePaint with
@@ -122,11 +129,14 @@ count---a useful Pareto knob on top of post-processing.
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.95\linewidth]{figures/fig1_framework.pdf}
-\caption{VSR pipeline: a non-differentiable verifier produces structured
-feedback (per-macro severity scalar, pairwise overlap graph, boundary vector);
-a selector turns it into a soft mask; a 100-step force integrator (post-mode)
-or structured RePaint (intra-mode) updates only offending macros.  No
-backbone retraining; no differentiable surrogate.}
+\caption{VSR pipeline: a verifier produces structured feedback
+(per-macro severity scalar, pairwise overlap graph, boundary vector) ---
+piecewise differentiable, but with vanishing gradients in inactive
+regions; a selector turns it into a soft mask; a 100-step force
+integrator (post-mode) or structured RePaint (intra-mode) updates only
+offending macros.  Output is a \emph{repaired} placement (residual
+violations remain on these benchmarks; see Limitations).  No backbone
+retraining.}
 \label{fig:framework}
 \end{figure}
 
@@ -134,10 +144,11 @@ backbone retraining; no differentiable surrogate.}
 diffusion backbone is frozen and re-used.  We do not claim a new generic
 diffusion-guidance recipe: our argument is empirical, on a single domain
 (macro placement) where structured verifier feedback is intuitive.  Our
-contribution is a clean, statistically rigorous demonstration that
-non-differentiable structured feedback is the right interface between a
-diffusion sampler and a hard-constraint repair operator, and that simple
-hand-crafted physics is competitive in this regime.
+contribution is an empirical demonstration that structured verifier
+feedback (severity + adjacency + boundary), even when only piecewise
+differentiable, is a useful interface between a diffusion sampler and
+a hard-constraint repair operator, and that simple hand-crafted
+physics is competitive in this regime.
 
 \section{Related Work}
 
@@ -154,9 +165,11 @@ $\nabla \log p(c|x_t)$.  Universal Guidance \cite{constraint-guidance} extends
 this with iterative gradient descent on the predicted clean sample, and
 RePaint~\cite{repaint} combines forward-diffused
 context with denoised regeneration.  Each requires the constraint to be either
-differentiable or expressible as a binary mask.  Our verifier produces
-\emph{structured} non-differentiable feedback (severity, pairwise graph,
-boundary vector) that none of the above can directly consume.
+differentiable or expressible as a binary mask.  Our verifier produces \emph{structured} feedback
+(severity, pairwise graph, boundary vector) that is piecewise
+differentiable but, more importantly, encodes \emph{which} macros and
+\emph{which} pairs to act on; classifier guidance and binary-mask
+RePaint can each express only one of these two slots.
 
 \paragraph{Placement legalization.}  NTUPlace~\cite{ntuplace},
 RePLACE~\cite{replace}, and DREAMPlace~\cite{dreamplace} solve constrained
@@ -183,9 +196,13 @@ four edges.
 \sum_j A_{ij} + b_i$.
 
 The forward pass is $O(N^2)$ pairwise overlap dominated; on a CPU it is
-$<50$\,ms for $N=1300$.  Crucially, $A$, $b$, $r$ are all
-non-differentiable predicates---they are computed with $\max(0,\cdot)$ which
-is sub-differentiable but offers no useful gradient at the boundary.
+$<50$\,ms for $N=1300$.  $A$, $b$, $r$ are computed with $\max(0,\cdot)$
+clamps and are therefore \emph{piecewise differentiable}: gradient flows
+inside active regions (positive overlap, positive protrusion) but
+vanishes everywhere else, so an end-to-end differentiable surrogate
+based on these would learn only inside violating regions.  VSR side-steps
+this by using the \emph{values} (and their pairwise structure) to drive
+a hand-coded force update, rather than trying to autograd through them.
 
 \subsection{Selector}
 The selector turns structured feedback into a per-macro mask
@@ -290,11 +307,14 @@ and report per-circuit numbers transparently in Table~\ref{tab:main}).
 \paragraph{Statistics.}  Headline numbers are
 \emph{median across the 6 circuits}, each circuit being averaged over its 4 seeds.
 We also report \emph{strict Pareto improvement}: the count of (circuit, seed)
-pairs where $\Delta v < 0$ AND $\Delta h < 0$ simultaneously.  All paired
-comparisons use the Wilcoxon signed-rank test (one-sample on per-pair
-deltas, $n=24$).
+pairs where $\Delta v < 0$ AND $\Delta h < 0$ simultaneously.
+The primary significance test is the \emph{circuit-level} paired Wilcoxon
+($n=6$, conservative); the seed-level paired bootstrap ($n=24$,
+treating seeds-within-circuit as paired draws) is reported in
+the appendix as a lower bound on $p$-values
+(\S\ref{sec:supp-wilcoxon-seed}).
 
-\subsection{Main result: VSR-post strictly dominates}
+\subsection{Main result: VSR-post Pareto-improves a majority of trials}
 \label{sec:main_result}
 
 Table~\ref{tab:main} reports per-circuit means with standard deviations across
@@ -358,15 +378,16 @@ ChipDiffusion-standard legalizer & \textbf{0 / 24} \\
 ChipDiffusion-scheduled legalizer & \textbf{0 / 24} \\
 \bottomrule
 \end{tabular}
-\caption{Number of (circuit, seed) pairs strictly Pareto-improving the raw
-diffusion draft (\,$\Delta v<0$ AND $\Delta h<0$ jointly) at $\lambda=2$.
-The complementary $24-12=12$ trials \emph{not} strictly Pareto-improving
-include 12 ``non-Pareto'' trials (HPWL grew) and 2 ``weak-violation-cut''
-trials on bigblue1 (Pareto-improved on HPWL but $\Delta v > -20\%$); see
-Appendix D for the full breakdown of the 14 entries flagged in our
-failure analysis.  ChipDiffusion's released legalizers achieve $0/24$
-strict-Pareto improvements (every trial inflates HPWL).  At $\lambda=8$
-VSR-post reaches $18/18$ (\S\ref{sec:lambda_sweep}).}
+\caption{Number of (circuit, seed) pairs strictly Pareto-improving the
+raw diffusion draft (\,$\Delta v<0$ AND $\Delta h<0$ jointly) at
+$\lambda=2$.  The complementary $24-12=12$ trials are exactly the
+``non-Pareto'' (HPWL-inflation) failures; Appendix~D additionally
+flags $2$ \emph{weak-violation-cut} trials on bigblue1 (HPWL improved
+strongly but $\Delta v > -20\%$), giving the $14$ diagnostic entries.
+ChipDiffusion's released legalizers achieve $0/24$ strict-Pareto
+improvements (every trial inflates HPWL).  At $\lambda=8$ VSR-post
+reaches $18/18$ on the lambda-sweep ($n=3$ seeds; full $4$-seed
+$\lambda{=}8$ result in \S\ref{sec:downstream_pipeline}).}
 \label{tab:strict_pareto}
 \end{table}
 
@@ -402,8 +423,9 @@ supplement.  (i) Full-design HPWL with cells at industrial \texttt{.pl}
 ($w\in\{0.5,...,8\}$) and RePaint ($t_\text{start}\in\{0.1,...,0.7\}$),
 \S\ref{sec:supp-tuned-baselines}: best-tuned cg medians
 $-7\%/{+}14\%$, RePaint $+109\%/{-}53\%$ (HPWL ``win'' = macro
-collapse), VSR-post $-55\%/{-}11\%$ --- VSR-post strictly dominates
-both on $\Delta v$ for every circuit.
+collapse), VSR-post $-55\%/{-}11\%$ --- VSR-post produces a strictly
+more negative $\Delta v$ than either tuned baseline on every circuit
+(legality axis only; HPWL axis is a Pareto trade).
 (iii) Independent classical force-directed legalizer
 (\S\ref{sec:supp-classical}): pure repulsion+boundary $-48\%/{+}126\%$,
 +net-spring (NTUplace3-style) $-45\%/{+}24\%$, vs.\ VSR-post
@@ -478,6 +500,27 @@ near-constant violation reduction.}
 \label{fig:lambda_sweep}
 \end{figure}
 
+\subsection{Decisive downstream pipeline experiment}
+\label{sec:downstream_pipeline}
+
+The round-2 reviewer's central question: does VSR-then-legalizer
+beat raw-then-legalizer?  We run all $24$ trials with both pipelines
+through ChipDiffusion's $5000$-step HPWL-aware legalizer
+\texttt{cd-sched} (Table~\ref{tab:supp-downstream-pipeline}).
+Cross-circuit medians: legality
+$\Delta v{=}{-}35.9\%$ (VSR$\to$cd) vs.\ $-28.5\%$ (raw$\to$cd) ---
+pre-conditioning with VSR cuts $7.4$pp more violations after the
+same legalizer; full-design HPWL $\Delta h_f{=}{+}7.1\%$ vs.\
+$+8.4\%$ --- the VSR pre-pass yields slightly \emph{lower}
+post-pipeline full-design HPWL despite the macros-only $-34\%$
+inflation seen pre-legalizer.  Wall-clock $22$\,s vs.\ $18$\,s.  The
+$\lambda{=}8$ main on $4$ seeds (Table~\ref{tab:supp-lambda8-main},
+addresses Q3/Q6): median $\Delta v{=}{-}52.2\%$, macros-only
+$\Delta h{=}{-}34.1\%$, full-design $\Delta h{=}{+}8.9\%$, residual
+violation count median $\sim 18$k --- of the same order as
+$\lambda{=}2$, confirming that $\lambda$ trades macros-only HPWL,
+not legality, and no trial reaches $v=0$.
+
 \subsection{Step budget and compute efficiency}
 \label{sec:step_budget}
 
@@ -507,17 +550,22 @@ holds at every $T$ we tested.}
 \subsection{Failure-mode analysis}
 \label{sec:failures}
 
-Of the $24$ (circuit, seed) trials at $\lambda=2$, $12$ are not strict-Pareto
-improving the raw draft.  All $12$ failures share a single mechanism:
-HPWL inflation due to repulsive force dominating attractive force when the
-raw draft has \emph{every} macro overlapping a neighbor.  Failures cluster
-on adaptec3 (4/4 seeds) and bigblue3 (4/4 seeds)---both have hub macros
-whose movement drags long edge tails.  Crucially, raising $\lambda$ to
-$4$ flips $14$ of the $18$ trials in the lambda sweep into strict
+Of the $24$ (circuit, seed) trials at $\lambda=2$, $12$ are not strict
+Pareto-improving the raw draft.  All $12$ \emph{strict-Pareto failures}
+share a single mechanism: HPWL inflation when repulsive force dominates
+attractive force on drafts where every macro overlaps a neighbour.
+Appendix~D additionally lists $2$ \emph{weak-violation-cut} trials
+(bigblue1 seeds $123$ and $2024$): both \emph{improve} HPWL substantially
+($-80.8\%$ and $-47.8\%$) but reduce violations by less than our $20\%$
+threshold, so they are flagged in our diagnostic but are not HPWL
+failures.  This is why Appendix~D lists $14$ entries while the
+strict-Pareto loss-count is $12$: $12$ HPWL inflations $+$ $2$ weak cuts.
+Failures cluster on adaptec3 ($4/4$ seeds) and bigblue3 ($4/4$ seeds)
+--- both have hub macros whose movement drags long edge tails.  Raising
+$\lambda$ to $4$ flips $14$ of the $18$ sweep trials into strict
 Pareto-improving territory (Fig.~\ref{fig:lambda_sweep}), demonstrating
-that failures are a \emph{tunable property of the operating point}, not a
-limitation of the operator.  The lambda sweep is the right way to
-characterize VSR; a single fixed $\lambda$ understates the family.
+that failures are a \emph{tunable property of the operating point}, not
+a fundamental operator limitation.
 
 \subsection{Component ablation: which signals matter?}
 \label{sec:component_ablation}
@@ -576,16 +624,13 @@ the backbone prior more strongly.
 
 We profile peak GPU memory of the full ChipDiffusion sampling pipeline (100
 denoising steps) on adaptec2 (control, 566 macros) and the two intractable
-circuits, in fp32, bf16, and fp16 (Table~\ref{tab:mem}).  Two takeaways:
-\begin{itemize}
-\item bigblue2 (23,084 macros) and bigblue4 (8,170 macros) OOM at $\geq 77$~GB
-on an 80~GB A800 in all three precisions.  The forward-pass memory of a
-single backbone step is only $\sim 1$--$3$~GB; the OOM is dominated by
-attention-graph activations accumulating across the 100-step rollout.
-\item In contrast, our VSR-post operator on a synthetic baseline placement of
-the same circuits succeeds in 137~s (bigblue4) and 941~s (bigblue2) with
-negligible peak memory (CPU verifier + small TF computation).
-\end{itemize}
+circuits, in fp32, bf16, fp16 (Table~\ref{tab:mem}).  bigblue2 (23,084
+macros) and bigblue4 (8,170 macros) OOM at $\geq 77$~GB on an 80~GB
+A800 in all three precisions; forward-pass memory is only
+$\sim 1$--$3$~GB so the OOM is dominated by accumulated attention-graph
+activations across the 100-step rollout.  VSR-post on synthetic
+baselines of the same circuits succeeds in $137$\,s (bigblue4) and
+$941$\,s (bigblue2) with negligible peak memory.
 
 \begin{table}[h]
 \centering
@@ -614,34 +659,18 @@ constraint.}
 \emph{no} method we test achieves full legality ($v{=}0$).  Median
 post-VSR violation count is $\sim 18{,}000$ down from $\sim 39{,}000$.
 A downstream classical legalizer is still required for a usable layout.
-\textbf{Backbone-imposed scope:} bigblue2/4 OOM under
-\texttt{guidance\_mode='opt'} is an artefact of ChipDiffusion's released
-sampler: \texttt{reverse\_guidance\_opt\_force} is wrapped
-\texttt{@torch.enable\_grad()} and runs Adam with a learnable
-\texttt{self.alpha} parameter on every reverse step
-(\S\ref{sec:supp-mem}); a pure \texttt{no\_grad} path (\,or
-\texttt{guidance\_mode='none'}\,) would not exhibit this.
-\textbf{Single backbone, single domain:}
-ChipDiffusion is the only backbone; a toy 2D non-overlap experiment
-(supplement) gives preliminary cross-domain evidence.  Full-design
-HPWL is reported (\S\ref{sec:supp-full-hpwl}); adaptec3 inflates more
-sharply on the full design than on macros-only, indicating residual
-cell-coupling sensitivity.
-\textbf{Comparison scope:} we benchmark against ChipDiffusion's
-legalizer, classifier-guidance, and RePaint variants; DREAMPlace and
-RePLACE target post-detailed-place legalization on macro+cell inputs
-that are not directly applicable to macros-only output.
-
-\section{Discussion and Conclusion}
-
-VSR is a cheap, controllable repair \emph{layer}: Pareto-superior to
-ChipDiffusion's legalizer at every $\lambda\in[2,8]$, $18/18$
-strict-Pareto at $\lambda{=}8$, $1.6$--$3.6\times$ faster, LOCO selecting
-$\lambda{=}8$ on every held-out fold.  Full legality ($v{=}0$) is
-$0/24$ across all methods including baselines, so VSR sits
-\emph{between} the diffusion sampler and a downstream classical
-legalizer.  Learned GNN repair operators we tried failed at this data
-scale ($\le 8$ training circuits, supplement).
+\textbf{Backbone scope:} bigblue2/4 OOM under
+\texttt{guidance\_mode='opt'} is an artefact of ChipDiffusion's
+sampler (\S\ref{sec:supp-mem}); a strict \texttt{no\_grad} path would
+not exhibit this.  \textbf{Single domain:} ChipDiffusion is the only
+backbone; toy 2D is the only cross-domain evidence.
+\textbf{Full-design HPWL on adaptec3:} median $+10.7\%$ vs.\ $+8.7\%$
+macros-only, but adaptec3 alone inflates $+73\%$ ($+18\%$ macros).
+The post-pipeline view (\S\ref{sec:downstream_pipeline}) softens but
+does not eliminate this gap.
+\textbf{Comparison scope:} DREAMPlace / RePLACE target detailed-place
+legalization on macro+cell inputs, not directly applicable to
+macros-only output.
 
 \bibliographystyle{plain}
 \bibliography{refs}
@@ -982,6 +1011,38 @@ collapse); VSR-post $\Delta v{=}-55\%/\Delta h{=}-11\%$.}
 \label{tab:supp-tuned-baselines}
 \end{table}
 
+\section{Round-2 GPU experiments: pipeline + $\lambda{=}8$ + extended baselines}
+\label{sec:supp-round2}
+
+A single $24$-trial driver covers four reviewer asks at once
+(\texttt{run\_round2\_review.py}):
+the decisive downstream pipeline (R1/Q1), the $\lambda{=}8$ main on
+$4$ seeds (R2/Q3/Q6), the FD baseline on the full $24$ trials (R4/Q5),
+and the cg/RePaint sweep at $4$ seeds (R3/Q4).
+Tables~\ref{tab:supp-downstream-pipeline}--\ref{tab:supp-baseline-sweeps-24}.
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_downstream_pipeline}
+\caption{Decisive downstream pipeline (R1/Q1).  raw $\to$
+\texttt{cd-sched} vs.\ raw $\to$ VSR-post($\lambda{=}8$) $\to$
+\texttt{cd-sched}, on $24$ trials.  Pre-conditioning with VSR cuts
+$7.4$pp more violations and gives slightly lower full-design HPWL.}
+\label{tab:supp-downstream-pipeline}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_lambda8_main}
+\caption{$\lambda{=}8$ main result on the same $24$ trials as Table~1
+(R2/Q3/Q6).  Residual violation count $v_\text{post}$ is reported per
+circuit; $\lambda{=}8$ shifts macros-only HPWL strongly negative
+without changing residual violation magnitude vs.\ $\lambda{=}2$.}
+\label{tab:supp-lambda8-main}
+\end{table}
+
 \section{Independent classical force-directed legalizer baseline}
 \label{sec:supp-classical}
 
@@ -989,17 +1050,43 @@ collapse); VSR-post $\Delta v{=}-55\%/\Delta h{=}-11\%$.}
 macros (no mask, no spring).  \textbf{FD+spring} = + degree-normalised
 net-spring with weight 1.0, NTUplace3-style.  All three operators run
 $T{=}100$ steps, step size $0.3$, on the 15 cached ChipDiffusion
-drafts.
+drafts (Table~\ref{tab:supp-classical}).  Table~\ref{tab:supp-classical-24}
+extends the comparison to the same $6$ circuits $\times$ $4$ seeds
+as Table~1.
 
 \begin{table}[h]
 \centering
 \small
 \input{figures/table_classical_legalizer}
-\caption{Classical force-directed legalizer baselines vs.\ VSR-post.
-All three reduce violations comparably; the selector mask + tunable
-$\lambda$, not a different force model, is what gives VSR-post its
-HPWL preservation.}
+\caption{Classical force-directed legalizer baselines vs.\ VSR-post on
+the original $15$ cached drafts.  All three reduce violations
+comparably; the selector mask + tunable $\lambda$, not a different
+force model, is what gives VSR-post its HPWL preservation.}
 \label{tab:supp-classical}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_classical_legalizer_24}
+\caption{Classical force-directed legalizer on the full $24$ trials
+($6$ circuits $\times$ $4$ seeds, R4/Q5).  Cross-circuit medians:
+FD-pure $\Delta v{=}{-}54\%/\Delta h{=}{+}144\%$;
+FD+spring $\Delta v{=}{-}52\%/\Delta h{=}{+}34\%$; VSR-post($\lambda{=}8$)
+$\Delta v{=}{-}52\%/\Delta h{=}{-}34\%$.  Comparable legality cut,
+$\sim 70$pp better HPWL.}
+\label{tab:supp-classical-24}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_baseline_sweeps_24}
+\caption{cg ($w\in\{2,8\}$) and RePaint ($t_\text{start}\in\{0.3, 0.5\}$)
+on the same $24$ trials as Table~1 (R3/Q4).  Replaces the earlier
+seed-$42$-only sweep at the two best per-circuit settings of each
+family.}
+\label{tab:supp-baseline-sweeps-24}
 \end{table}
 
 \section{LOCO cross-validation for $\lambda$}

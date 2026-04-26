@@ -2,100 +2,97 @@
 
 ## 1. Summary
 
-The paper proposes VSR, a verifier-guided repair layer for diffusion-generated macro placements. A non-learned verifier computes overlap and boundary violations, converts them into macro-level masks and pairwise overlap structure, and a 100-step force-based repair operator moves offending macros while trading legality against HPWL via a scalar lambda. The paper compares this against ChipDiffusion samples, classifier guidance, RePaint-style repair, and ChipDiffusion legalizers on 6 ISPD2005 circuits.
+The paper proposes VSR, a repair layer for diffusion-generated macro placements. Given a ChipDiffusion draft, a verifier computes per-macro severity, pairwise overlap structure, and boundary protrusion. A masked force-directed repair operator then moves offending macros using repulsive, boundary, and netlist-attractive forces, controlled by a scalar lambda. The updated version explicitly frames VSR as a repair layer rather than a complete legalizer, and evaluates it on 6 ISPD2005 circuits with comparisons against ChipDiffusion legalizers, classifier guidance, RePaint-style repair, and additional force-directed/tuned baselines.
 
 ## 2. Strengths
 
-- The problem is important: diffusion placement samples that violate hard geometric constraints are not directly usable.
-- The method is simple, fast, and does not require retraining the diffusion backbone.
-- The paper includes useful engineering evaluations: lambda sweep, step-budget sweep, component ablation, failure analysis, and memory profiling.
-- The Pareto framing is appropriate in principle because placement quality is multi-objective.
-- The paper is transparent that the method is domain-specific and does not claim a new diffusion training method.
+- The paper now correctly states that VSR is not a full legalizer. This is an important correction because none of the tested methods reaches zero violations.
+- The added circuit-level Wilcoxon analysis is more appropriate than the previous seed-level-only significance test.
+- The paper now includes useful robustness additions: full-design HPWL with fixed cells, tuned classifier-guidance/RePaint sweeps, a classical force-directed baseline, lambda leave-one-circuit-out selection, overlap-area checks, and more precise force-update details.
+- The lambda sweep is informative and shows that the method exposes a practical quality tradeoff.
+- The implementation is simple and computationally cheap relative to the diffusion backbone and ChipDiffusion's 5000-step legalizer.
 
 ## 3. Weaknesses
 
-- The central result is not actual legalization. A median 55.3% violation reduction still leaves many hard-constraint violations. For macro placement, "fewer violations" is not equivalent to a legal placement.
-- Baselines are weak and insufficiently tuned. VSR gets a lambda sweep, but classifier guidance and RePaint appear to use narrow or fixed settings. Standard placement/legalization baselines such as DREAMPlace, RePlAce, NTUPlace-style legalization, greedy macro legalization, or analytical macro legalizers are not actually benchmarked.
-- The evaluation uses only 6 circuits, with 4 seeds each. Treating 24 seed/circuit pairs as independent for Wilcoxon tests is statistically questionable because circuit-level variation dominates.
-- The method optimizes almost exactly the same verifier metric used for evaluation, while baselines may optimize different surrogates. This makes the violation-count comparison partially circular.
-- The paper uses violation count rather than overlap area, max overlap, legality success rate, routed congestion, timing, or true full-design HPWL. Counting a tiny overlap and a catastrophic overlap equally is not adequate.
-- The "structured verifier feedback" novelty is overstated. Pairwise overlap graphs, boundary protrusions, and force-directed repulsion are standard ingredients in placement legalization.
-- The ablation undermines the selector contribution: random selector and uniform all-macro movement match the full method because the raw drafts are saturated with violations.
-- There are internal inconsistencies: Table 2 implies 12/24 VSR-post trials are non-Pareto, while Appendix D says 14 trials are flagged. The abstract claims p < 0.001 on both metrics against classifier guidance, but Table 3 reports HPWL p = 0.0814 for VSR-post vs. cg-strong.
-- The memory explanation is suspicious. Diffusion inference should not accumulate activations over 100 denoising steps unless the implementation stores them or lacks proper inference/no-grad handling.
+- The main practical weakness remains severe: VSR still leaves roughly 18,000 median violations after repair. This is not close to a usable macro placement. The paper admits a downstream legalizer is required, but does not evaluate the actual downstream pipeline.
+- The contribution is now honestly framed as combining classical ingredients, but this makes the NeurIPS-level novelty weaker. Pairwise repulsion, boundary forces, netlist springs, and masking are standard legalization/placement ideas.
+- The paper does not show that VSR improves final legal placement quality after a real downstream legalizer. The relevant practical comparison should be: raw diffusion draft + legalizer versus VSR-repaired draft + legalizer, measuring final HPWL, runtime, legality, and perhaps routing/timing.
+- Baseline coverage improved, but remains incomplete. The added classical force-directed baseline is not a mature macro legalizer, and the paper still lacks a strong comparison to a standard placement/legalization flow.
+- Some added baseline sweeps are not fully comparable. The tuned classifier-guidance/RePaint sweep appears to be per-circuit at seed 42 only, while the main claims use 4 seeds. The classical force-directed baseline is reported on 15 cached drafts and only 4 circuits, not the same 24 trials and 6 circuits as the main experiment.
+- The main table still uses lambda = 2 even though the paper's own LOCO procedure always selects lambda = 8. The explanation that lambda = 2 came from an earlier script is not a scientific justification. If lambda = 8 is validated, the paper should either use it consistently or present VSR as a family of operating points rather than a single method.
+- The updated text still contains internal inconsistencies. Section 4.1 says all paired comparisons use Wilcoxon with n = 24, while Section 4.4 says the conservative primary test is circuit-level n = 6. Table 2 says there are 12 non-strict-Pareto trials, but then describes 12 non-Pareto plus 2 weak-violation-cut cases, which totals 14. Section 4.7 says all 12 failures are HPWL-inflation failures, but Appendix F includes weak-violation-cut cases with improved HPWL.
+- Some statistical claims remain too strong. The conservative n = 6 test is very small, p-values are marginal, and there is no multiple-comparison correction. Also, Table 3 reports VSR-post vs. RePaint-binary HPWL p = 0.0747, so the claim that VSR outperforms RePaint-binary on both metrics under p < 0.05 is not supported.
+- The paper still calls the verifier "non-differentiable" and says max/clamp terms offer no useful gradient at the boundary. This is overstated: overlap penalties are piecewise differentiable and are routinely used in placement optimization.
+- Full-design HPWL weakens the story. VSR-post has median full-design HPWL increase of +10.7%, and adaptec3 worsens by +73.2%. This suggests macros-only HPWL may hide important cell-coupling costs.
 
 ## 4. Technical Soundness
 
-The repair operator is plausible as a heuristic, but the technical framing is weak. The paper repeatedly calls the verifier "non-differentiable," yet overlap area with max/clamp terms is piecewise differentiable and has useful gradients when overlaps are positive. Classical legalizers exploit exactly this kind of structure.
+The repair operator is technically plausible as a heuristic. The added specification of repulsive force, boundary force, attractive force, degree normalization, and per-step clamping improves reproducibility.
 
-The force update is underspecified. It is unclear how coordinates, macro sizes, canvas dimensions, and HPWL terms are normalized, how pairwise forces are symmetrized, how hyperedges are converted to pairwise edges, and whether the boundary force is really "snapped" or scaled by eta. Without these details, reproducibility and stability are hard to assess.
+However, the theoretical framing remains weak. The method is essentially a masked force-directed macro repair heuristic. That is not incorrect, but the paper should avoid presenting this as a fundamentally new constraint-handling primitive. The strongest technical interpretation is: a carefully tuned lightweight repair step can improve ChipDiffusion drafts before downstream legalization.
 
-The method appears to be a force-directed macro legalizer with a mask. That can be useful, but the paper does not establish why this is technically superior to standard legalization methods, only to the specific released ChipDiffusion legalizer settings.
+The remaining concern is that the method is evaluated mostly against the same violation definition it uses internally. The added overlap-area metric helps, but a true independent evaluator would be a downstream legalizer or physical-design flow.
 
 ## 5. Novelty & Significance
 
-Novelty is limited. The idea of using overlap and boundary diagnostics to drive force-based macro movement is close to classical legalization and force-directed placement. The diffusion-specific contribution is mostly the placement of this repair step after or inside sampling.
+Novelty is modest. The updated paper explicitly admits the components are classical, which is accurate. The novel part is mostly the empirical packaging around diffusion-output repair and the lambda-controlled Pareto analysis.
 
-The significance would be stronger if VSR produced fully legal placements with competitive HPWL against mature placers/legalizers. As written, the method reduces violations but does not solve the hard-constraint problem.
+The significance is limited unless the authors show that this repair layer improves final legal placement outcomes. Reducing violations from very bad to still very bad is not enough for a strong placement paper, even if HPWL is better than the released ChipDiffusion legalizer.
 
 ## 6. Experimental Evaluation
 
-The experimental evaluation is not convincing enough for the paper's claims.
+The updated evaluation is substantially stronger than before, but still not fully convincing.
 
-Major missing evaluations:
+Major remaining gaps:
 
-- Absolute violation counts before and after repair.
-- Fraction of samples that become fully legal.
-- Total overlap area, max overlap, and boundary protrusion magnitude.
-- Full-design HPWL including standard-cell connectivity, not only macro-only edge graphs.
-- Strong classical legalization baselines.
-- Fair hyperparameter sweeps for all baselines.
-- Circuit-level statistical tests rather than seed-level pseudo-replication.
-- Results on more benchmarks or explanation of why ISPD2005 macros-only is representative.
+- No fully legal placements are produced by any method.
+- No downstream legalizer experiment shows whether VSR actually helps the final usable placement.
+- Baselines are still not matched on the same full set of circuits/seeds.
+- Full-design HPWL shows a nontrivial degradation for VSR-post, especially adaptec3.
+- The largest circuits are excluded from diffusion sampling, so scalability remains unresolved at the benchmark sizes where repair would matter most.
+- The n = 6 statistical test is conservative but underpowered; conclusions should be phrased cautiously.
 
-The lambda sweep is useful but creates another problem: lambda = 8 appears much better for strict Pareto performance than lambda = 2, yet the main results use lambda = 2. The paper needs a principled selection rule or validation protocol.
+The lambda sweep and LOCO result are useful, but they also make the main-table lambda = 2 choice awkward. The paper should either rerun the main 4-seed table at lambda = 8 or explicitly define lambda = 2 as one operating point rather than the main method.
 
 ## 7. Clarity
 
-The paper is mostly readable, but several claims are too aggressive relative to the evidence. Phrases such as "legal placement," "strictly dominates," and "right interface" are not justified when the method does not report full legality and has statistical issues.
+The paper is clearer than the previous version and is more honest about limitations. However, several claims should still be softened.
 
-Some details are missing or ambiguous:
+Confusing or problematic parts:
 
-- Exact construction of the macro-only netlist.
-- Absolute HPWL scale and normalization.
-- Whether baselines were tuned comparably.
-- Whether memory profiling used proper inference mode.
-- Exact residual violations after VSR.
+- Figure 1 still labels the output as "Legal placement," which conflicts with the explicit statement that no method reaches full legality.
+- Section 4.1 and Section 4.4 disagree about whether the primary Wilcoxon test uses n = 24 or n = 6.
+- The Table 2 / Appendix F failure-count explanation is confusing and mathematically inconsistent as written.
+- Phrases like "strictly dominates" and "right interface" remain too strong for the evidence.
 
 ## 8. Questions for Authors
 
-- How many VSR outputs are fully legal, i.e. zero overlap and zero boundary violation?
-- What are the absolute violation counts and total overlap areas before and after repair?
-- Why is lambda = 2 used as the main setting when lambda = 8 appears to give better Pareto results?
-- Were classifier guidance and RePaint tuned over comparable hyperparameter grids?
-- How does VSR compare against standard macro legalization methods, not just ChipDiffusion's released legalizer?
-- Why are seeds treated as independent samples in significance tests?
-- Is the OOM issue still present under `torch.no_grad()` / inference mode with no stored intermediate activations?
-- Why does Appendix D report 14 flagged failures while Table 2 implies 12?
-- Why does the abstract claim p < 0.001 on both metrics against classifier guidance when Table 3 reports HPWL p = 0.0814?
+- What happens if VSR output is fed into a standard downstream legalizer? Does final legal HPWL improve compared with raw diffusion + same legalizer?
+- Why not make lambda = 8 the main setting if LOCO consistently selects it?
+- Can the main results be rerun for lambda = 8 on all 24 trials?
+- Why are the tuned cg/RePaint baselines only reported for seed 42?
+- Why is the classical force-directed baseline not evaluated on the same 6 circuits and 24 trials?
+- How many violations remain per circuit after VSR at lambda = 8, not just lambda = 2?
+- Does the full-design HPWL degradation on adaptec3 persist after downstream legalization?
+- Can the authors remove or justify the remaining "non-differentiable" claim more carefully?
 
 ## 9. Suggestions for Improvement
 
-- Reframe the contribution as a heuristic repair/legalization layer, not as a general verifier-guided diffusion advance.
-- Report full legality rates and overlap-area metrics, not only violation-count reduction.
-- Add strong classical legalizers and simple force-directed baselines with comparable tuning.
-- Use circuit-level statistics or a mixed-effects model; do not overstate p-values from 24 seed/circuit pairs.
-- Tune all baselines fairly and report sensitivity curves.
-- Include a principled validation protocol for choosing lambda.
-- Fix internal inconsistencies in Pareto counts and statistical claims.
-- Clarify the memory experiment and verify the backbone OOM is not an implementation artifact.
+- Add the decisive experiment: raw diffusion + downstream legalizer versus VSR + same downstream legalizer.
+- Use lambda = 8 as the validated main setting, or present results as a lambda-controlled Pareto family rather than privileging lambda = 2.
+- Evaluate all added baselines on the same circuits and seeds as the main experiment.
+- Fix the n = 24 / n = 6 statistics inconsistency.
+- Fix the Table 2 and Appendix F failure-count inconsistency.
+- Replace "legal placement" with "repaired placement" wherever outputs still contain violations.
+- Tone down "strictly dominates" unless both metrics are statistically significant under the conservative test.
+- Discuss full-design HPWL degradation more directly, especially adaptec3.
 
 ## 10. Overall Recommendation
 
-Score: 4/10.
+Score: 5/10.
 
-The paper addresses a real problem and presents a practical heuristic with some promising empirical behavior, but the technical novelty is modest, the claims are overstated, and the evaluation does not establish that the method solves macro-placement legality. The lack of full legality metrics and strong legalization baselines is a major weakness.
+The updated paper is clearly improved. It is more honest, includes stronger diagnostics, and fixes several earlier statistical and framing issues. However, the core contribution remains an engineering repair heuristic built from classical placement ideas, and the method still leaves many thousands of hard-constraint violations. Without showing improvement after a real downstream legalizer, the practical significance remains limited.
 
 Confidence: 4/5.
 
-The paper is clear enough to judge, and the main limitations are visible from the reported tables and claims. My confidence would increase further with access to the code and raw JSONs, especially for baseline tuning and memory profiling.
+The main evidence is now easier to judge. My remaining concerns are not about missing minor details; they are about whether the contribution is novel and practically meaningful enough for NeurIPS.

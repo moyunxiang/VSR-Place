@@ -2,7 +2,7 @@
 """Figure 1 — Framework diagram for the paper.
 
 Three-stage pipeline: Verifier → Selector → Repair Operator.
-Input: diffusion-generated placement. Output: legal placement.
+Input: diffusion-generated placement. Output: repaired placement (residual violations may remain).
 """
 from pathlib import Path
 
@@ -47,12 +47,12 @@ ax.set_xlim(0, 12); ax.set_ylim(0, 3.2); ax.axis("off")
 box(ax, (0.1, 1.0), 1.8, 1.2, "Diffusion\nbackbone", "#E8F1FA",
     subtext="ChipDiffusion")
 box(ax, (2.6, 1.0), 2.0, 1.2, "Verifier", "#FFE9C2",
-    subtext="non-differentiable\nstructured feedback")
+    subtext="structured feedback\n(piecewise diff.)")
 box(ax, (5.4, 1.0), 2.0, 1.2, "Selector", "#DDF2D9",
     subtext=r"offender mask $M$")
 box(ax, (8.2, 1.0), 2.0, 1.2, "Repair operator", "#FFD4D4",
     subtext="post-process\nor intra-sample")
-box(ax, (10.7, 1.0), 1.2, 1.2, "Legal\nplacement", "#E8E8FF")
+box(ax, (10.7, 1.0), 1.2, 1.2, "Repaired\nplacement", "#E8E8FF")
 
 # Arrows
 arrow(ax, 1.9, 1.6, 2.6, 1.6, r"$\hat{x}_0$")

@@ -150,6 +150,75 @@ Raw data: \texttt{results/vsr\_extra/failure\_cases.csv}.}
 \label{tab:supp-failures}
 \end{table}
 
+\section{Round-2 reviewer experiments: downstream pipeline + $\lambda{=}8$ + extended baselines}
+\label{sec:supp-round2}
+
+We run a single $24$-trial driver covering four reviewer-prompted
+experiments simultaneously, sharing the raw guided draft per
+(circuit, seed) so the comparison is paired.  Methods recorded per
+trial: VSR-post($\lambda{=}8$); FD-pure (no mask, no spring);
+FD+spring (no mask, net-spring weight 1.0); raw $\to$ \texttt{cd-sched};
+raw $\to$ VSR-post($\lambda{=}8$) $\to$ \texttt{cd-sched}; cg with
+$w\in\{2,8\}$; RePaint with $t_\text{start}\in\{0.3, 0.5\}$.
+
+\paragraph{Decisive downstream pipeline.}  Reviewer ask: does feeding
+VSR's output into a downstream legalizer produce a better legal
+placement than feeding the raw draft into the same legalizer?
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_downstream_pipeline}
+\caption{Decisive downstream pipeline experiment, $24$ trials.
+Pipeline = raw $\to$ \texttt{cd-sched} legalizer (5000 SGD steps) vs.\
+raw $\to$ VSR-post($\lambda{=}8$) $\to$ \texttt{cd-sched}.
+$\Delta v\,\%$ is the residual violation count change relative to
+the raw draft; $\Delta h_m\,\%$ is macros-only HPWL change;
+$\Delta h_f\,\%$ is full-design HPWL change with cells at
+\texttt{.pl}; $t$ is total wall-clock.  Raw rows:
+\texttt{results/vsr\_extra/round2\_review.json}.}
+\label{tab:supp-downstream-pipeline}
+\end{table}
+
+\paragraph{$\lambda{=}8$ on $4$ seeds (Q3 / Q6).}
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_lambda8_main}
+\caption{VSR-post($\lambda{=}8$) on the same $24$ trials as
+Table~1 (4 seeds per circuit).  ``residual $v_\text{post}$'' is the
+absolute violation count remaining after VSR; even at $\lambda{=}8$,
+no trial reaches $v=0$.}
+\label{tab:supp-lambda8-main}
+\end{table}
+
+\paragraph{Classical force-directed baseline on the full $24$ trials.}
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_classical_legalizer_24}
+\caption{FD-pure (repulsion + boundary, no mask) and FD+spring
+(\,+\,degree-normalised net-spring weight $1.0$) compared to
+VSR-post($\lambda{=}8$) on the same $6$ circuits $\times$ $4$ seeds
+as Table~1.  Replaces the earlier $15$-draft cached evaluation.}
+\label{tab:supp-classical-24}
+\end{table}
+
+\paragraph{cg / RePaint on $4$ seeds (Q4).}
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_baseline_sweeps_24}
+\caption{Classifier-guidance ($w\in\{2,8\}$, the two best per-circuit
+legality weights) and RePaint ($t_\text{start}\in\{0.3, 0.5\}$,
+the two best $t_\text{start}$) at all $4$ seeds.  Replaces the earlier
+seed-$42$-only sweep on this slice.}
+\label{tab:supp-baseline-sweeps-24}
+\end{table}
+
 \section{LOCO cross-validation for $\lambda$}
 \label{sec:supp-lambda-loco}
 
