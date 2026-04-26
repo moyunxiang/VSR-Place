@@ -1,0 +1,17 @@
+\begin{tabular}{lr|rrc|rrc}
+\toprule
+& & \multicolumn{3}{c|}{raw $\to$ DREAMPlace} & \multicolumn{3}{c}{raw $\to$ VSR($\lambda{=}8$) $\to$ DREAMPlace} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8}
+Circuit & $n$ & $v_\text{post}$ & $\Delta v$\% & legal & $v_\text{post}$ & $\Delta v$\% & legal \\
+\midrule
+adaptec1 & 2 & $20644$ & $+7.2$ & 0/2 & $9052$ & $-53.0$ & 0/2 \\
+adaptec2 & 2 & $12531$ & $-64.7$ & 0/2 & $6084$ & $-82.9$ & 0/2 \\
+adaptec3 & 2 & $19992$ & $-51.8$ & 0/2 & $9750$ & $-76.5$ & 0/2 \\
+adaptec4 & 2 & $72392$ & $-33.7$ & 0/2 & $31252$ & $-71.4$ & 0/2 \\
+bigblue1 & 2 & $12484$ & $+13.8$ & 0/2 & $9052$ & $-17.5$ & 0/2 \\
+bigblue3 & 2 & $108021$ & $-43.2$ & 0/2 & $35000$ & $-81.6$ & 0/2 \\
+\midrule
+\textbf{median} & -- & $20318$ & $-38.5$ & 0/12 & $9401$ & $-73.9$ & 0/12 \\
+\multicolumn{8}{l}{Circuit-level paired Wilcoxon ($n{=}6$): $v_\text{post}$ $p=0.031$.} \\
+\bottomrule
+\end{tabular}

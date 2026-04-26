@@ -1,100 +1,106 @@
 # NeurIPS-Style Review: Verifier-Guided Selective Repair for Diffusion-Generated Macro Placements
 
+## Priority Fixes
+
+1. **The biggest remaining issue is practical impact.** VSR and the downstream `VSR -> cd-sched` pipeline still produce no fully legal placements: full legality is 0/24, and the downstream pipeline still leaves about 22k residual violations. The paper should make this the central limitation and avoid any phrasing that suggests the method solves legalization.
+
+2. **The downstream pipeline result is weak and should be framed as negative/mixed, not as strong evidence.** The updated paper now reports the honest numbers: `raw -> cd-sched` vs. `raw -> VSR -> cd-sched` gives residual violations 23,824 vs. 22,089, full-design HPWL +8.4% vs. +7.1%, and circuit-level Wilcoxon p-values `p_v=0.562`, `p_hf=1.000`. This is not statistically significant and the per-circuit wins are mixed.
+
+3. **The paper still needs a stronger external legalization/placement-flow comparison if it wants to claim practical placement value.** ChipDiffusion's legalizers are weak and also fail to legalize. A comparison to a more standard downstream legalizer or placement flow would substantially improve credibility.
+
+4. **The novelty should be toned down further.** The method is a well-engineered combination of classical pairwise repulsion, boundary correction, netlist springs, and masking. The contribution is empirical packaging and analysis for diffusion-output repair, not a fundamentally new constraint-solving method.
+
+5. **The lambda story is improved but still slightly awkward.** The paper now reports both lambda=2 and lambda=8 in Table 1, which helps. However, the statistical tests are still at lambda=2 while LOCO selects lambda=8. The paper should clearly state that lambda=2 is only a conservative/reference point and not the recommended operating point.
+
 ## 1. Summary
 
-The paper proposes VSR, a verifier-guided repair layer for diffusion-generated macro placements. A verifier computes per-macro severity, pairwise overlap structure, and boundary protrusions; a masked force-directed operator then moves violating macros using repulsion, boundary correction, and netlist attraction, controlled by a scalar lambda. The latest version explicitly frames VSR as a repair layer rather than a complete legalizer, adds lambda=8 results, adds a downstream `VSR -> ChipDiffusion legalizer` experiment, and expands baseline comparisons.
+The paper proposes VSR, a verifier-guided repair layer for diffusion-generated macro placements. A verifier computes per-macro severity, pairwise overlap structure, and boundary protrusions; a masked force-directed operator then moves violating macros using repulsion, boundary correction, and netlist attraction, controlled by a scalar lambda. The latest version frames VSR as a lambda-controlled family of repair operators rather than a single legalizer, reports both lambda=2 and lambda=8, adds a downstream pipeline test, and expands baseline comparisons.
 
 ## 2. Strengths
 
-- The paper is now much more honest about scope: VSR is positioned as a repair/preconditioning layer, not a full legalizer.
-- The added downstream experiment directly addresses the most important practical question: whether VSR helps before a legalizer.
-- The lambda=8 4-seed result and LOCO selection make the lambda story more concrete than before.
-- The expanded force-directed baseline on the full 24 trials is useful and shows VSR's HPWL advantage over simple repulsion/spring heuristics.
-- The statistical framing is improved: circuit-level n=6 testing is now clearly described as the primary conservative test, with seed-level n=24 relegated to the appendix.
-- The paper now avoids the earlier overclaim that the verifier is strictly non-differentiable; it correctly describes the signals as piecewise differentiable.
+- The paper is now substantially more honest about scope: VSR is clearly positioned as a repair/preconditioning layer, not a full legalizer.
+- The abstract now reports the most important negative downstream result: `VSR -> cd-sched` is not significant and both pipelines leave roughly 22k residual violations.
+- Reporting lambda=2 and lambda=8 side-by-side in Table 1 makes the lambda-controlled family much clearer.
+- The downstream pipeline test, cd-std sensitivity check, full 24-trial force-directed baseline, and 24-trial cg/RePaint comparisons meaningfully strengthen the empirical section.
+- The statistical framing is much improved: circuit-level n=6 testing is the primary conservative test, with seed-level n=24 treated only as a paired bootstrap.
+- The previous incorrect non-differentiability framing has been mostly fixed; the verifier is now described as piecewise differentiable.
 
 ## 3. Weaknesses
 
-- The main practical issue remains: even after VSR, the median residual violation count is still about 18k. This is far from a usable legal placement.
-- The new downstream pipeline result is positive but weak. `raw -> VSR(lambda=8) -> cd-sched` improves median residual violation reduction from -28.5% to -35.9% and full-design HPWL from +8.4% to +7.1%, but the gains are small and not consistently better per circuit.
-- The downstream pipeline still does not produce fully legal placements. Calling the experiment "decisive" is too strong; it only shows modest preconditioning benefit for one weak legalizer.
-- The post-pipeline macro-only HPWL is actually worse with VSR preconditioning: +226.2% versus +215.7% median. The paper should not overstate the quality benefit.
-- Full-design HPWL remains problematic. At lambda=8, VSR-post has median full-design HPWL +8.9%, with adaptec3 at +100.0% and adaptec4 at +30.3%.
-- The main table still uses lambda=2 even though LOCO and the lambda=8 table indicate lambda=8 is the better validated setting. The historical explanation is not a scientific reason.
-- Novelty remains limited. The method is a well-engineered combination of classical force-directed placement ingredients, not a fundamentally new constraint-handling method.
-- Baseline comparison to mature physical-design flows remains missing. DREAMPlace/RePlAce are dismissed as not directly applicable to macros-only output, but the practical claim ultimately requires comparison to a real placement/legalization pipeline.
-- The paper contains some stale or confusing material: the old seed-42 tuned-baseline sweep remains in the supplement even though a newer 24-trial sweep replaces it.
-- Some language is still too strong, especially "decisive downstream pipeline experiment" and "Pareto-superior" when several conclusions depend on medians and not consistent per-circuit dominance.
+- The main practical weakness remains severe: neither VSR nor VSR followed by ChipDiffusion's legalizer produces a fully legal placement on any of the 24 trials.
+- The downstream result is not significant and only modestly improves medians. It reduces median residual violations from 23,824 to 22,089 and full-design HPWL from +8.4% to +7.1%, but per-circuit wins are mixed.
+- The post-pipeline macros-only HPWL is worse with VSR preconditioning: +226.2% versus +215.7%. This undercuts any broad claim that VSR improves final placement quality.
+- Full-design HPWL remains problematic before downstream legalization: at lambda=8, VSR-post has median full-design HPWL +8.9%, with adaptec3 at +100.0% and adaptec4 at +30.3%.
+- The strongest comparisons are still against ChipDiffusion-specific legalizers and simple force-directed baselines. A mature external physical-design flow is missing.
+- The method's novelty is limited because the core ingredients are standard force-directed/legalization ideas.
+- The largest circuits are still excluded from diffusion sampling due to the ChipDiffusion backbone's memory behavior, so scalability remains unresolved.
+- The main claim that the VSR Pareto frontier "empirically dominates" ChipDiffusion's legalizer should be phrased carefully because full legality is never achieved and downstream gains are not significant.
 
 ## 4. Technical Soundness
 
-The repair operator is technically plausible and now specified more clearly. The force terms, clamping, degree normalization, and piecewise-differentiability discussion are reasonable.
+The repair operator is technically plausible and better specified than in earlier versions. The force terms, clamping, degree normalization, pairwise overlap signal, and lambda tradeoff are reasonable engineering choices.
 
-However, the technical contribution should be framed as a practical heuristic/preconditioner. The method does not solve legality, and the downstream legalizer experiment only partially supports the claim that VSR improves final outcomes. The strongest supported claim is: VSR can reduce overlap-related violations while preserving or improving macro-only HPWL better than simple force baselines and ChipDiffusion's released legalizer settings.
-
-The paper still needs more caution around statistical and median-based claims. With only 6 circuits, p-values are fragile, and median improvements can hide circuit-level regressions.
+The main limitation is not correctness of the heuristic; it is that the heuristic does not get close to solving the hard constraint. Reducing violations by about half is useful as a repair signal, but the resulting placements remain far from legal. The downstream experiment shows only weak evidence that this repair improves the final legalizer outcome.
 
 ## 5. Novelty & Significance
 
-The novelty is modest. The ingredients are classical: overlap repulsion, boundary correction, netlist springs, and masking. The more novel part is the empirical study of using these as a post-diffusion repair/preconditioning interface.
+Novelty is modest. The method combines classical overlap repulsion, boundary correction, netlist attraction, and offender masking. The diffusion-specific contribution is the empirical study of using these signals to repair diffusion outputs.
 
-The significance is improved by the downstream experiment, but not enough to make the method clearly impactful. The actual post-pipeline gains are small, and no tested pipeline reaches full legality.
+Significance is limited by practical utility. If the method does not produce legal placements and does not significantly improve a downstream legalizer, then its main value is diagnostic/preconditioning rather than a strong placement result.
 
 ## 6. Experimental Evaluation
 
-The evaluation is now substantially stronger than the previous versions. Important improvements include:
+The evaluation is now much stronger than previous versions. The paper now includes:
 
-- lambda=8 evaluated on the same 24 trials.
-- force-directed baselines evaluated on the same 24 trials.
-- cg/RePaint variants evaluated on the same 24 trials.
-- a downstream `VSR -> cd-sched` pipeline comparison.
-- residual violation counts reported.
+- lambda=2 and lambda=8 on the main 24-trial setup.
+- full 24-trial force-directed baselines.
+- full 24-trial cg/RePaint variants.
+- downstream `raw -> cd-sched` vs. `raw -> VSR -> cd-sched`.
+- cd-std downstream sensitivity.
+- residual violation counts and full legality rates.
 
-Remaining issues:
+Remaining problems:
 
-- The downstream result should be reported more conservatively: VSR helps median violation reduction by 7.4 percentage points and median full-design HPWL by 1.3 percentage points, but the per-circuit pattern is mixed.
-- The downstream legalizer is still ChipDiffusion's weak legalizer, which itself does not achieve legality. A standard legalizer or placement flow is still missing.
-- The largest circuits remain excluded from diffusion sampling due to backbone OOM.
-- Full-design HPWL results are mixed and sometimes severe.
-- The old seed-42 sweep should be removed or clearly marked as superseded to avoid confusion.
+- The downstream result is not statistically significant.
+- The downstream legalizers still fail to legalize every trial.
+- The improvement over raw downstream legalization is small in absolute terms.
+- No mature external legalization/placement-flow baseline is used.
+- Full-design HPWL contains severe outliers.
 
 ## 7. Clarity
 
-The paper is clearer and more defensible than before. Figure 1 now says "Repaired placement" rather than "Legal placement," and the verifier discussion is more accurate.
+The paper is much clearer than before. The abstract is now quite transparent about the downstream result being non-significant, which is good.
 
 Remaining clarity issues:
 
-- The phrase "decisive downstream pipeline experiment" is too strong for a modest median improvement.
-- The lambda=2 main-table choice remains confusing now that lambda=8 is validated.
-- The supplement has both old seed-42 tuned baselines and new 24-trial baseline sweeps; this should be cleaned up.
-- Some statements rely on cross-circuit medians while the per-circuit table shows mixed wins and losses.
+- The paper should avoid words like "dominates" unless carefully scoped to the reported metrics and not interpreted as final placement quality.
+- The lambda=2 statistical-test choice should be justified as a reference setting, while lambda=8 should be clearly identified as the recommended HPWL-priority setting.
+- The downstream pipeline section should be treated as a limitation/diagnostic result, not as strong validation.
 
 ## 8. Questions for Authors
 
-- Does `VSR -> cd-sched` achieve full legality on any trial? If not, how many residual violations remain after the pipeline?
-- Are the downstream improvements statistically significant at the circuit level?
-- Why is lambda=2 still the main result if lambda=8 is selected by LOCO and has better Pareto behavior?
-- Can the downstream pipeline be tested with a stronger external legalizer or real placement flow?
-- Why does VSR preconditioning improve median full-design HPWL only slightly while worsening macro-only HPWL after cd-sched?
-- Should the old seed-42 tuned-baseline table be removed now that 24-trial baseline sweeps are available?
-- How sensitive are downstream results to choosing cd-std versus cd-sched as the second-stage legalizer?
+- Can the authors test `VSR -> external legalizer` with a stronger placement/legalization flow, even on a subset of circuits?
+- Why does VSR preconditioning not significantly improve downstream residual violations or full-design HPWL?
+- What kinds of violations remain after VSR and after `VSR -> cd-sched`? Are they many tiny overlaps or large structural failures?
+- Would iterative VSR/legalizer alternation reduce the remaining 22k violations, or does the method plateau?
+- Are the downstream results different if the objective is overlap area rather than violation count?
+- How should a practitioner choose lambda if the target is final legal placement quality rather than pre-legalizer macro HPWL?
 
 ## 9. Suggestions for Improvement
 
-- Move lambda=8 to the main table or explicitly present VSR as a lambda-parametrized family, not a lambda=2 method.
-- Rename "decisive downstream pipeline experiment" to something more neutral, such as "downstream preconditioning experiment."
-- Report downstream residual violation counts and full legality rates explicitly.
-- Add circuit-level statistical tests for the downstream pipeline comparison.
-- Remove or demote the old seed-42 baseline sweep to avoid conflicting with the newer 24-trial sweep.
-- State clearly that the downstream benefit is modest and mixed per circuit.
-- If possible, add one external legalization/placement-flow comparison, even if only on the tractable circuits.
+- Reframe the paper's central claim as: "VSR is a lightweight repair/preconditioning operator that improves macro-only Pareto metrics, but current downstream legalization remains unresolved."
+- Add an error analysis of the residual 18k-22k violations: count, area, max overlap, and spatial clustering.
+- Add at least one stronger external legalization/placement-flow experiment if feasible.
+- If external legalization is infeasible, explicitly state that final placement usability is not established.
+- Add downstream significance tests and per-circuit win/loss summary directly beside the downstream table.
+- Replace broad "dominates" language with metric-specific language such as "improves macro-only violation/HPWL Pareto tradeoff relative to ChipDiffusion legalizer settings."
 
 ## 10. Overall Recommendation
 
 Score: 5/10.
 
-The latest version is meaningfully stronger and fixes several prior reviewer-level objections. However, the method still does not produce legal placements, the downstream benefit is modest, the novelty is limited, and the strongest practical experiment still relies on a weak legalizer that also fails to legalize. I would view this as a solid empirical workshop-style contribution or borderline conference paper, but not yet a strong NeurIPS acceptance.
+The paper is now much more rigorous and transparent. It has evolved into a defensible empirical study of diffusion-output repair. However, the core practical result remains weak: the method does not legalize, downstream legalizers still do not legalize, and the downstream benefit is small and statistically non-significant. This is likely a solid workshop or borderline conference contribution, but still not a strong NeurIPS acceptance.
 
 Confidence: 4/5.
 
-The paper now provides enough evidence to judge the contribution. My main concern is not missing implementation detail; it is that the demonstrated practical impact remains too small relative to the claims.
+The current version provides enough evidence to judge the work. The main concern is no longer missing experiments, but that the added experiments reveal limited practical impact.

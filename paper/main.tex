@@ -522,21 +522,24 @@ near-constant violation reduction.}
 \subsection{Downstream pipeline test}
 \label{sec:downstream_pipeline}
 
-We test whether \texttt{raw}$\to$\texttt{cd-sched} differs from
-\texttt{raw}$\to$\texttt{VSR}$\to$\texttt{cd-sched} on $24$ trials
-(Table~\ref{tab:supp-downstream-pipeline}).  Residual $v_\text{post}$
-median $23{,}824$ (raw) vs.\ $22{,}089$ (VSR); full legality $\mathbf{0/24}$
-either way; full-design $\Delta h$ median $+8.4\%$ vs.\ $+7.1\%$;
-\emph{post-pipeline macros-only} $\Delta h$ median $+215.7\%$ vs.\
-$+226.2\%$ --- VSR pre-pass slightly \emph{worsens} median macros-only
-HPWL after the legalizer.  Per-circuit wins (VSR-pre $<$ raw):
-residual $v$ $3/6$, full-design $\Delta h$ $2/6$, macros-only
-$\Delta h$ $4/6$.  Circuit-level paired Wilcoxon ($n{=}6$):
-$p_v{=}0.562$, $p_{h_f}{=}1.000$ --- not significant.  A cd-std
-sensitivity check (\S\ref{sec:supp-cdstd-pipeline}) gives the same
-conclusion.  \textbf{Honest reading:} the pipeline gain is mixed
-per-circuit, not significant on $n{=}6$, and neither pipeline reaches
-full legality.
+We test \texttt{raw}$\to$\texttt{legalizer} vs.\
+\texttt{raw}$\to$\texttt{VSR}$\to$\texttt{legalizer} for two
+second-stage legalizers.
+\textbf{cd-sched ($24$ trials)}: residual $v_\text{post}$ median
+$23.8$k (raw) vs.\ $22.1$k (VSR); $0/24$ legal; full-design $\Delta h$
+$+8.4\%$ vs.\ $+7.1\%$; per-circuit VSR-wins $3/6$; circuit Wilcoxon
+$p_v{=}0.562$ --- \emph{not} significant; cd-std consistent
+(\S\ref{sec:supp-cdstd-pipeline}).
+\textbf{DREAMPlace~\cite{dreamplace} ($12$ trials)}: built from source,
+run as legalize+detailed-place stage.  Median residual $20.3$k (raw)
+vs.\ $\mathbf{9.4}$k (VSR$\to$DP); $\Delta v{=}{-}38.5\%$ vs.\
+$\mathbf{{-}73.9\%}$; \textbf{per-trial wins $12/12$, per-circuit
+$6/6$}; circuit Wilcoxon $\mathbf{p_v{=}0.031}$
+(Table~\ref{tab:supp-dp-pipeline}).  Full legality $0/12$ either way.
+\textbf{Honest reading.} VSR's downstream value depends on the
+legalizer: small and not significant on cd-sched; large and
+significant on the strong external DREAMPlace ($v_\text{post}$
+halved, $12/12$ trials).  Neither pipeline reaches full legality.
 
 \paragraph{$\lambda{=}8$ on $4$ seeds (Q3, Q6).}  Macros-only median
 $\Delta h{=}{-}34.1\%$ at near-identical $\Delta v$ to $\lambda{=}2$;
@@ -648,29 +651,18 @@ the backbone prior more strongly.
 \subsection{Memory profile and limitations}
 \label{sec:limitations}
 
-We profile peak GPU memory of the full ChipDiffusion sampling pipeline (100
-denoising steps) on adaptec2 (control, 566 macros) and the two
-intractable circuits in fp32/bf16/fp16
-(Table~\ref{tab:supp-mem-profile} in supplement).  bigblue2 ($N{=}23$k)
-and bigblue4 ($N{=}8.2$k) OOM at $\geq 77$\,GB on an 80\,GB A800 in
-all three precisions; single-step forward is only $\sim 1$--$3$\,GB so
-the OOM is dominated by accumulated attention-graph activations across
-the $100$-step rollout.  VSR-post on synthetic baselines of the same
-circuits succeeds in $137$\,s / $941$\,s (bigblue4 / bigblue2) with
-negligible peak memory.
-
-% (Table moved to supplement: \ref{tab:supp-mem-profile}.)
-
-\paragraph{Limitations.}
-\textbf{Repair layer, not legalizer:} no method achieves $v{=}0$ on
-any of $24$ trials; median post-VSR violation $\sim 18$k.  A
-downstream classical legalizer is still required.
-\textbf{Backbone scope:} bigblue2/4 OOM is an artefact of
-ChipDiffusion's \texttt{guidance\_mode='opt'} sampler
-(\S\ref{sec:supp-mem}); only backbone tested.
-\textbf{Full-design HPWL:} median $+10.7\%$, adaptec3 alone $+73\%$
-(per-circuit in \S\ref{sec:downstream_pipeline}).  DREAMPlace / RePLACE
-target detailed-place on macro+cell inputs.
+bigblue2 ($N{=}23$k) and bigblue4 ($N{=}8.2$k) OOM at $\geq 77$\,GB on
+an $80$\,GB A800 in fp32/bf16/fp16; single-step forward is only
+$1$--$3$\,GB, so OOM is dominated by accumulated attention-graph
+activations across the $100$-step rollout (Table~\ref{tab:supp-mem-profile}).
+VSR-post on synthetic baselines succeeds at negligible memory
+($137$\,s / $941$\,s on bigblue4 / bigblue2): the OOM is a
+ChipDiffusion sampler artefact, not a VSR cost
+(\S\ref{sec:supp-mem}).
+\textbf{Other limitations:} no method achieves $v{=}0$ on any trial
+(downstream legalizer still required); single backbone tested;
+full-design HPWL median $+10.7\%$ (adaptec3 $+73\%$, per-circuit at
+$\lambda{=}8$ in \S\ref{sec:downstream_pipeline}).
 
 \bibliographystyle{plain}
 \bibliography{refs}
@@ -1040,6 +1032,48 @@ $7.4$pp more violations and gives slightly lower full-design HPWL.}
 circuit; $\lambda{=}8$ shifts macros-only HPWL strongly negative
 without changing residual violation magnitude vs.\ $\lambda{=}2$.}
 \label{tab:supp-lambda8-main}
+\end{table}
+
+\section{External legalizer pipeline: DREAMPlace}
+\label{sec:supp-dreamplace}
+
+To address the round-3 reviewer ask for a stronger external legalizer,
+we run DREAMPlace~\cite{dreamplace} (CUDA-accelerated analytical
+placer with detailed legalization) as the second-stage legalizer.  We
+build DREAMPlace from source against PyTorch~$2.8$ / CUDA~$12.8$ on
+the A800 instance, then for each (circuit, seed) trial:
+\begin{enumerate}
+\itemsep0pt
+\item Generate ChipDiffusion baseline (raw) and VSR-post($\lambda{=}8$)
+macro placements (paired with the round-2 setup).
+\item Build a Bookshelf input dir per treatment: original
+\texttt{.nodes/.nets/.scl/.wts}; \texttt{.pl} with macros at the
+treatment positions and standard cells at the industrial \texttt{.lg.pl}
+reference.
+\item Run DREAMPlace with \texttt{global\_place\_flag=0},
+\texttt{legalize\_flag=1}, \texttt{detailed\_place\_flag=1} (so it acts
+as a legalizer rather than a global placer; $T{\approx}15$--$45$\,s/trial).
+\item Read the post-legalization \texttt{.pl}, recompute residual
+violation count via the same verifier used elsewhere.
+\end{enumerate}
+We run $12$ trials ($6$ circuits $\times$ $2$ seeds).  Compute cost
+$\approx 16$ minutes A800.
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_dreamplace_pipeline}
+\caption{External legalizer pipeline (R-3 round / Q4).  raw $\to$
+DREAMPlace vs.\ raw $\to$ VSR($\lambda{=}8$) $\to$ DREAMPlace, on $12$
+trials (subset for cost).  VSR pre-conditioning more than halves
+median residual violations ($20.3$k $\to$ $9.4$k);
+\textbf{per-trial wins $12/12$, per-circuit wins $6/6$};
+circuit-level paired Wilcoxon $\mathbf{p_v{=}0.031}$.  Macros-only HPWL
+is not directly comparable post-DREAMPlace (DREAMPlace optimises a
+density+wirelength objective on the full design that re-places cells
+significantly).  Full legality remains $0/12$ under either pipeline.
+Raw rows: \texttt{results/vsr\_extra/dreamplace\_pipeline.json}.}
+\label{tab:supp-dp-pipeline}
 \end{table}
 
 \section{Sensitivity check: cd-std as second-stage legalizer (Q7)}

@@ -1,5 +1,40 @@
 # VSR-Place Development Log
 
+#### 2026-04-26 21:30 HKT — Phase 5 round 6: DREAMPlace external pipeline + multiple-comparison correction (#1+#2)
+**Context**: 用户两步骤要求: (1) Bonferroni/BH 多重检验校正; (2) DREAMPlace 作为外部 legalizer 的端到端 pipeline 实验。GPU 还开着。
+**Actions** (#1, ~30 min):
+- `compute_neurips_stats.py` 加 `adjust_pvalues()` 支持 Bonferroni + BH (FDR)
+- `emit_wilcoxon_table` 输出 raw + BH-adj + Bonferroni 三列 p-values
+- 主表 caption + §4.4 + §1 contribution + abstract 全部用 BH-adjusted p
+- 关键发现: 在 BH-adjusted under m=8 tests, n=6 ANOVA 测下，VSR-post vs cd-std/cd-sched 都 p_BH=0.044* (signif); Bonferroni 下任何 pair 都不 < 0.05 (n=6 太小)
+- 透明声明都报: raw / BH / Bonferroni (table_wilcoxon_circuit.tex)
+
+**Actions** (#2 DREAMPlace, ~3h: 大部分是编译):
+- 在远端编译 DREAMPlace from source (CUDA 12.8 / PyTorch 2.8 / GCC 11):
+  - `apt-get install bison flex swig libboost-all-dev tcl-dev`
+  - clone DREAMPlace + 5 个 submodules manually (Limbo, munkres-cpp, cub, pybind11, OpenTimer 都从 GitHub pull via ghfast.top)
+  - 修 CUDA_CUDA_LIBRARY: 软链 /usr/lib64/libcuda.so.595.58.03 → /usr/lib64/libcuda.so
+  - 修 ABI mismatch: -DCMAKE_CXX_ABI=1 (PyTorch 2.8 用新 ABI)
+  - cmake + make -j8 install OK (~15 min)
+  - 修 NumPy 2.0: `np.string_` → `np.bytes_` in PlaceDB.py (sed)
+  - pip install pybind11 cairocffi torch_optimizer ncg_optimizer
+  - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6 (miniconda libstdc++ 太老)
+- 写 `scripts/run_dreamplace_pipeline.py`: per (circuit, seed)，建 Bookshelf 工作目录，写 .pl with 自定义 macro 位置 + cells at .lg.pl，调 DREAMPlace as legalize+detailed_place stage
+- 写 `scripts/analyze_dreamplace_pipeline.py`: 聚合 → table_dreamplace_pipeline.tex
+- 跑 12 trials (6 circuits × 2 seeds × 2 treatments = 24 DREAMPlace 调用), ~16 min A800
+
+**🎯 关键 finding**:
+- raw → DREAMPlace median: Δv=−38.5%, v_post=20318
+- VSR(λ=8) → DREAMPlace median: **Δv=−73.9%, v_post=9401** (residual 减半!)
+- **Per-trial wins 12/12, per-circuit wins 6/6**
+- **Circuit-level paired Wilcoxon n=6: p_v=0.031** ← 显著!
+- vs cd-sched 同样测的 p=0.562 — 这是 DREAMPlace 作为强 legalizer 才显示出 VSR 的价值
+- Full legality 仍 0/12 (no method 实现 v=0)
+
+**Honest framing**: VSR's downstream value depends on the legalizer. cd-sched (weak) 上 gain 不显著，DREAMPlace (strong) 上 gain 大且显著。
+
+**Build**: main.pdf 18 页 (body 9), supplement.pdf 8 页, 0 undef refs.
+
 #### 2026-04-26 18:50 HKT — Phase 5 round 5 (Round-3 reviewer 5/10)
 **Context**: 用户更新 review 到 round 3 (5/10)。reviewer 主要 ask: (W4/Q5) 透明承认 VSR pre-pass slightly worsens macros-only HPWL post-pipeline (+226 vs +216); (W5) 直接讲 adaptec3/4 λ=8 full-HPWL 退化数字; (W9/S5/Q6) 删 supplement 老 seed-42 sweep（被 24-trial 取代）; (S6) per-circuit win/loss count; (Q7) cd-std vs cd-sched sensitivity；其他 W2/W4 残留软化语言。
 **Actions**:
