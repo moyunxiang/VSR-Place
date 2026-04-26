@@ -44,12 +44,13 @@ point, VSR reduces residual violations by a median $-55\%$ at
 $\lambda{=}2$ and $-52\%$ at $\lambda{=}8$ relative to the diffusion
 draft; strict Pareto improvement is $12/24$ at $\lambda{=}2$ and rises
 to $18/18$ on the lambda sweep at $\lambda{=}8$.  Conservative
-circuit-level paired Wilcoxon ($n{=}6$) shows VSR-post outperforms both
-ChipDiffusion legalizers on both metrics ($p<0.05$); against
-RePaint-binary the violation difference is significant ($p=0.031$) but
-HPWL is not ($p=0.075$); against classifier-guidance only violations
-are significant.  $p$-values are reported without multiple-comparison
-correction.  In a downstream pipeline test
+circuit-level paired Wilcoxon ($n{=}6$, BH-FDR adjusted across $m{=}8$
+comparisons) shows VSR-post still outperforms both ChipDiffusion
+legalizers on both metrics ($p_\text{BH}{=}0.044$);
+under highly conservative Bonferroni adjustment, no individual
+pairwise test reaches $p{<}0.05$ on $n{=}6$ (expected at this sample
+size).  Raw, BH-adjusted, and Bonferroni-adjusted $p$-values are all
+reported transparently.  In a downstream pipeline test
 (\texttt{raw}$\to$\texttt{cd-sched} vs.\
 \texttt{raw}$\to$\texttt{VSR}$\to$\texttt{cd-sched}, $24$ trials), the
 VSR pre-pass nudges medians in the right direction but the difference
@@ -117,15 +118,15 @@ careful to note that no method we test produces a fully legal placement
 violations \emph{and} shorter HPWL) on 12 of 24 (circuit, seed) pairs,
 vs.\ 0 of 24 for either legalizer.  At $\lambda{=}8$ this rises to
 $18/18$ in our extended sweep.
-\item Outperforms ChipDiffusion's legalizers on both metrics under
-conservative circuit-level paired Wilcoxon ($n=6$, $p<0.05$).
-The comparison to RePaint-binary is significant on violations
-($p=0.031$) but \emph{not} on HPWL ($p=0.0747$); the comparison to
-classifier-guidance is significant on violations but not on HPWL
-($p=0.25$).  We report all $p$-values transparently
-(Table~\ref{tab:wilcoxon}) and do not apply multiple-comparison
-correction across pairwise tests, so individual $p$-values should be
-read as marginal.
+\item Outperforms both ChipDiffusion legalizers on both metrics
+under conservative circuit-level paired Wilcoxon ($n{=}6$,
+BH-FDR-adjusted $p{=}0.044$ on each); against
+RePaint-binary the violation difference survives BH ($p_\text{BH}{=}0.044$)
+but HPWL does not ($p_\text{BH}{=}0.10$); against classifier-guidance
+only the violation axis is significant.  Under highly conservative
+Bonferroni control no individual test reaches $p{<}0.05$ on $n{=}6$;
+we report all three (raw, BH, Bonferroni) transparently
+(Table~\ref{tab:wilcoxon}).
 \end{itemize}
 
 We also explore an \emph{intra-sampling} variant: structured RePaint with
@@ -406,25 +407,28 @@ $\lambda{=}8$ result in \S\ref{sec:downstream_pipeline}).}
 
 \subsection{Statistical significance}
 
-We report \emph{circuit-level} paired Wilcoxon tests ($n=6$, mean over
-4 seeds within each circuit) as the conservative primary statistic, since
-circuit-to-circuit variance dominates seed-level variance on ISPD2005
-(absolute baseline HPWL spans 4 orders of magnitude across our 6 circuits).
-Table~\ref{tab:wilcoxon} reports both this circuit-level test and the
-seed-level paired bootstrap ($n=24$).
+Conservative circuit-level paired Wilcoxon ($n{=}6$, mean over $4$
+seeds per circuit), with $m{=}8$ comparisons adjusted by
+Benjamini--Hochberg (FDR) and Bonferroni (FWER)
+(Table~\ref{tab:wilcoxon}).  Under BH, VSR-post outperforms both CD
+legalizers on both metrics ($p_\text{BH}{=}0.044$); under Bonferroni
+no test reaches $p{<}0.05$ on $n{=}6$, expected at this sample size.
+The seed-level $n{=}24$ test (Table~\ref{tab:wilcoxon-seed}) gives
+much smaller $p$-values that survive Bonferroni for $\Delta v$, but
+treats seeds-within-circuit as paired draws rather than iid.
 
 \begin{table}[h]
 \centering
 \small
-\input{figures/table_wilcoxon_circuit}
-\caption{Circuit-level paired Wilcoxon, $n=6$ (mean over 4 seeds within each
-circuit).  $^{\star}$: $p<0.05$.  VSR-post outperforms both ChipDiffusion
-legalizers on both metrics; the comparison to classifier-guidance is
-significant on violations but \emph{not} on HPWL ($p=0.25$), which we
-report transparently.  The seed-level $n=24$ test (supplement
-Table~\ref{tab:wilcoxon-seed}) gives the same direction with smaller
-$p$-values, but treats seeds-within-a-circuit as paired bootstrap
-draws, not iid samples.}
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{\input{figures/table_wilcoxon_circuit}}
+\caption{Circuit-level paired Wilcoxon, $n{=}6$.  $^{\star}$: raw $p<0.05$.
+``BH-adj.'' is Benjamini--Hochberg FDR adjusted across the $m{=}8$
+comparisons in this table.  ``Bonferroni'' is the very conservative
+family-wise control.  Under BH, VSR-post outperforms both CD legalizers
+on both metrics; under Bonferroni nothing reaches $p_\text{Bonf}{<}0.05$
+on $n{=}6$.  The seed-level $n{=}24$ table is in the supplement
+(Table~\ref{tab:wilcoxon-seed}).}
 \label{tab:wilcoxon}
 \end{table}
 
@@ -656,25 +660,17 @@ circuits succeeds in $137$\,s / $941$\,s (bigblue4 / bigblue2) with
 negligible peak memory.
 
 % (Table moved to supplement: \ref{tab:supp-mem-profile}.)
-\end{table}
 
 \paragraph{Limitations.}
-\textbf{VSR is a repair layer, not a legalizer:} across all 24 trials,
-\emph{no} method we test achieves full legality ($v{=}0$).  Median
-post-VSR violation count is $\sim 18{,}000$ down from $\sim 39{,}000$.
-A downstream classical legalizer is still required for a usable layout.
-\textbf{Backbone scope:} bigblue2/4 OOM under
-\texttt{guidance\_mode='opt'} is an artefact of ChipDiffusion's
-sampler (\S\ref{sec:supp-mem}); a strict \texttt{no\_grad} path would
-not exhibit this.  \textbf{Single domain:} ChipDiffusion is the only
-backbone; toy 2D is the only cross-domain evidence.
-\textbf{Full-design HPWL on adaptec3:} median $+10.7\%$ vs.\ $+8.7\%$
-macros-only, but adaptec3 alone inflates $+73\%$ ($+18\%$ macros).
-The post-pipeline view (\S\ref{sec:downstream_pipeline}) softens but
-does not eliminate this gap.
-\textbf{Comparison scope:} DREAMPlace / RePLACE target detailed-place
-legalization on macro+cell inputs, not directly applicable to
-macros-only output.
+\textbf{Repair layer, not legalizer:} no method achieves $v{=}0$ on
+any of $24$ trials; median post-VSR violation $\sim 18$k.  A
+downstream classical legalizer is still required.
+\textbf{Backbone scope:} bigblue2/4 OOM is an artefact of
+ChipDiffusion's \texttt{guidance\_mode='opt'} sampler
+(\S\ref{sec:supp-mem}); only backbone tested.
+\textbf{Full-design HPWL:} median $+10.7\%$, adaptec3 alone $+73\%$
+(per-circuit in \S\ref{sec:downstream_pipeline}).  DREAMPlace / RePLACE
+target detailed-place on macro+cell inputs.
 
 \bibliographystyle{plain}
 \bibliography{refs}

@@ -338,48 +338,97 @@ def emit_full_table(summary, path):
                 ["vsr_post", "vsr_intra", "cd_std", "cd_sched", "cg_strong", "repaint_bin"])
 
 
-def emit_wilcoxon_table(stats, path):
+def adjust_pvalues(p_list, method="bh"):
+    """Adjust a list of p-values for multiple comparisons.
+
+    method == 'bonferroni': p_adj_i = min(1, m * p_i)  (m = number of tests)
+    method == 'bh': Benjamini-Hochberg FDR control.
+    Returns list aligned with input.
+    """
+    m = len(p_list)
+    if m == 0: return []
+    if method == "bonferroni":
+        return [min(1.0, p * m) for p in p_list]
+    # BH: sort, scale, then take running-min from the largest end
+    indexed = sorted(enumerate(p_list), key=lambda x: x[1])
+    adj = [None] * m
+    cur_min = 1.0
+    # Walk from largest to smallest p
+    for rank in range(m - 1, -1, -1):
+        idx, p = indexed[rank]
+        bh = p * m / (rank + 1)
+        cur_min = min(cur_min, bh)
+        adj[idx] = cur_min
+    return adj
+
+
+def emit_wilcoxon_table(stats, path, with_correction=True):
     """Format Wilcoxon paired-test table nicely.
 
     Accepts both seed-level (key 'n') and circuit-level (key 'n_circuits') formats.
+    If with_correction=True, adds Bonferroni and BH-adjusted p-value columns.
     """
     # Detect which n field is present
     sample_v = next(iter(stats.values()))
     n_key = "n" if "n" in sample_v else "n_circuits"
-    lines = [
-        r"\begin{tabular}{lrll}",
-        r"\toprule",
-        r"Comparison & $n$ & $p_{\Delta v}$ & $p_{\Delta h}$ \\",
-        r"\midrule",
-    ]
 
-    def fmt(p):
-        if p < 1e-3:
-            num = r"$<\!10^{-3}$"
-            stars = r"\,$^{\star\star\star}$"
-        elif p < 1e-2:
-            num = f"${p:.4f}$"
-            stars = r"\,$^{\star\star}$"
-        elif p < 5e-2:
-            num = f"${p:.4f}$"
-            stars = r"\,$^{\star}$"
-        else:
-            num = f"${p:.4f}$"
-            stars = r""
-        return num + stars
-
-    # Row ordering: put vsr_post comparisons first, then vsr_intra
+    # Row ordering: vsr_post comparisons first, then vsr_intra
     def sort_key(k):
         head = k.split("_vs_")[0]
         order = {"vsr_post": 0, "vsr_intra": 1}.get(head, 2)
         return (order, k)
 
-    for k in sorted(stats.keys(), key=sort_key):
-        v = stats[k]
-        a, b = k.split("_vs_")
-        nice = a.replace("_", "-") + r" vs.\ " + b.replace("_", "-")
-        n_val = v.get(n_key, v.get("n", v.get("n_circuits", 0)))
-        lines.append(f"{nice} & {n_val} & {fmt(v['dv']['p'])} & {fmt(v['dh']['p'])} \\\\")
+    keys = sorted(stats.keys(), key=sort_key)
+    raw_pv = [stats[k]["dv"]["p"] for k in keys]
+    raw_ph = [stats[k]["dh"]["p"] for k in keys]
+    bh_pv = adjust_pvalues(raw_pv, "bh") if with_correction else None
+    bh_ph = adjust_pvalues(raw_ph, "bh") if with_correction else None
+    bf_pv = adjust_pvalues(raw_pv, "bonferroni") if with_correction else None
+    bf_ph = adjust_pvalues(raw_ph, "bonferroni") if with_correction else None
+
+    def fmt(p, sig=True):
+        if sig and p < 1e-3:
+            return r"$<\!10^{-3}$\,$^{\star\star\star}$"
+        if sig and p < 1e-2:
+            return f"${p:.3f}$" + r"\,$^{\star\star}$"
+        if sig and p < 5e-2:
+            return f"${p:.3f}$" + r"\,$^{\star}$"
+        return f"${p:.3f}$"
+
+    if with_correction:
+        lines = [
+            r"\begin{tabular}{lr|ll|ll|ll}",
+            r"\toprule",
+            r" & & \multicolumn{2}{c|}{raw} & \multicolumn{2}{c|}{BH-adj.} & \multicolumn{2}{c}{Bonferroni} \\",
+            r"\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}",
+            r"Comparison & $n$ & $p_{\Delta v}$ & $p_{\Delta h}$ & $p_{\Delta v}$ & $p_{\Delta h}$ & $p_{\Delta v}$ & $p_{\Delta h}$ \\",
+            r"\midrule",
+        ]
+        for i, k in enumerate(keys):
+            v = stats[k]
+            a, b = k.split("_vs_")
+            nice = a.replace("_", "-") + r" vs.\ " + b.replace("_", "-")
+            n_val = v.get(n_key, v.get("n", v.get("n_circuits", 0)))
+            lines.append(
+                f"{nice} & {n_val} & "
+                f"{fmt(raw_pv[i])} & {fmt(raw_ph[i])} & "
+                f"{fmt(bh_pv[i])} & {fmt(bh_ph[i])} & "
+                f"{fmt(bf_pv[i], sig=False)} & {fmt(bf_ph[i], sig=False)} \\\\"
+            )
+    else:
+        lines = [
+            r"\begin{tabular}{lrll}",
+            r"\toprule",
+            r"Comparison & $n$ & $p_{\Delta v}$ & $p_{\Delta h}$ \\",
+            r"\midrule",
+        ]
+        for i, k in enumerate(keys):
+            v = stats[k]
+            a, b = k.split("_vs_")
+            nice = a.replace("_", "-") + r" vs.\ " + b.replace("_", "-")
+            n_val = v.get(n_key, v.get("n", v.get("n_circuits", 0)))
+            lines.append(f"{nice} & {n_val} & {fmt(raw_pv[i])} & {fmt(raw_ph[i])} \\\\")
+
     lines += [r"\bottomrule", r"\end{tabular}"]
     path.write_text("\n".join(lines) + "\n")
 

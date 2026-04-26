@@ -1,14 +1,16 @@
-\begin{tabular}{lrll}
+\begin{tabular}{lr|ll|ll|ll}
 \toprule
-Comparison & $n$ & $p_{\Delta v}$ & $p_{\Delta h}$ \\
+ & & \multicolumn{2}{c|}{raw} & \multicolumn{2}{c|}{BH-adj.} & \multicolumn{2}{c}{Bonferroni} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+Comparison & $n$ & $p_{\Delta v}$ & $p_{\Delta h}$ & $p_{\Delta v}$ & $p_{\Delta h}$ & $p_{\Delta v}$ & $p_{\Delta h}$ \\
 \midrule
-vsr-post vs.\ cd-sched & 6 & $0.0277$\,$^{\star}$ & $0.0277$\,$^{\star}$ \\
-vsr-post vs.\ cd-std & 6 & $0.0277$\,$^{\star}$ & $0.0277$\,$^{\star}$ \\
-vsr-post vs.\ cg-strong & 6 & $0.0277$\,$^{\star}$ & $0.2489$ \\
-vsr-post vs.\ repaint-bin & 6 & $0.0277$\,$^{\star}$ & $0.0747$ \\
-vsr-post vs.\ vsr-intra & 6 & $0.0277$\,$^{\star}$ & $0.6002$ \\
-vsr-intra vs.\ cd-std & 6 & $0.0464$\,$^{\star}$ & $0.0277$\,$^{\star}$ \\
-vsr-intra vs.\ cg-strong & 6 & $0.7532$ & $0.0277$\,$^{\star}$ \\
-vsr-intra vs.\ repaint-bin & 6 & $0.0747$ & $0.0277$\,$^{\star}$ \\
+vsr-post vs.\ cd-sched & 6 & $0.028$\,$^{\star}$ & $0.028$\,$^{\star}$ & $0.044$\,$^{\star}$ & $0.044$\,$^{\star}$ & $0.222$ & $0.222$ \\
+vsr-post vs.\ cd-std & 6 & $0.028$\,$^{\star}$ & $0.028$\,$^{\star}$ & $0.044$\,$^{\star}$ & $0.044$\,$^{\star}$ & $0.222$ & $0.222$ \\
+vsr-post vs.\ cg-strong & 6 & $0.028$\,$^{\star}$ & $0.249$ & $0.044$\,$^{\star}$ & $0.284$ & $0.222$ & $1.000$ \\
+vsr-post vs.\ repaint-bin & 6 & $0.028$\,$^{\star}$ & $0.075$ & $0.044$\,$^{\star}$ & $0.100$ & $0.222$ & $0.598$ \\
+vsr-post vs.\ vsr-intra & 6 & $0.028$\,$^{\star}$ & $0.600$ & $0.044$\,$^{\star}$ & $0.600$ & $0.222$ & $1.000$ \\
+vsr-intra vs.\ cd-std & 6 & $0.046$\,$^{\star}$ & $0.028$\,$^{\star}$ & $0.062$ & $0.044$\,$^{\star}$ & $0.371$ & $0.222$ \\
+vsr-intra vs.\ cg-strong & 6 & $0.753$ & $0.028$\,$^{\star}$ & $0.753$ & $0.044$\,$^{\star}$ & $1.000$ & $0.222$ \\
+vsr-intra vs.\ repaint-bin & 6 & $0.075$ & $0.028$\,$^{\star}$ & $0.085$ & $0.044$\,$^{\star}$ & $0.598$ & $0.222$ \\
 \bottomrule
 \end{tabular}
