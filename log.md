@@ -1,5 +1,26 @@
 # VSR-Place Development Log
 
+#### 2026-04-27 00:30 HKT — Phase 5 round 8: extra pipeline variants (λ=12/16, intra, FD+cd)
+**Context**: 用户问"还有什么 GPU 实验". 决定补全: VSR-post λ∈{12,16} 和 VSR-intra-soft 喂 DREAMPlace; FD-pure/spring 喂 cd-sched/cd-std.
+**Actions**:
+- 写 `scripts/run_extra_pipeline_variants.py`: per (circuit, seed) 24 trials
+  - 3 个 VSR 变体 (vsr12, vsr16, intra) → DREAMPlace
+  - 2 个 FD 变体 (fdpure, fdspring) → cd-sched + cd-std (4 个 cd 调用 / trial)
+- 跑 ~36 min A800
+
+**🔑 关键发现**:
+1. **VSR-post λ-family 在 DREAMPlace pipeline 上 plateau**: λ=8/12/16 都收敛到 ~10k v_post，diminishing returns past λ=8
+2. **VSR-intra-soft 不帮 DREAMPlace**: median v_post 20155 vs raw 20075，11/24 wins，**Wilcoxon p=1.0** (无任何提升!)
+   - 解释: intra 的 "diffusion-soft" placement 对 DP 的 grid-aligned legalizer 来说"困惑"，没 force-directed 那种明确的 macro positions
+3. **FD on cd-sched/cd-std**: ~−27% 到 −33% Δv，跟 vsr8 (~−36%/−35%) 数量级一致 - 这两个 weak legalizer 上所有 pre-conditioner 都不显著
+
+**Paper 更新**:
+- §sec:downstream_pipeline 加 7-pre-conditioner 比较: "VSR-post 家族 (λ∈{8,12,16}) 和 FD 全 p=0.031, VSR-intra-soft p=1.0"
+- 强调 VSR-intra-soft 是 outlier
+- 强调 VSR-post 独特价值在上游 macros-only Pareto，不在下游 residual
+
+**Build**: main.pdf 18 页 (body 9), 0 undef refs
+
 #### 2026-04-26 22:50 HKT — Phase 5 round 7: DREAMPlace 全 24 trials + FD baselines 比较
 **Context**: 用户问"还有什么 GPU 实验没跑". 决定扩展 DREAMPlace 实验: 12 → 24 trials (4 seeds), 加 FD-pure / FD+spring 作为 pre-conditioner baseline (回答"是 VSR 特殊还是任何 pre-conditioning 都帮 DREAMPlace?")
 **Actions**:

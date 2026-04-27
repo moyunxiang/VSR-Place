@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  26 APR 2026 22:53
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  27 APR 2026 23:16
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -624,11 +624,8 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 <figures/fig_step_budget.pdf, id=468, 786.25114pt x 278.08379pt>
 File: figures/fig_step_budget.pdf Graphic file (type pdf)
 <use figures/fig_step_budget.pdf>
-Package pdftex.def Info: figures/fig_step_budget.pdf  used on input line 575.
+Package pdftex.def Info: figures/fig_step_budget.pdf  used on input line 577.
 (pdftex.def)             Requested size: 377.60951pt x 133.55507pt.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
 
 
 [8 <./figures/fig_lambda_sweep.pdf> <./figures/fig_step_budget.pdf>]
@@ -637,7 +634,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 [9])
 
 [10] (./figures/table_wilcoxon.tex)
-Underfull \hbox (badness 3428) in paragraph at lines 717--722
+Underfull \hbox (badness 3428) in paragraph at lines 719--724
  []\T1/ptm/b/n/10 Attractive force $\OML/cmm/m/it/10 f[]$ \T1/ptm/b/n/10 (netli
 st).[] \T1/ptm/m/n/10 Hy-per-edges from ChipDif-fu-sion's \T1/cmtt/m/n/10 edge_
 index \T1/ptm/m/n/10 are pre-
@@ -648,7 +645,7 @@ index \T1/ptm/m/n/10 are pre-
 [11
 
 ] (./figures/table_component_ablation.tex)
-Underfull \hbox (badness 2460) in paragraph at lines 813--813
+Underfull \hbox (badness 2460) in paragraph at lines 815--815
 []\T1/ptm/m/n/10 Table 7: |Com-po-nent ab-la-tion, mean $\OMS/cmsy/m/n/10 ^^F$ 
 \T1/ptm/m/n/10 std over 18 (cir-cuit, seed) pairs. Raw data:
  []
@@ -659,7 +656,7 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 [12]
-Underfull \hbox (badness 3849) in paragraph at lines 886--893
+Underfull \hbox (badness 3849) in paragraph at lines 888--895
 \T1/ptm/m/n/10 chi-tec-ture: 3-layer GATv2 (heads$\OT1/cmr/m/n/10 = 4$\T1/ptm/m
 /n/10 , hidden$\OT1/cmr/m/n/10 = 128$\T1/ptm/m/n/10 , $\OMS/cmsy/m/n/10 ^^X \OT
 1/cmr/m/n/10 100$\T1/ptm/m/n/10 K pa-ram-e-ters), scale-
@@ -674,71 +671,71 @@ Underfull \vbox (badness 1496) has occurred while \output is active []
 <figures/fig7_convergence.pdf, id=679, 715.0972pt x 424.61511pt>
 File: figures/fig7_convergence.pdf Graphic file (type pdf)
 <use figures/fig7_convergence.pdf>
-Package pdftex.def Info: figures/fig7_convergence.pdf  used on input line 927.
+Package pdftex.def Info: figures/fig7_convergence.pdf  used on input line 929.
 (pdftex.def)             Requested size: 337.86465pt x 200.61874pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 961--981
+Underfull \hbox (badness 10000) in paragraph at lines 963--983
 []\T1/ptm/m/n/10 The big-blue2/4 OOM cited in the main pa-per is an arte-fact o
 f ChipDif-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 961--981
+Underfull \hbox (badness 10000) in paragraph at lines 963--983
 \T1/ptm/m/n/10 fu-sion's re-leased sam-pler, not a generic diffusion-inference 
 cost. The
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 961--981
+Underfull \hbox (badness 10000) in paragraph at lines 963--983
 \T1/cmtt/m/n/10 guidance_mode='opt' \T1/ptm/m/n/10 path goes through \T1/cmtt/m
 /n/10 reverse_guidance_opt_force \T1/ptm/m/n/10 in
  []
 
 
-Underfull \hbox (badness 3942) in paragraph at lines 961--981
+Underfull \hbox (badness 3942) in paragraph at lines 963--983
 \T1/ptm/m/n/10 (line 1517--1521), runs \T1/cmtt/m/n/10 grad_descent_steps\T1/pt
 m/m/n/10 =5 in-ner steps each call-ing \T1/cmtt/m/n/10 .backward()
  []
 
 
-Underfull \hbox (badness 2150) in paragraph at lines 961--981
+Underfull \hbox (badness 2150) in paragraph at lines 963--983
 \T1/ptm/m/n/10 (line 1532), and ad-di-tion-ally main-tains a learn-able \T1/cmt
 t/m/n/10 self.alpha \T1/ptm/m/n/10 pa-ram-e-ter with its own
  []
 
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <12> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 982.
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 984.
 (./figures/table_full_metrics.tex)
 
 [14 <./figures/fig7_convergence.pdf>]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1003.
+(hyperref)                removing `math shift' on input line 1005.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\lambda' on input line 1003.
+(hyperref)                removing `\lambda' on input line 1005.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1003.
+(hyperref)                removing `math shift' on input line 1005.
 
 (./figures/table_downstream_pipeline.tex) (./figures/table_lambda8_main.tex)
 
 [15]
-Underfull \hbox (badness 10000) in paragraph at lines 1051--1054
+Underfull \hbox (badness 10000) in paragraph at lines 1053--1056
 []\T1/ptm/m/n/10 Run DREAM-Place with \T1/cmtt/m/n/10 global_place_flag=0\T1/pt
 m/m/n/10 , \T1/cmtt/m/n/10 legalize_flag=1\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 2197) in paragraph at lines 1051--1054
+Underfull \hbox (badness 2197) in paragraph at lines 1053--1056
 \T1/cmtt/m/n/10 detailed_place_flag=1 \T1/ptm/m/n/10 (so it acts as a le-gal-iz
 er rather than a global placer;
  []
 
 (./figures/table_dreamplace_pipeline.tex)
-Overfull \hbox (182.40353pt too wide) in paragraph at lines 1--1074
+Overfull \hbox (182.40353pt too wide) in paragraph at lines 1--1076
  [][] 
  []
 
@@ -748,11 +745,11 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1100.
+(hyperref)                removing `math shift' on input line 1102.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1100.
+(hyperref)                removing `math shift' on input line 1102.
 
 (./figures/table_classical_legalizer_24.tex)
 
@@ -764,25 +761,25 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1134.
+(hyperref)                removing `math shift' on input line 1136.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\lambda' on input line 1134.
+(hyperref)                removing `\lambda' on input line 1136.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1134.
+(hyperref)                removing `math shift' on input line 1136.
 
 (./figures/table_lambda_loco.tex)
-Underfull \hbox (badness 6725) in paragraph at lines 1148--1148
+Underfull \hbox (badness 6725) in paragraph at lines 1150--1150
 []\T1/ptm/m/n/10 Table 18: |LOCO se-lec-tion on the $\OML/cmm/m/it/10 ^^U$\T1/p
 tm/m/n/10 -sweep. All 6 folds se-lect $[][]\OT1/cmr/m/n/10 8$\T1/ptm/m/n/10 ; h
 eld-out
  []
 
 
-Underfull \hbox (badness 3029) in paragraph at lines 1148--1148
+Underfull \hbox (badness 3029) in paragraph at lines 1150--1150
 \T1/ptm/m/n/10 test gives \T1/ptm/b/n/10 6/6 strict-Pareto im-prove-ment \T1/pt
 m/m/n/10 match-ing the per-circuit or-a-cle. Raw rows:
  []
@@ -794,7 +791,7 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 File: figures/fig8_timestep_sweep.pdf Graphic file (type pdf)
 <use figures/fig8_timestep_sweep.pdf>
 Package pdftex.def Info: figures/fig8_timestep_sweep.pdf  used on input line 11
-57.
+59.
 (pdftex.def)             Requested size: 337.86465pt x 119.28302pt.
 
 
@@ -848,7 +845,7 @@ nts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2025basic/texm
 f-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2025basic/texmf-dis
 t/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2025basic/texmf-dist/fon
 ts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (18 pages, 534844 bytes).
+Output written on main.pdf (18 pages, 534960 bytes).
 PDF statistics:
  1026 PDF objects out of 1200 (max. 8388607)
  512 compressed objects within 6 object streams

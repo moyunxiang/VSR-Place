@@ -532,18 +532,20 @@ $23.8$k (raw) vs.\ $22.1$k (VSR); $0/24$ legal; full-design $\Delta h$
 $+8.4\%$ vs.\ $+7.1\%$; per-circuit VSR-wins $3/6$; circuit Wilcoxon
 $p_v{=}0.562$ --- \emph{not} significant; cd-std consistent
 (\S\ref{sec:supp-cdstd-pipeline}).
-\textbf{DREAMPlace~\cite{dreamplace} ($24$ trials, $4$ pre-conditioners)}.
+\textbf{DREAMPlace~\cite{dreamplace} ($24$ trials, $7$ pre-conditioners)}.
 Median post-DP residual: raw $20$k, FD-pure $\mathbf{9.5}$k, FD+spring
-$9.8$k, VSR $9.9$k; circuit Wilcoxon ($n{=}6$): raw vs.\ VSR
-$p_v{=}0.031$, raw vs.\ FD-pure $p_v{=}0.031$, VSR vs.\ FD-pure
-$p_v{=}0.22$ (\emph{not} significant).  Full legality $0/24$ for all four
-(Table~\ref{tab:supp-dp-pipeline}).  \textbf{Honest reading.} On the
-strong external legalizer, \emph{any} pre-conditioning (VSR or
-classical FD) significantly halves the residual; VSR does not
-out-perform classical FD on this pipeline metric.  VSR's distinct value
-is in the upstream macros-only trade (Tables~\ref{tab:main},
-\ref{tab:wilcoxon}), not in post-DREAMPlace residual.  No pipeline
-reaches full legality.
+$9.8$k, VSR-post $\lambda\in\{8,12,16\}$ all $\sim 10$k, VSR-intra-soft
+$20.2$k.  Circuit Wilcoxon ($n{=}6$, raw vs.\ each): VSR-post family
+and FD baselines all $p_v{=}0.031$ ($24/24$ wins); VSR-intra-soft
+$p_v{=}1.0$ ($11/24$, no gain); VSR-post vs.\ FD-pure $p_v{=}0.22$
+(not significant).  $0/24$ legal under any pipeline
+(Table~\ref{tab:supp-dp-pipeline}).
+\textbf{Honest reading.}  On a strong legalizer, any force-directed
+repair (VSR-post or classical FD) halves residual at the same rate;
+VSR-intra-soft does not help DREAMPlace.  VSR-post's distinct value is
+upstream macros-only HPWL preservation
+(Tables~\ref{tab:main}, \ref{tab:wilcoxon}), not post-DP residual.
+No pipeline reaches full legality.
 
 \paragraph{$\lambda{=}8$ on $4$ seeds (Q3, Q6).}  Macros-only median
 $\Delta h{=}{-}34.1\%$ at near-identical $\Delta v$ to $\lambda{=}2$;
