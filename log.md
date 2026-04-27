@@ -1,5 +1,25 @@
 # VSR-Place Development Log
 
+#### 2026-04-28 02:00 HKT — Phase 5 round 9: 闭环 round-3 reviewer 剩余 Q3/Q4/Q6
+**Context**: 用户问"review的问题都做完了吗?". 重新看 review 发现还有几条没透：Q2 (why no significant downstream gain — 缺解释), Q3/S2 (violation error analysis), Q4 (iterative alternation), Q6 (practitioner λ guidance).
+**Actions**:
+- **Q3/S2 violation breakdown**: 写 `analyze_violation_breakdown.py`，从 full_metrics.json + round2_review.json 提取 (count, overlap_area, max_overlap, area/count) per method
+  - **Headlines**: baseline {36k count, 255k oa, 431 max}; VSR(λ=2) {18k, 83k, 293}; VSR(λ=8) {18k, 89k, 343}
+  - 结论: VSR 同时 halves count + area; max single-pair drops 32%; 剩余是 dispersed 不是 hot-spots
+  - paper §sec:supp-violation-breakdown 加表
+- **Q4 iterative VSR + cd_sched**: 写 `run_iterative_vsr_legalizer.py`，跑 24 trials × 3 alternations on A800 (~30 min)
+  - **🚨 关键发现**: VSR 和 cd_sched 是 antagonistic operators
+  - baseline 36779 → raw_cd 24856 → after_vsr_1 17904 → after_cd_1 24702 → vsr_2 16714 → cd_2 24684 → ...
+  - 系统 oscillates 在 ~17k (after VSR) ↔ ~24k (after cd_sched) 之间，不 plateau 到 0
+  - cd_sched 把 VSR 的 overlap 削减又添回去 (因为 cd_sched 优化的是 density 而非纯 overlap)
+  - 结论: method plateaus at ~17k after first VSR step; further iteration unhelpful
+  - paper §sec:supp-iterative 加表 + §sec:downstream_pipeline 加 cross-ref
+- **Q6 practitioner λ guidance**: §sec:lambda_sweep "Reporting both" 段加 guidance: macros-only target → LOCO-selected λ, λ∈[4,8] HPWL-priority, λ∈[1,2] legality-conservative; final-legal target → λ doesn't matter (downstream plateaus)
+- **Q2 explanation**: §sec:downstream_pipeline 加短解释: DREAMPlace's 5000-step optimiser strong attractor; ISPD2005 ~70% pair overlap pre-VSR makes residual structural (not local hot-spots, see §sec:supp-violation-breakdown)
+
+**Build**: main.pdf 19 页 (body 9, refs p10 line 0), 0 undef refs.
+**Compress**: §4.10 Intra-sampling prose 缩减；Limitations 改成 \paragraph{} 节省 subsection header
+
 #### 2026-04-27 00:30 HKT — Phase 5 round 8: extra pipeline variants (λ=12/16, intra, FD+cd)
 **Context**: 用户问"还有什么 GPU 实验". 决定补全: VSR-post λ∈{12,16} 和 VSR-intra-soft 喂 DREAMPlace; FD-pure/spring 喂 cd-sched/cd-std.
 **Actions**:
