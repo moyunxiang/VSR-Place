@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  26 APR 2026 22:53
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.28)  28 APR 2026 15:04
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -578,9 +578,9 @@ cal/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr
 usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/symbols/msam
 10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/sym
 bols/msbm10.pfb>
-Output written on supplement.pdf (8 pages, 418588 bytes).
+Output written on supplement.pdf (8 pages, 418985 bytes).
 PDF statistics:
- 878 PDF objects out of 1000 (max. 8388607)
+ 879 PDF objects out of 1000 (max. 8388607)
  258 compressed objects within 3 object streams
  44 named destinations out of 1000 (max. 500000)
  125 words of extra memory for PDF output out of 10000 (max. 10000000)

@@ -1,5 +1,24 @@
 # VSR-Place Development Log
 
+#### 2026-04-28 02:30 HKT — Phase 5 round 10: round-4 reviewer Priority Fixes (5 条一致性 bug)
+**Context**: 用户更新 review，列出 5 条 priority fixes (consistency bugs in paper)。
+**Actions**:
+- **Fix 1**: Table 1 现在只显示 λ=2 (regression)，重跑 `regen_round2_paper_tables.py` 恢复 λ-family layout，并修改 `compute_neurips_stats.py` 把它的 main table 输出重定向到 `table_main_neurips_lambda2only.tex` 防止再 overwrite
+- **Fix 2**: DREAMPlace trial-count consistency:
+  - 主 §4.6: "$24$ trials, $7$ pre-conditioners" ✓
+  - supplement §sec:supp-dreamplace: 改 "$12$ trials" → "$24$ trials, $7$ pre-conditioners, $168$ DREAMPlace runs"
+  - Table caption: 改 "four pre-conditioners" → "$7$ pre-conditioners"
+  - 重生成 `table_dreamplace_pipeline.tex` 显示全 7 个 pre-conditioners (raw, FD-pure, FD+spring, vsr8/12/16, intra) — 写 `regen_dp_full_table.py`
+- **Fix 3**: DREAMPlace reframe — 已 done in earlier rounds, 措辞核查无 "VSR 独特" claims
+- **Fix 4**: $0/24$ legal front-and-center:
+  - §sec:downstream_pipeline DP 段加 "$\mathbf{0/168}$ method-trials reach $v=0$"
+  - Table caption 加粗 "Full legality is $0/24$ under every pre-conditioner"
+  - Limitations 第一句 "$0/24$ legal on any trial"
+- **Fix 5**: BH/Bonferroni wording: 明确 "applied separately within each metric column ($m=8$ tests within Δv and $m=8$ within Δh, $16$ p-values total)"
+- **S6 core summary table**: 写 `regen_summary_table.py`, 生成 10-row table (raw, VSR, FD, raw→cd, VSR→cd, raw→DP, FD→DP, VSR→DP) showing median v_post + legality count → §sec:supp-core-summary
+
+**Build**: main.pdf 19 页 (body 9, refs p10 line 0), supplement.pdf 8 页, 0 undef refs
+
 #### 2026-04-28 02:00 HKT — Phase 5 round 9: 闭环 round-3 reviewer 剩余 Q3/Q4/Q6
 **Context**: 用户问"review的问题都做完了吗?". 重新看 review 发现还有几条没透：Q2 (why no significant downstream gain — 缺解释), Q3/S2 (violation error analysis), Q4 (iterative alternation), Q6 (practitioner λ guidance).
 **Actions**:

@@ -1,17 +1,19 @@
-\begin{tabular}{lr|rr|rr|rr|rr}
+\begin{tabular}{lr|rrrrrrr|c}
 \toprule
-& & \multicolumn{2}{c|}{raw} & \multicolumn{2}{c|}{FD-pure} & \multicolumn{2}{c|}{FD+spring} & \multicolumn{2}{c}{VSR ($\lambda{=}8$)} \\
-\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10}
-Circuit & $n$ & $v_\text{post}$ & $\Delta v$\% & $v_\text{post}$ & $\Delta v$\% & $v_\text{post}$ & $\Delta v$\% & $v_\text{post}$ & $\Delta v$\% \\
+& & \multicolumn{7}{c|}{$v_\text{post}$ after pre-conditioner $\to$ DREAMPlace} & legal \\
+\cmidrule(lr){3-9}
+Circuit & $n$ & raw & FD-pure & FD+spring & VSR$_{\lambda=8}$ & VSR$_{\lambda=12}$ & VSR$_{\lambda=16}$ & intra & (any) \\
 \midrule
-adaptec1 & 4 & $21001$ & $+5.9$ & $10040$ & $-49.4$ & $10191$ & $-48.6$ & $9771$ & $-50.7$ \\
-adaptec2 & 4 & $12510$ & $-62.8$ & $5818$ & $-82.7$ & $6270$ & $-81.4$ & $6022$ & $-82.1$ \\
-adaptec3 & 4 & $19150$ & $-51.2$ & $9050$ & $-77.0$ & $9355$ & $-76.2$ & $9982$ & $-74.6$ \\
-adaptec4 & 4 & $72200$ & $-31.5$ & $25846$ & $-75.5$ & $28181$ & $-73.3$ & $30455$ & $-71.1$ \\
-bigblue1 & 4 & $12476$ & $+13.7$ & $8325$ & $-24.1$ & $8170$ & $-25.5$ & $8277$ & $-24.6$ \\
-bigblue3 & 4 & $113538$ & $-34.5$ & $33109$ & $-80.9$ & $28608$ & $-83.5$ & $37386$ & $-78.4$ \\
+adaptec1 & 4 & $21001$ & $10040$ & $10191$ & $9771$ & $9966$ & $9816$ & $20822$ & 0/4 \\
+adaptec2 & 4 & $12510$ & $5818$ & $6270$ & $6022$ & $5097$ & $4663$ & $12430$ & 0/4 \\
+adaptec3 & 4 & $19150$ & $9050$ & $9355$ & $9982$ & $10867$ & $10775$ & $19488$ & 0/4 \\
+adaptec4 & 4 & $72200$ & $25846$ & $28181$ & $30455$ & $32281$ & $32362$ & $68190$ & 0/4 \\
+bigblue1 & 4 & $12476$ & $8325$ & $8170$ & $8277$ & $8783$ & $8795$ & $12443$ & 0/4 \\
+bigblue3 & 4 & $113538$ & $33109$ & $28608$ & $37386$ & $39204$ & $37987$ & $121651$ & 0/4 \\
 \midrule
-\textbf{median} & -- & $20075$ & $-33.0$ & $9545$ & $-76.2$ & $9773$ & $-74.7$ & $9876$ & $-72.8$ \\
-\multicolumn{10}{l}{Circuit-level paired Wilcoxon ($n{=}6$): raw vs.\ VSR $p_v=0.031$; raw vs.\ FD-pure $p_v=0.031$; raw vs.\ FD+spring $p_v=0.031$; VSR vs.\ FD-pure $p_v=0.219$.} \\
+\textbf{median} & -- & $20075$ & $9545$ & $9773$ & $9876$ & $10417$ & $10296$ & $20155$ & $0/168$ \\
+\midrule
+\multicolumn{10}{l}{\textbf{Wilcoxon} ($n{=}6$, paired vs.\ raw): FD-pure $p_v=0.031$; FD+spring $p_v=0.031$; VSR$_{8}$ $p_v=0.031$; VSR$_{12}$ $p_v=0.031$; VSR$_{16}$ $p_v=0.031$; intra $p_v=1.000$.} \\
+\multicolumn{10}{l}{\textbf{VSR$_{\lambda=8}$ vs.\ FD-pure} (paired): $p_v=0.219$ (not significant).} \\
 \bottomrule
 \end{tabular}

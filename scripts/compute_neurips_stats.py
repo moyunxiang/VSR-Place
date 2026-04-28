@@ -462,12 +462,12 @@ def main():
     print(f"Wrote {out_path}")
 
     PAPER_FIG.mkdir(parents=True, exist_ok=True)
-    emit_main_table(summary, PAPER_FIG / "table_main_neurips.tex")
+    emit_main_table(summary, PAPER_FIG / "table_main_neurips_lambda2only.tex")
     emit_full_table(summary, PAPER_FIG / "table_main_full.tex")
     emit_wilcoxon_table(stats, PAPER_FIG / "table_wilcoxon.tex")
     emit_wilcoxon_table(stat_tests_circuit_level(rows),
                         PAPER_FIG / "table_wilcoxon_circuit.tex")
-    print(f"Wrote {PAPER_FIG/'table_main_neurips.tex'} (slim)")
+    print(f"Wrote {PAPER_FIG/'table_main_neurips_lambda2only.tex'} (slim)")
     print(f"Wrote {PAPER_FIG/'table_main_full.tex'} (6-method)")
     print(f"Wrote {PAPER_FIG/'table_wilcoxon.tex'} (seed-level n=24)")
     print(f"Wrote {PAPER_FIG/'table_wilcoxon_circuit.tex'} (circuit-level n=6)")

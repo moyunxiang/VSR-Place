@@ -44,9 +44,10 @@ point, VSR reduces residual violations by a median $-55\%$ at
 $\lambda{=}2$ and $-52\%$ at $\lambda{=}8$ relative to the diffusion
 draft; strict Pareto improvement is $12/24$ at $\lambda{=}2$ and rises
 to $18/18$ on the lambda sweep at $\lambda{=}8$.  Conservative
-circuit-level paired Wilcoxon ($n{=}6$, BH-FDR adjusted across $m{=}8$
-comparisons) shows VSR-post still outperforms both ChipDiffusion
-legalizers on both metrics ($p_\text{BH}{=}0.044$);
+circuit-level paired Wilcoxon ($n{=}6$, BH-FDR adjusted within each
+metric column ($m{=}8$ comparisons per column, applied separately to
+$\Delta v$ and $\Delta h$)) shows VSR-post still outperforms both
+ChipDiffusion legalizers on both metrics ($p_\text{BH}{=}0.044$);
 under highly conservative Bonferroni adjustment, no individual
 pairwise test reaches $p{<}0.05$ on $n{=}6$ (expected at this sample
 size).  Raw, BH-adjusted, and Bonferroni-adjusted $p$-values are all
@@ -407,14 +408,23 @@ $\lambda{=}8$ result in \S\ref{sec:downstream_pipeline}).}
 \label{tab:strict_pareto}
 \end{table}
 
+A core-story summary
+(Table~\ref{tab:core_summary}, \S\ref{sec:supp-core-summary})
+collapses all treatments to median residual + full-legality count:
+\textbf{$0/24$ legal under every treatment}; force-directed
+pre-conditioning halves the raw count both alone and with DREAMPlace,
+but VSR is not unique downstream.
+
 \subsection{Statistical significance}
 
 Conservative circuit-level paired Wilcoxon ($n{=}6$, mean over $4$
-seeds per circuit), with $m{=}8$ comparisons adjusted by
-Benjamini--Hochberg (FDR) and Bonferroni (FWER)
-(Table~\ref{tab:wilcoxon}).  Under BH, VSR-post outperforms both CD
-legalizers on both metrics ($p_\text{BH}{=}0.044$); under Bonferroni
-no test reaches $p{<}0.05$ on $n{=}6$, expected at this sample size.
+seeds per circuit).  We adjust the $m{=}8$ pairwise comparisons
+\emph{separately within each metric column} ($\Delta v$ and $\Delta h$;
+$8$ tests per column, $16$ p-values total) by Benjamini--Hochberg
+(FDR) and Bonferroni (FWER) (Table~\ref{tab:wilcoxon}).  Under BH,
+VSR-post outperforms both CD legalizers on both metrics
+($p_\text{BH}{=}0.044$); under Bonferroni no test reaches $p{<}0.05$
+on $n{=}6$, expected at this sample size.
 The seed-level $n{=}24$ test (Table~\ref{tab:wilcoxon-seed}) gives
 much smaller $p$-values that survive Bonferroni for $\Delta v$, but
 treats seeds-within-circuit as paired draws rather than iid.
@@ -425,9 +435,11 @@ treats seeds-within-circuit as paired draws rather than iid.
 \setlength{\tabcolsep}{3pt}
 \resizebox{\linewidth}{!}{\input{figures/table_wilcoxon_circuit}}
 \caption{Circuit-level paired Wilcoxon, $n{=}6$.  $^{\star}$: raw $p<0.05$.
-``BH-adj.'' is Benjamini--Hochberg FDR adjusted across the $m{=}8$
-comparisons in this table.  ``Bonferroni'' is the very conservative
-family-wise control.  Under BH, VSR-post outperforms both CD legalizers
+``BH-adj.'' is Benjamini--Hochberg FDR adjusted \emph{per metric column}
+($m{=}8$ tests within $\Delta v$ and $m{=}8$ within $\Delta h$,
+applied independently; $16$ p-values total).  ``Bonferroni'' is the
+very conservative family-wise control with the same per-column
+$m{=}8$.  Under BH, VSR-post outperforms both CD legalizers
 on both metrics; under Bonferroni nothing reaches $p_\text{Bonf}{<}0.05$
 on $n{=}6$.  The seed-level $n{=}24$ table is in the supplement
 (Table~\ref{tab:wilcoxon-seed}).}
@@ -529,14 +541,15 @@ $23.8$k (raw) vs.\ $22.1$k (VSR); $0/24$ legal; full-design $\Delta h$
 $+8.4\%$ vs.\ $+7.1\%$; per-circuit VSR-wins $3/6$; circuit Wilcoxon
 $p_v{=}0.562$ --- \emph{not} significant; cd-std consistent
 (\S\ref{sec:supp-cdstd-pipeline}).
-\textbf{DREAMPlace~\cite{dreamplace} ($24$ trials, $7$ pre-conditioners)}.
-Median post-DP residual: raw $20$k, FD-pure $\mathbf{9.5}$k, FD+spring
-$9.8$k, VSR-post $\lambda\in\{8,12,16\}$ all $\sim 10$k, VSR-intra-soft
-$20.2$k.  Circuit Wilcoxon ($n{=}6$, raw vs.\ each): VSR-post family
-and FD baselines all $p_v{=}0.031$ ($24/24$ wins); VSR-intra-soft
-$p_v{=}1.0$ ($11/24$, no gain); VSR-post vs.\ FD-pure $p_v{=}0.22$
-(not significant).  $0/24$ legal under any pipeline
-(Table~\ref{tab:supp-dp-pipeline}).
+\textbf{DREAMPlace~\cite{dreamplace}} ($\mathbf{24}$ trials,
+$\mathbf{7}$ pre-conditioners, $168$ DREAMPlace runs).  All
+force-directed pre-conditioners halve median residual to
+$\sim 10$k vs.\ raw $20$k ($p_v{=}0.031$, $24/24$ wins each);
+VSR-intra-soft does not help ($\sim 20$k, $p_v{=}1.0$);
+VSR$_{\lambda=8}$ vs.\ FD-pure $p_v{=}0.22$ (not significant).
+\textbf{Full legality $0/168$ method-trials}
+(Table~\ref{tab:supp-dp-pipeline}, summary in
+Table~\ref{tab:core_summary}).
 \textbf{Honest reading.}  On a strong legalizer, any force-directed
 repair halves residual at the same rate; VSR-intra-soft does not help
 DREAMPlace.  VSR-post's distinct value is upstream macros-only HPWL
@@ -642,16 +655,12 @@ severity-weighted alternative by 28\,pp on $\Delta v$, evidence that the
 they overlap with) carries the constraint information---not the magnitude
 of the severity scalar.
 
-\subsection{Intra-sampling: when the backbone's wirelength prior helps}
+\paragraph{Intra-sampling.}
 \label{sec:intra_results}
-
-The intra-sampling variant repairs inside the diffusion schedule: a
-soft severity mask keeps low-severity macros near their forward-diffused
-original while high-severity macros are regenerated by the backbone,
-re-invoking its wirelength prior.  Timestep sweep
-$t_\text{start}\in\{0.1,...,0.7\}$ (Fig.~\ref{fig:supp-timestep}):
-modest on small circuits, dramatic on bigblue3
-(\textbf{$-34.5\%$ HPWL at $t_\text{start}{=}0.5$} at unchanged $\Delta v$).
+A soft-mask intra-sampling variant repairs inside the diffusion
+schedule; timestep sweep is modest on small circuits, dramatic on
+bigblue3 ($-34.5\%$ HPWL at $t_\text{start}{=}0.5$,
+Fig.~\ref{fig:supp-timestep}).
 
 \paragraph{Limitations.}
 \label{sec:limitations}
@@ -1034,43 +1043,39 @@ without changing residual violation magnitude vs.\ $\lambda{=}2$.}
 \section{External legalizer pipeline: DREAMPlace}
 \label{sec:supp-dreamplace}
 
-To address the round-3 reviewer ask for a stronger external legalizer,
-we run DREAMPlace~\cite{dreamplace} (CUDA-accelerated analytical
-placer with detailed legalization) as the second-stage legalizer.  We
-build DREAMPlace from source against PyTorch~$2.8$ / CUDA~$12.8$ on
-the A800 instance, then for each (circuit, seed) trial:
-\begin{enumerate}
-\itemsep0pt
-\item Generate ChipDiffusion baseline (raw) and VSR-post($\lambda{=}8$)
-macro placements (paired with the round-2 setup).
-\item Build a Bookshelf input dir per treatment: original
-\texttt{.nodes/.nets/.scl/.wts}; \texttt{.pl} with macros at the
-treatment positions and standard cells at the industrial \texttt{.lg.pl}
-reference.
-\item Run DREAMPlace with \texttt{global\_place\_flag=0},
-\texttt{legalize\_flag=1}, \texttt{detailed\_place\_flag=1} (so it acts
-as a legalizer rather than a global placer; $T{\approx}15$--$45$\,s/trial).
-\item Read the post-legalization \texttt{.pl}, recompute residual
-violation count via the same verifier used elsewhere.
-\end{enumerate}
-We run $12$ trials ($6$ circuits $\times$ $2$ seeds).  Compute cost
-$\approx 16$ minutes A800.
+We run DREAMPlace~\cite{dreamplace} (CUDA-accelerated analytical
+placer with detailed legalization) as the second-stage legalizer,
+built from source against PyTorch~$2.8$ / CUDA~$12.8$ on the A800
+instance.  For each (circuit, seed) trial we:
+(1)~generate ChipDiffusion baseline plus six pre-conditioners;
+(2)~build a Bookshelf input dir per treatment with macros at the
+pre-conditioner output and standard cells at the industrial
+\texttt{.lg.pl}; (3)~run DREAMPlace with \texttt{global\_place\_flag=0},
+\texttt{legalize\_flag=1}, \texttt{detailed\_place\_flag=1} (legalizer
+mode, no global re-placement; $T{\approx}15$--$45$\,s/trial); (4)~read
+the post-legalization \texttt{.pl} and recompute residual violation
+count with the same verifier used throughout the paper.
+\textbf{Setup:} all $\mathbf{24}$ trials ($6$ circuits $\times 4$
+seeds), \textbf{seven pre-conditioners} (raw, FD-pure, FD+spring,
+VSR-post at $\lambda{\in}\{8, 12, 16\}$, VSR-intra-soft) =
+$168$ DREAMPlace runs, $\approx 50$\,min A800.
 
 \begin{table}[h]
 \centering
-\small
-\input{figures/table_dreamplace_pipeline}
-\caption{External legalizer pipeline (Q4): four pre-conditioners
-(raw / FD-pure / FD+spring / VSR$\lambda{=}8$) each fed to DREAMPlace
-as the legalize+detailed-place stage, $24$ trials.  All three
-non-trivial pre-conditioners halve the median residual relative to
-raw ($\sim 9.5$k vs.\ $20$k); circuit-level paired Wilcoxon
-($n{=}6$): raw vs.\ each pre-conditioner $p_v{=}0.031$, but VSR vs.\
-FD-pure $p_v{=}0.22$ (not significant) --- VSR does not
-out-perform classical FD baselines on this pipeline metric.
-Macros-only HPWL is not comparable post-DREAMPlace (DREAMPlace
-optimises full-design density+wirelength).  Full legality $0/24$ for
-all four.}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{\input{figures/table_dreamplace_pipeline}}
+\caption{External legalizer pipeline.  All $24$ trials, $7$
+pre-conditioners.  All force-directed pre-conditioners (FD-pure,
+FD+spring, VSR-post at every $\lambda$) halve the median residual
+relative to raw ($\sim 9.5$--$10.4$k vs.\ $20$k);
+VSR-intra-soft does not help ($\sim 20$k, $p_v{=}1.0$ vs.\ raw).
+Among force-directed pre-conditioners, none is significantly better
+than another (VSR$_{\lambda=8}$ vs.\ FD-pure $p_v{=}0.22$).
+\textbf{Full legality is $0/24$ under every pre-conditioner};
+$\mathbf{0/168}$ method-trials ever reach $v{=}0$.  Macros-only HPWL
+is not comparable post-DREAMPlace (DREAMPlace optimises full-design
+density+wirelength on its own objective).}
 \label{tab:supp-dp-pipeline}
 \end{table}
 
@@ -1094,6 +1099,22 @@ nudges medians in the right direction but the difference is small in
 absolute terms.  Full legality remains $0/24$ under either pipeline.
 Raw rows: \texttt{results/vsr\_extra/cdstd\_pipeline.json}.}
 \label{tab:supp-cdstd-pipeline}
+\end{table}
+
+\section{Core-story summary (S6)}
+\label{sec:supp-core-summary}
+
+\begin{table}[h]
+\centering
+\small
+\input{figures/table_core_summary}
+\caption{Cross-circuit median residual $v_\text{post}$ and full
+legality count across every treatment in the paper.  $\mathbf{0/24}$
+fully legal under every treatment, including the strongest pipeline
+(DREAMPlace + any pre-conditioner).  Force-directed pre-conditioning
+(VSR-post or classical FD) roughly halves the raw count both alone
+and with DREAMPlace; the downstream gain is not unique to VSR.}
+\label{tab:core_summary}
 \end{table}
 
 \section{Iterative VSR + legalizer alternation (Q4): does the method plateau?}
